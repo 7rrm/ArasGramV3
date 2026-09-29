@@ -27,7 +27,8 @@ public class LauncherIconController {
         try {
             Context ctx = ApplicationLoader.applicationContext;
             int i = ctx.getPackageManager().getComponentEnabledSetting(icon.getComponentName(ctx));
-            return i == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || i == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && icon == LauncherIcon.BLUE;
+            return i == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                    || i == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && icon == LauncherIcon.BLUE;
         } catch (Throwable t) {
             FileLog.e(t);
             return false;
@@ -37,41 +38,53 @@ public class LauncherIconController {
     public static void setIcon(LauncherIcon icon) {
         Context ctx = ApplicationLoader.applicationContext;
         PackageManager pm = ctx.getPackageManager();
-        for (LauncherIcon i : LauncherIcon.values()) {
-            // MeeroX v210: never let one stubborn alias kill the rest of the
-            // switch (same MIUI class of failure as above).
+        // Disable every known launcher alias (visible + legacy hidden), then
+        // enable the one the user picked. Legacy keys stay in ALL_KEYS so a
+        // previously-selected Nagram/AR icon cannot remain on the home screen.
+        for (String key : ALL_KEYS) {
             try {
-                pm.setComponentEnabledSetting(i.getComponentName(ctx), i == icon ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED :
-                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                ComponentName cn = new ComponentName(ctx.getPackageName(), "org.telegram.messenger." + key);
+                boolean on = icon.key.equals(key);
+                pm.setComponentEnabledSetting(cn,
+                        on ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                           : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                        PackageManager.DONT_KILL_APP);
             } catch (Throwable t) {
                 FileLog.e(t);
             }
         }
     }
 
+    /** All activity-alias keys ever registered in the Manifest (including
+     *  removed AR/Nagram icons). Used only by setIcon() to force-disable
+     *  leftovers; they are NOT shown in the picker. */
+    private static final String[] ALL_KEYS = new String[] {
+            "DefaultIcon", "GoogleIcon", "ColorfulIcon", "DarkGreenIcon",
+            "NeonIcon", "NielloIcon", "DarkBlueIcon", "BlurBlueIcon",
+            "TelegramIcon", "VintageIcon", "AquaIcon", "PremiumIcon",
+            "TurboIcon", "NoxIcon", "BlueIcon",
+            "MeeroMBoldIcon", "MeeroMMarkerIcon", "MeeroMTileIcon", "MeeroMDuoIcon",
+    };
+
     public enum LauncherIcon {
-        DEFAULT("DefaultIcon", R.color.ic_launcher_nagram_background, R.drawable.ic_launcher_nagram_foreground, R.string.AppIconDefault),
-        GOOGLE("GoogleIcon", R.mipmap.icon_background_google, R.drawable.ic_launcher_nagram_google_foreground, R.string.AppIconGoogle),
-        COLORFUL("ColorfulIcon", R.mipmap.icon_background_colorful, R.drawable.ic_launcher_nagram_colorful_foreground, R.string.AppIconColorful),
-        DARKGREEN("DarkGreenIcon", R.mipmap.icon_background_darkgreen, R.drawable.ic_launcher_nagram_darkgreen_foreground, R.string.AppIconDarkGreen),
-        NEON("NeonIcon", R.mipmap.icon_background_neon, R.drawable.ic_launcher_nagram_neon_foreground, R.string.AppIconNeon),
-        NIELLO("NielloIcon", R.drawable.ic_launcher_nagram_round_niello_background, R.drawable.ic_launcher_nagram_round_niello_foreground, R.string.AppIconNiello),
-        BLUE("BlueIcon", R.color.nagram_block_round_background, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconBlue),
-        DARKBLUE("DarkBlueIcon", R.color.nagram_dark_blue_background, R.drawable.ic_launcher_nagram_dark_blue_foreground, R.string.AppIconDarkBlue),
-        BLURBLUE("BlurBlueIcon", R.drawable.ic_launcher_nagram_blur_blue_background, R.drawable.ic_launcher_nagram_blur_blue_foreground, R.string.AppIconBlurBlue),
+        // Official Telegram icons (kept)
         TELEGRAM("TelegramIcon", R.drawable.icon_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconTelegramOriginal),
         VINTAGE("VintageIcon", R.drawable.icon_6_background_sa, R.mipmap.icon_6_foreground_sa, R.string.AppIconVintage),
         AQUA("AquaIcon", R.drawable.icon_4_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconAqua),
         PREMIUM("PremiumIcon", R.drawable.icon_3_background_sa, R.mipmap.icon_3_foreground_sa, R.string.AppIconPremium),
         TURBO("TurboIcon", R.drawable.icon_5_background_sa, R.mipmap.icon_5_foreground_sa, R.string.AppIconTurbo),
         NOX("NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox),
-        // MeeroX v171 - the four M designs he ordered; titles live in the
-        // encrypted string vault (numeric vault id since v186 - even the
-        // title key names leave no readable trace in DEX)
-        MBOLD("MeeroMBoldIcon", R.color.meero_icon_dark_bg, R.drawable.meero_m_bold_foreground, 455),
-        MMARKER("MeeroMMarkerIcon", R.color.meero_icon_blue_bg, R.drawable.meero_m_marker_foreground, 456),
-        MTILE("MeeroMTileIcon", R.color.meero_icon_blue_bg, R.drawable.meero_m_tile_foreground, 457),
-        MDUO("MeeroMDuoIcon", R.color.meero_icon_dark_bg, R.drawable.meero_m_duo_foreground, 458);
+
+        // Default enabled alias (BlueIcon). Art = Aras Pink.
+        // background = full art for picker; adaptive home icon uses separate bg+fg via mipmap XML.
+        BLUE("BlueIcon", R.drawable.ic_launcher_nagram_blue_full, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconBlue),
+
+        // Four Aras icons — new BACKGROUND + FOREGROUND under res/drawable/.
+        // Reuse Meero*Icon alias keys so AndroidManifest stays untouched.
+        MBOLD("MeeroMBoldIcon", R.drawable.meero_m_bold_full, R.drawable.meero_m_bold_foreground, 455),
+        MMARKER("MeeroMMarkerIcon", R.drawable.meero_m_marker_full, R.drawable.meero_m_marker_foreground, 456),
+        MTILE("MeeroMTileIcon", R.drawable.meero_m_tile_full, R.drawable.meero_m_tile_foreground, 457),
+        MDUO("MeeroMDuoIcon", R.drawable.meero_m_duo_full, R.drawable.meero_m_duo_foreground, 458);
 
         public final String key;
         public final int background;
@@ -128,7 +141,9 @@ public class LauncherIconController {
         }
 
         public boolean isNekoX() {
-            return this == DEFAULT;
+            // Full-bleed Aras art: show background bitmap as-is in the picker
+            // (no outer-padding zoom / plane fg overlay).
+            return this == BLUE || this == MBOLD || this == MMARKER || this == MTILE || this == MDUO;
         }
     }
 }
