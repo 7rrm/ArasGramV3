@@ -409,7 +409,6 @@
     <string name="AppIconArasGold">ذهبي</string>
     <string name="AppIconArasK">K فاتح</string>
     <string name="AppIconArasKBlack">K داكن</string>
-    <string name="AppIconBlue">بنفسجي</string>
     <string name="LlmProviderGeminiKey">مفتاح Gemini</string>
     <string name="LlmSystemPrompt">تعليمات النظام</string>
     <string name="LlmSystemPromptHint">أنت مترجم محترف.</string>
