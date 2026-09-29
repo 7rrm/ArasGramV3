@@ -16,7 +16,7 @@ public class LauncherIconController {
             }
         }
 
-        setIcon(LauncherIcon.BLUE);
+        setIcon(LauncherIcon.MKBLACK);
     }
 
     public static boolean isEnabled(LauncherIcon icon) {
@@ -24,7 +24,7 @@ public class LauncherIconController {
             Context ctx = ApplicationLoader.applicationContext;
             int i = ctx.getPackageManager().getComponentEnabledSetting(icon.getComponentName(ctx));
             return i == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                    || i == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && icon == LauncherIcon.BLUE;
+                    || i == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && icon == LauncherIcon.MKBLACK;
         } catch (Throwable t) {
             FileLog.e(t);
             return false;
@@ -59,13 +59,13 @@ public class LauncherIconController {
 
     public enum LauncherIcon {
         // ---- Aras icons first (picker order) ----
-        // Default enabled alias
+        // Default enabled alias = K Dark
         BLUE("BlueIcon", R.drawable.ic_launcher_nagram_blue_full, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconArasPurple),
         MBOLD("MeeroMBoldIcon", R.drawable.meero_m_bold_full, R.drawable.meero_m_bold_foreground, R.string.AppIconArasPink),
         MMARKER("MeeroMMarkerIcon", R.drawable.meero_m_marker_full, R.drawable.meero_m_marker_foreground, R.string.AppIconArasCrimson),
         MTILE("MeeroMTileIcon", R.drawable.meero_m_tile_full, R.drawable.meero_m_tile_foreground, R.string.AppIconArasGold),
         MDUO("MeeroMDuoIcon", R.drawable.meero_m_duo_full, R.drawable.meero_m_duo_foreground, R.string.AppIconArasK),
-        MKBLACK("MeeroMKBlackIcon", R.drawable.meero_m_kblack_full, R.drawable.meero_m_kblack_foreground, R.string.AppIconArasKBlack),
+        MKBLACK("MeeroMKBlackIcon", R.drawable.meero_m_kblack_full, R.drawable.meero_m_kblack_foreground, R.string.AppIconArasKBlack), // default
 
         // ---- Official Telegram icons ----
         TELEGRAM("TelegramIcon", R.drawable.icon_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconTelegramOriginal),
