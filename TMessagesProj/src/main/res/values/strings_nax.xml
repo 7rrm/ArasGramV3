@@ -210,6 +210,12 @@
     <string name="OpenAiCredentialsNotSet">API credentials are not configured.</string>
     <string name="ApiNotSupportedOnAndroidVersion">This API provider is not supported on your Android version (requires Android 8.0+).</string>
     <string name="AppIconTelegramOriginal">Original</string>
+    <string name="AppIconArasPurple">Purple</string>
+    <string name="AppIconArasPink">Pink</string>
+    <string name="AppIconArasCrimson">Crimson</string>
+    <string name="AppIconArasGold">Gold</string>
+    <string name="AppIconArasK">K Light</string>
+    <string name="AppIconArasKBlack">K Dark</string>
     <string name="BurnTtlMessage">Burn</string>
     <string name="StreamMkvNax">Show MKV as Video</string>
     <string name="StreamAllVideoNax">Stream All Videos</string>

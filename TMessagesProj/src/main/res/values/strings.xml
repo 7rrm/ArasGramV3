@@ -5772,6 +5772,12 @@
     <string name="AppIconPremium">Premium</string>
     <string name="AppIconTurbo">Turbo</string>
     <string name="AppIconNox">Nox</string>
+    <string name="AppIconArasPurple">Purple</string>
+    <string name="AppIconArasPink">Pink</string>
+    <string name="AppIconArasCrimson">Crimson</string>
+    <string name="AppIconArasGold">Gold</string>
+    <string name="AppIconArasK">K Light</string>
+    <string name="AppIconArasKBlack">K Dark</string>
     <string name="AppIconChangedTo">App icon has been changed to %1$s</string>
     <string name="FileTooLarge">File Too Large</string>
     <string name="PremiumPreviewAppIcon">Premium App Icon</string>

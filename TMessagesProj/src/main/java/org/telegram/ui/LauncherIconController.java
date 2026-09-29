@@ -20,10 +20,6 @@ public class LauncherIconController {
     }
 
     public static boolean isEnabled(LauncherIcon icon) {
-        // MeeroX v210: on some ROMs (MIUI observed by the owner) resolving a
-        // launcher alias can throw (component not found / security), which
-        // crashed the whole chat-settings screen while SCROLLING the icon
-        // row. The picker must never die for a cosmetic probe.
         try {
             Context ctx = ApplicationLoader.applicationContext;
             int i = ctx.getPackageManager().getComponentEnabledSetting(icon.getComponentName(ctx));
@@ -38,9 +34,6 @@ public class LauncherIconController {
     public static void setIcon(LauncherIcon icon) {
         Context ctx = ApplicationLoader.applicationContext;
         PackageManager pm = ctx.getPackageManager();
-        // Disable every known launcher alias (visible + legacy hidden), then
-        // enable the one the user picked. Legacy keys stay in ALL_KEYS so a
-        // previously-selected Nagram/AR icon cannot remain on the home screen.
         for (String key : ALL_KEYS) {
             try {
                 ComponentName cn = new ComponentName(ctx.getPackageName(), "org.telegram.messenger." + key);
@@ -55,36 +48,32 @@ public class LauncherIconController {
         }
     }
 
-    /** All activity-alias keys ever registered in the Manifest (including
-     *  removed AR/Nagram icons). Used only by setIcon() to force-disable
-     *  leftovers; they are NOT shown in the picker. */
     private static final String[] ALL_KEYS = new String[] {
             "DefaultIcon", "GoogleIcon", "ColorfulIcon", "DarkGreenIcon",
             "NeonIcon", "NielloIcon", "DarkBlueIcon", "BlurBlueIcon",
             "TelegramIcon", "VintageIcon", "AquaIcon", "PremiumIcon",
             "TurboIcon", "NoxIcon", "BlueIcon",
             "MeeroMBoldIcon", "MeeroMMarkerIcon", "MeeroMTileIcon", "MeeroMDuoIcon",
+            "MeeroMKBlackIcon",
     };
 
     public enum LauncherIcon {
-        // Official Telegram icons (kept)
+        // ---- Aras icons first (picker order) ----
+        // Default enabled alias
+        BLUE("BlueIcon", R.drawable.ic_launcher_nagram_blue_full, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconArasPurple),
+        MBOLD("MeeroMBoldIcon", R.drawable.meero_m_bold_full, R.drawable.meero_m_bold_foreground, R.string.AppIconArasPink),
+        MMARKER("MeeroMMarkerIcon", R.drawable.meero_m_marker_full, R.drawable.meero_m_marker_foreground, R.string.AppIconArasCrimson),
+        MTILE("MeeroMTileIcon", R.drawable.meero_m_tile_full, R.drawable.meero_m_tile_foreground, R.string.AppIconArasGold),
+        MDUO("MeeroMDuoIcon", R.drawable.meero_m_duo_full, R.drawable.meero_m_duo_foreground, R.string.AppIconArasK),
+        MKBLACK("MeeroMKBlackIcon", R.drawable.meero_m_kblack_full, R.drawable.meero_m_kblack_foreground, R.string.AppIconArasKBlack),
+
+        // ---- Official Telegram icons ----
         TELEGRAM("TelegramIcon", R.drawable.icon_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconTelegramOriginal),
         VINTAGE("VintageIcon", R.drawable.icon_6_background_sa, R.mipmap.icon_6_foreground_sa, R.string.AppIconVintage),
         AQUA("AquaIcon", R.drawable.icon_4_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconAqua),
         PREMIUM("PremiumIcon", R.drawable.icon_3_background_sa, R.mipmap.icon_3_foreground_sa, R.string.AppIconPremium),
         TURBO("TurboIcon", R.drawable.icon_5_background_sa, R.mipmap.icon_5_foreground_sa, R.string.AppIconTurbo),
-        NOX("NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox),
-
-        // Default enabled alias (BlueIcon). Art = Aras Pink.
-        // background = full art for picker; adaptive home icon uses separate bg+fg via mipmap XML.
-        BLUE("BlueIcon", R.drawable.ic_launcher_nagram_blue_full, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconBlue),
-
-        // Four Aras icons — new BACKGROUND + FOREGROUND under res/drawable/.
-        // Reuse Meero*Icon alias keys so AndroidManifest stays untouched.
-        MBOLD("MeeroMBoldIcon", R.drawable.meero_m_bold_full, R.drawable.meero_m_bold_foreground, 455),
-        MMARKER("MeeroMMarkerIcon", R.drawable.meero_m_marker_full, R.drawable.meero_m_marker_foreground, 456),
-        MTILE("MeeroMTileIcon", R.drawable.meero_m_tile_full, R.drawable.meero_m_tile_foreground, 457),
-        MDUO("MeeroMDuoIcon", R.drawable.meero_m_duo_full, R.drawable.meero_m_duo_foreground, 458);
+        NOX("NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox);
 
         public final String key;
         public final int background;
@@ -117,8 +106,6 @@ public class LauncherIconController {
             this.premium = premium;
         }
 
-        /* v186 (batch 2D): M-icon titles by numeric vault id (long keeps the
-         *  overload distinct from the R.string int form). */
         LauncherIcon(String key, int background, int foreground, long vaultTitle) {
             this.key = key;
             this.background = background;
@@ -129,21 +116,29 @@ public class LauncherIconController {
             this.premium = false;
         }
 
-        /** title of the picker row - vault strings for the new M icons,
-         *  resource strings for legacy entries. */
         public String getTitle() {
             if (vaultTitle >= 0) {
-                return tw.nekomimi.nekogram.MeeroStrings.s(vaultTitle);
+                try {
+                    String s = tw.nekomimi.nekogram.MeeroStrings.s(vaultTitle);
+                    if (s != null && !s.isEmpty() && !s.contains("LOC_ERR") && !s.contains("null")) {
+                        return s;
+                    }
+                } catch (Throwable ignore) {}
             }
-            return titleKey != null
-                    ? tw.nekomimi.nekogram.MeeroStrings.s(titleKey)
-                    : org.telegram.messenger.LocaleController.getString(title);
+            if (titleKey != null) {
+                try {
+                    return tw.nekomimi.nekogram.MeeroStrings.s(titleKey);
+                } catch (Throwable ignore) {}
+            }
+            if (title != 0) {
+                return org.telegram.messenger.LocaleController.getString(title);
+            }
+            return key;
         }
 
         public boolean isNekoX() {
-            // Full-bleed Aras art: show background bitmap as-is in the picker
-            // (no outer-padding zoom / plane fg overlay).
-            return this == BLUE || this == MBOLD || this == MMARKER || this == MTILE || this == MDUO;
+            return this == BLUE || this == MBOLD || this == MMARKER
+                    || this == MTILE || this == MDUO || this == MKBLACK;
         }
     }
 }
