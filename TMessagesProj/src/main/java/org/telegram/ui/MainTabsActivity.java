@@ -1211,6 +1211,16 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             }
         } else if (id == NotificationCenter.needSetDayNightTheme) {
             clearAllHiddenFragments();
+            // MeeroX v-new: a live day/night switch left the glass bar and
+            // the standalone search pill on the previous theme's palette
+            // until the app was fully restarted. Earlier cures went through
+            // the getThemeDescriptions() delegate channel and proved
+            // unreliable on the user's device, so heal straight off the
+            // switch notification instead. Posted to the next frame so it
+            // runs after LaunchActivity has applied the new theme while
+            // dispatching this very notification, whatever the observer
+            // order turns out to be.
+            AndroidUtilities.runOnUIThread(this::meeroRefreshTabsAfterThemeSwitch);
         } else if (id == NotificationCenter.callTabsVisibleToggled) {
             final boolean callTabsVisible = getUserConfig().showCallsTab;
             checkUi_callTabVisible(callTabsVisible, true);
@@ -1452,6 +1462,15 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         if (tabsViewBackground != null) {
             tabsViewBackground.updateColors();
         }
+        // MeeroX: the standalone search pill beside the bar was left out of
+        // this refresh - only tabsViewBackground was updated, so on a live
+        // day/night switch the pill kept its old palette while the glyph
+        // inside repainted through the themed keys (white glyph on a light
+        // pill = invisible until the app was restarted). Give the pill's own
+        // glass the same treatment as the bar's.
+        if (meeroSearchTabBackground != null) {
+            meeroSearchTabBackground.updateColors();
+        }
         blur3_invalidateBlur();
         if (fadeView != null) {
             fadeView.invalidate();
@@ -1459,10 +1478,38 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         if (tabsView != null) {
             tabsView.invalidate();
         }
+        if (meeroSearchTabSeparate != null) {
+            meeroSearchTabSeparate.invalidate();
+        }
         if (tabs != null) {
             for (GlassTabView tabView : tabs) {
                 tabView.updateColorsLottie();
             }
+        }
+    }
+
+    /**
+     * MeeroX v-new: heals every custom surface this screen owns after a
+     * live day/night switch - the glass bar background, the standalone
+     * search pill glass, and the tab glyphs inside them. Runs from the
+     * needSetDayNightTheme notification (deferred one frame, after the new
+     * theme has actually been applied), NOT from the theme-description
+     * delegates, which never fired reliably for these views on the user's
+     * device - that is why the pill kept showing a white disc with a white
+     * magnifier after switching to night mode until the app was restarted.
+     */
+    private void meeroRefreshTabsAfterThemeSwitch() {
+        if (fragmentView == null) {
+            return;
+        }
+        blur3_updateColors();
+        // Forward to the visible page so the Meero dialogs header (Edit
+        // pill, compose/overflow capsule) heals in the same pass. The
+        // DialogsActivity page also observes the notification itself; the
+        // double coverage is intentional and idempotent.
+        final BaseFragment fragment = getCurrentVisibleFragment();
+        if (fragment instanceof DialogsActivity) {
+            ((DialogsActivity) fragment).meeroOnThemeSwitched();
         }
     }
 

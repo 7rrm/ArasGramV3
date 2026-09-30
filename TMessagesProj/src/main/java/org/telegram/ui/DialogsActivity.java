@@ -3045,6 +3045,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (!onlySelect) {
                 observersGroup.addGlobal(NotificationCenter.closeSearchByActiveAction);
                 observersGroup.addGlobal(NotificationCenter.proxySettingsChanged);
+                // MeeroX v-new: live day/night switches must rebuild the
+                // Meero dialogs header (glass pills + glyph tints) right
+                // after the new theme lands; see meeroOnThemeSwitched().
+                observersGroup.addGlobal(NotificationCenter.needSetDayNightTheme);
                 observersGroup.add(NotificationCenter.filterSettingsUpdated);
                 observersGroup.add(NotificationCenter.dialogsUnreadCounterChanged);
             }
@@ -10869,8 +10873,33 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      * theme change re-resolves the provider (its lambdas read the theme
      * live) while the rest of the bar repaints through its themed keys.
      */
+    /**
+     * MeeroX v-new: public entry point for the live day/night switch
+     * refresh. MainTabsActivity forwards here after healing its own bottom
+     * chrome, and this fragment observes the switch notification itself
+     * (see onFragmentCreate), so the header heals even when it is shown
+     * without the bottom bar. Callers are expected to defer to the next
+     * frame so the theme is already applied when this runs.
+     */
+    public void meeroOnThemeSwitched() {
+        if (fragmentView == null || actionBar == null) {
+            return;
+        }
+        meeroRefreshHeaderGlassColors();
+        // The folder capsules ride the same switch; their refresh also sat
+        // on the unreliable delegate channel, so re-run it here.
+        if (filterTabsView != null) {
+            filterTabsView.updateColors();
+        }
+    }
+
     private void meeroRefreshHeaderGlassColors() {
         try {
+            // v-new (user follow-up): drop every header glass drawable built
+            // under the previous palette first. The Edit pill below is
+            // rebuilt and re-added anyway, and without the clear() the list
+            // kept accumulating one dead drawable per theme switch.
+            meeroHeaderGlassDrawables.clear();
             // v132 (user follow-up): the capsule band heals with a plain
             // updateColors() because the menu repaints it manually every
             // frame, but the Edit pill is a plain View background and kept
@@ -10880,12 +10909,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             // with a fresh provider on every theme change. Cheap (theme
             // switches are rare) and correct by construction.
             meeroGlassPillHeaderButton(meeroEditItem);
-            for (int i = 0; i < meeroHeaderGlassDrawables.size(); i++) {
-                final BlurredBackgroundDrawable bg = meeroHeaderGlassDrawables.get(i);
-                if (bg != null) {
-                    bg.updateColors();
-                }
-            }
+            // v-new (user follow-up): the compose/overflow band caught the
+            // same disease the Edit pill had before v132 - after a live
+            // day/night switch the capsule kept the previous theme's glass
+            // (night-dark band on a light bar, and vice versa) until the app
+            // was restarted. Plain updateColors() on the old drawable was
+            // not enough here either, so apply the v132 cure to the band as
+            // well: rebuild it from scratch with a fresh provider. The
+            // layout work inside is idempotent, and createMenu() returns
+            // the already-attached menu, so re-running it is safe.
+            meeroGlassHeaderGroup();
             // v135: re-resolve the Edit label the EXACT way doneItem and
             // the header icons get theirs refreshed (see doneItem below) -
             // the washed-out day label survived every previous fix because
@@ -10893,6 +10926,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (meeroEditItem != null) {
                 meeroEditItem.setIconColor(getThemedColor(Theme.key_actionBarDefaultIcon));
             }
+            // v-new (user follow-up): the pencil and overflow glyphs carry
+            // a baked android:tint from the iOS vectors; the only thing
+            // that overrides it is the ImageView colour filter
+            // meeroTintHeaderIcon installs - and that was only ever run at
+            // construction, so after a live theme switch the two glyphs kept
+            // the previous theme's colour (white pens on a light bar).
+            // Re-run it here so the glyphs follow the bar.
+            meeroTintHeaderIcon(meeroComposeItem);
+            meeroTintHeaderIcon(optionsItem);
             if (actionBar != null) {
                 actionBar.invalidate();
             }
@@ -11496,7 +11538,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @SuppressWarnings("unchecked")
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.dialogsNeedReload) {
+        if (id == NotificationCenter.needSetDayNightTheme) {
+            // MeeroX v-new: deferred to the next frame so the refresh reads
+            // the freshly applied theme - LaunchActivity applies it while
+            // dispatching this very notification. Heals the Meero header
+            // glass and the Edit / compose / overflow glyph tints, which
+            // used to keep the previous theme's colors (inverted icons on
+            // the header) until the app was restarted.
+            AndroidUtilities.runOnUIThread(this::meeroOnThemeSwitched);
+        } else if (id == NotificationCenter.dialogsNeedReload) {
             if (viewPages == null || dialogsListFrozen) {
                 return;
             }
