@@ -18645,7 +18645,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             drawBookmarkInTime = showBookmarkInTime;
         }
         // bookmark end
-        final int editedDate = edited && currentMessagesGroup != null ? currentMessagesGroup.getMaxEditDate() : messageObject.messageOwner.edit_date;
+        int editedDate = edited && currentMessagesGroup != null ? currentMessagesGroup.getMaxEditDate() : messageObject.messageOwner.edit_date;
+        if (edited && editedDate == 0 && currentMessageObject.isEditing()) {
+            // Upstream 12.10.6: a message being edited has no edit_date yet.
+            editedDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
+        }
         if (currentMessageObject.isWelcomeMessage()) {
             timeString = ""; // Long.toString(currentMessageObject.getId());
         } else if (currentMessageObject.notime || currentMessageObject.isSponsored() || currentMessageObject.isQuickReply() || currentMessageObject.isWelcomeMessage()) {
