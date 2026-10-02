@@ -321,7 +321,7 @@
     <string name="AppIconDarkGreen">أخضر داكن</string>
     <string name="AppIconNeon">نيون</string>
     <string name="AppIconNiello">نييلو</string>
-    <string name="AppIconBlue">بنفسجي</string>
+    <string name="AppIconBlue">أزرق</string>
     <string name="AppIconDarkBlue">أزرق داكن</string>
     <string name="AppIconBlurBlue">أزرق ضبابي</string>
     <string name="InputMessageId">أدخل معرف الرسالة</string>
@@ -403,12 +403,6 @@
     <string name="LlmProviderCustom">مخصص</string>
     <string name="LlmProviderOpenAIKey">مفتاح OpenAI</string>
     <string name="AppIconTelegramOriginal">الأصلي</string>
-    <string name="AppIconArasPurple">بنفسجي</string>
-    <string name="AppIconArasPink">وردي</string>
-    <string name="AppIconArasCrimson">قرمزي</string>
-    <string name="AppIconArasGold">ذهبي</string>
-    <string name="AppIconArasK">K فاتح</string>
-    <string name="AppIconArasKBlack">K داكن</string>
     <string name="LlmProviderGeminiKey">مفتاح Gemini</string>
     <string name="LlmSystemPrompt">تعليمات النظام</string>
     <string name="LlmSystemPromptHint">أنت مترجم محترف.</string>
