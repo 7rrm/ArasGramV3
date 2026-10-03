@@ -322,6 +322,12 @@
     <string name="AppIconNeon">نيون</string>
     <string name="AppIconNiello">نييلو</string>
     <string name="AppIconBlue">أزرق</string>
+    <string name="AppIconArasPurple">بنفسجي</string>
+    <string name="AppIconArasPink">وردي</string>
+    <string name="AppIconArasCrimson">قرمزي</string>
+    <string name="AppIconArasGold">ذهبي</string>
+    <string name="AppIconArasK">K فاتح</string>
+    <string name="AppIconArasKBlack">K داكن</string>
     <string name="AppIconDarkBlue">أزرق داكن</string>
     <string name="AppIconBlurBlue">أزرق ضبابي</string>
     <string name="InputMessageId">أدخل معرف الرسالة</string>

@@ -5767,6 +5767,12 @@
     <string name="BioLimitSubtitle">Add more symbols and use links in your bio.</string>
     <string name="AppIcon">App Icon</string>
     <string name="AppIconDefault">Default</string>
+    <string name="AppIconArasPurple">Aras Purple</string>
+    <string name="AppIconArasPink">Aras Pink</string>
+    <string name="AppIconArasCrimson">Aras Crimson</string>
+    <string name="AppIconArasGold">Aras Gold</string>
+    <string name="AppIconArasK">Aras K Light</string>
+    <string name="AppIconArasKBlack">Aras K Dark</string>
     <string name="AppIconVintage">Vintage</string>
     <string name="AppIconAqua">Aqua</string>
     <string name="AppIconPremium">Premium</string>

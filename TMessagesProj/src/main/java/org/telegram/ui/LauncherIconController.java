@@ -10,13 +10,33 @@ import org.telegram.messenger.R;
 
 public class LauncherIconController {
     public static void tryFixLauncherIconIfNeeded() {
+        // MeeroX: أيقونة واحدة فقط تكون مفعّلة. عند التحديث قد يصير أكثر من
+        // alias مفعّلًا (مثلًا BlueIcon القديم + الافتراضية الجديدة)، وهذا يطلّع
+        // أيقونتين في اللانشر. القاعدة: نُبقي اختيار المستخدم إن وُجد، وإلا
+        // الافتراضية K الداكن.
+        LauncherIcon enabled = null;
+        int count = 0;
         for (LauncherIcon icon : LauncherIcon.values()) {
             if (isEnabled(icon)) {
-                return;
+                count++;
+                if (enabled == null) {
+                    enabled = icon;
+                }
             }
         }
-
-        setIcon(LauncherIcon.BLUE);
+        if (count == 1) {
+            return;
+        }
+        LauncherIcon target = LauncherIcon.MKBLACK;
+        if (count > 1) {
+            for (LauncherIcon icon : LauncherIcon.values()) {
+                if (isEnabled(icon) && icon != LauncherIcon.MKBLACK && icon != LauncherIcon.BLUE) {
+                    target = icon;
+                    break;
+                }
+            }
+        }
+        setIcon(target);
     }
 
     public static boolean isEnabled(LauncherIcon icon) {
@@ -27,7 +47,7 @@ public class LauncherIconController {
         try {
             Context ctx = ApplicationLoader.applicationContext;
             int i = ctx.getPackageManager().getComponentEnabledSetting(icon.getComponentName(ctx));
-            return i == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || i == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && icon == LauncherIcon.BLUE;
+            return i == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || i == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && icon == LauncherIcon.MKBLACK;
         } catch (Throwable t) {
             FileLog.e(t);
             return false;
@@ -50,13 +70,19 @@ public class LauncherIconController {
     }
 
     public enum LauncherIcon {
+        // ---- أيقونات Aras أولًا (٦) — الافتراضية K الداكن ----
+        BLUE("BlueIcon", R.drawable.ic_launcher_nagram_blue_bg, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconArasPurple),
+        MKBLACK("MeeroMKBlackIcon", R.drawable.meero_m_kblack_bg, R.drawable.meero_m_kblack_foreground, R.string.AppIconArasKBlack),
+        MBOLD("MeeroMBoldIcon", R.drawable.meero_m_bold_bg, R.drawable.meero_m_bold_foreground, R.string.AppIconArasPink),
+        MMARKER("MeeroMMarkerIcon", R.drawable.meero_m_marker_bg, R.drawable.meero_m_marker_foreground, R.string.AppIconArasCrimson),
+        MTILE("MeeroMTileIcon", R.drawable.meero_m_tile_bg, R.drawable.meero_m_tile_foreground, R.string.AppIconArasGold),
+        MDUO("MeeroMDuoIcon", R.drawable.meero_m_duo_bg, R.drawable.meero_m_duo_foreground, R.string.AppIconArasK);,
         DEFAULT("DefaultIcon", R.color.ic_launcher_nagram_background, R.drawable.ic_launcher_nagram_foreground, R.string.AppIconDefault),
         GOOGLE("GoogleIcon", R.mipmap.icon_background_google, R.drawable.ic_launcher_nagram_google_foreground, R.string.AppIconGoogle),
         COLORFUL("ColorfulIcon", R.mipmap.icon_background_colorful, R.drawable.ic_launcher_nagram_colorful_foreground, R.string.AppIconColorful),
         DARKGREEN("DarkGreenIcon", R.mipmap.icon_background_darkgreen, R.drawable.ic_launcher_nagram_darkgreen_foreground, R.string.AppIconDarkGreen),
         NEON("NeonIcon", R.mipmap.icon_background_neon, R.drawable.ic_launcher_nagram_neon_foreground, R.string.AppIconNeon),
         NIELLO("NielloIcon", R.drawable.ic_launcher_nagram_round_niello_background, R.drawable.ic_launcher_nagram_round_niello_foreground, R.string.AppIconNiello),
-        BLUE("BlueIcon", R.color.nagram_block_round_background, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconBlue),
         DARKBLUE("DarkBlueIcon", R.color.nagram_dark_blue_background, R.drawable.ic_launcher_nagram_dark_blue_foreground, R.string.AppIconDarkBlue),
         BLURBLUE("BlurBlueIcon", R.drawable.ic_launcher_nagram_blur_blue_background, R.drawable.ic_launcher_nagram_blur_blue_foreground, R.string.AppIconBlurBlue),
         TELEGRAM("TelegramIcon", R.drawable.icon_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconTelegramOriginal),
@@ -64,14 +90,7 @@ public class LauncherIconController {
         AQUA("AquaIcon", R.drawable.icon_4_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconAqua),
         PREMIUM("PremiumIcon", R.drawable.icon_3_background_sa, R.mipmap.icon_3_foreground_sa, R.string.AppIconPremium),
         TURBO("TurboIcon", R.drawable.icon_5_background_sa, R.mipmap.icon_5_foreground_sa, R.string.AppIconTurbo),
-        NOX("NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox),
-        // MeeroX v171 - the four M designs he ordered; titles live in the
-        // encrypted string vault (numeric vault id since v186 - even the
-        // title key names leave no readable trace in DEX)
-        MBOLD("MeeroMBoldIcon", R.color.meero_icon_dark_bg, R.drawable.meero_m_bold_foreground, 455),
-        MMARKER("MeeroMMarkerIcon", R.color.meero_icon_blue_bg, R.drawable.meero_m_marker_foreground, 456),
-        MTILE("MeeroMTileIcon", R.color.meero_icon_blue_bg, R.drawable.meero_m_tile_foreground, 457),
-        MDUO("MeeroMDuoIcon", R.color.meero_icon_dark_bg, R.drawable.meero_m_duo_foreground, 458);
+        NOX("NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox),;
 
         public final String key;
         public final int background;
