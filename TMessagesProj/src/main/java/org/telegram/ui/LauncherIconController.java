@@ -10,10 +10,10 @@ import org.telegram.messenger.R;
 
 public class LauncherIconController {
     public static void tryFixLauncherIconIfNeeded() {
-        // MeeroX: أيقونة واحدة فقط تكون مفعّلة. عند التحديث قد يصير أكثر من
-        // alias مفعّلًا (مثلًا BlueIcon القديم + الافتراضية الجديدة)، وهذا يطلّع
-        // أيقونتين في اللانشر. القاعدة: نُبقي اختيار المستخدم إن وُجد، وإلا
-        // الافتراضية K الداكن.
+        // MeeroX: exactly one launcher alias may be enabled. After an update
+        // more than one can end up enabled (e.g. the old BlueIcon plus the new
+        // default), which shows two icons in the launcher. Rule: keep the user
+        // pick when there is one, otherwise fall back to the K Dark default.
         LauncherIcon enabled = null;
         int count = 0;
         for (LauncherIcon icon : LauncherIcon.values()) {
@@ -70,13 +70,13 @@ public class LauncherIconController {
     }
 
     public enum LauncherIcon {
-        // ---- أيقونات Aras أولًا (٦) — الافتراضية K الداكن ----
+        // ---- Aras icons first (6) - default is K Dark ----
         BLUE("BlueIcon", R.drawable.ic_launcher_nagram_blue_bg, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconArasPurple),
         MKBLACK("MeeroMKBlackIcon", R.drawable.meero_m_kblack_bg, R.drawable.meero_m_kblack_foreground, R.string.AppIconArasKBlack),
         MBOLD("MeeroMBoldIcon", R.drawable.meero_m_bold_bg, R.drawable.meero_m_bold_foreground, R.string.AppIconArasPink),
         MMARKER("MeeroMMarkerIcon", R.drawable.meero_m_marker_bg, R.drawable.meero_m_marker_foreground, R.string.AppIconArasCrimson),
         MTILE("MeeroMTileIcon", R.drawable.meero_m_tile_bg, R.drawable.meero_m_tile_foreground, R.string.AppIconArasGold),
-        MDUO("MeeroMDuoIcon", R.drawable.meero_m_duo_bg, R.drawable.meero_m_duo_foreground, R.string.AppIconArasK);,
+        MDUO("MeeroMDuoIcon", R.drawable.meero_m_duo_bg, R.drawable.meero_m_duo_foreground, R.string.AppIconArasK),
         DEFAULT("DefaultIcon", R.color.ic_launcher_nagram_background, R.drawable.ic_launcher_nagram_foreground, R.string.AppIconDefault),
         GOOGLE("GoogleIcon", R.mipmap.icon_background_google, R.drawable.ic_launcher_nagram_google_foreground, R.string.AppIconGoogle),
         COLORFUL("ColorfulIcon", R.mipmap.icon_background_colorful, R.drawable.ic_launcher_nagram_colorful_foreground, R.string.AppIconColorful),
@@ -90,7 +90,7 @@ public class LauncherIconController {
         AQUA("AquaIcon", R.drawable.icon_4_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconAqua),
         PREMIUM("PremiumIcon", R.drawable.icon_3_background_sa, R.mipmap.icon_3_foreground_sa, R.string.AppIconPremium),
         TURBO("TurboIcon", R.drawable.icon_5_background_sa, R.mipmap.icon_5_foreground_sa, R.string.AppIconTurbo),
-        NOX("NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox),;
+        NOX("NoxIcon", R.mipmap.icon_2_background_sa, R.mipmap.icon_foreground_sa, R.string.AppIconNox);
 
         public final String key;
         public final int background;
