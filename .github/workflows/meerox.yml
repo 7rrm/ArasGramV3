@@ -1,5 +1,8 @@
 name: MeeroX Build
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -189,6 +192,32 @@ jobs:
           name: MeeroX-apk
           path: out/*
           retention-days: 30
+
+      - name: Publish direct-download APK (release)
+        # ينشر الـ APK على صفحة الإصدارات باسم ثابت، فيصير رابط التنزيل
+        # على الموبايل ثابتًا وبدون أي zip أو فك ضغط:
+        # https://github.com/<owner>/<repo>/releases/download/meerox-latest/ArasGram-latest-arm64-v8a.apk
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          APK=$(ls out/*.apk | head -1)
+          [ -n "$APK" ] || { echo "no apk in out/"; exit 1; }
+          cp "$APK" out/ArasGram-latest-arm64-v8a.apk
+          SHA=$(sha256sum out/ArasGram-latest-arm64-v8a.apk | awk '{print $1}')
+          SIZE=$(stat -c%s out/ArasGram-latest-arm64-v8a.apk)
+          echo "asset sha256: $SHA"
+          NOTES=$(printf 'تنزيل مباشر لأحدث بناء من فرع dev — ملف APK جاهز للتثبيت، بدون فك ضغط.\n\n- الملف الأصلي: %s\n- SHA-256: %s\n- الحجم: %s بايت\n- الكوميت: %s\n- التشغيل: %s\n' \
+            "$(basename "$APK")" "$SHA" "$SIZE" "$GITHUB_SHA" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID")
+          if gh release view meerox-latest >/dev/null 2>&1; then
+            gh release edit meerox-latest --notes "$NOTES" --target "$GITHUB_SHA" --latest || \
+            gh release edit meerox-latest --notes "$NOTES" --latest
+          else
+            gh release create meerox-latest --title "أحدث بناء — تنزيل مباشر" --notes "$NOTES" --target "$GITHUB_SHA" --latest
+          fi
+          gh release upload meerox-latest out/ArasGram-latest-arm64-v8a.apk --clobber
+          echo "رابط التنزيل: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/meerox-latest/ArasGram-latest-arm64-v8a.apk"
 
       - name: Upload log on failure
         if: failure()
