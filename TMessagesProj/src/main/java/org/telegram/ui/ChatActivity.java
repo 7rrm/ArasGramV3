@@ -15833,7 +15833,9 @@ public class ChatActivity extends BaseFragment implements
             quoteStart = draft.length();
             draft.append(quoteText);
             quoteEnd = draft.length();
-            draft.append("\n\n");
+            // Keep a visible blank line between the blockquote and the user's reply,
+            // including when the quoted text wraps across many lines.
+            draft.append("\n\n\n");
         }
         if (existingText != null) {
             draft.append(existingText);
