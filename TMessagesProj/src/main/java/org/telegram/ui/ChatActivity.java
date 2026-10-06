@@ -5547,11 +5547,6 @@ public class ChatActivity extends BaseFragment implements
                         slidingView = view;
                         MessageObject message = getSlidingMessageObject();
                         boolean allowReplyOnOpenTopic = canSendMessageToTopic(message);
-                        if (message != null && message.isAyuDeleted()) {
-                            slidingViewSetOffset(0);
-                            slidingView = null;
-                            return;
-                        }
                         if (
                             chatMode != 0 && chatMode != MODE_QUICK_REPLIES && chatMode != MODE_SUGGESTIONS && (chatMode != MODE_SAVED || threadMessageId != getUserConfig().getClientUserId()) ||
                             threadMessageObjects != null && threadMessageObjects.contains(message) ||
@@ -5644,7 +5639,7 @@ public class ChatActivity extends BaseFragment implements
                             fragment.setDelegate(ChatActivity.this);
                             presentFragment(fragment);
                         } else {
-                            showFieldPanelForReply(getSlidingMessageObject());
+                            showReplyForMessage(getSlidingMessageObject());
                         }
                     }
                     endTrackingX = slidingViewGetOffsetX();
@@ -15810,6 +15805,17 @@ public class ChatActivity extends BaseFragment implements
 
     public void showFieldPanelForReply(MessageObject messageObjectToReply) {
         showFieldPanel(true, messageObjectToReply, null, null, null, true, 0, null, false, 0, true);
+    }
+
+    private void showReplyForMessage(MessageObject messageObjectToReply) {
+        if (messageObjectToReply != null && messageObjectToReply.isAyuDeleted()) {
+            ReplyQuote quote = ReplyQuote.from(messageObjectToReply);
+            if (quote != null && !TextUtils.isEmpty(quote.text)) {
+                showFieldPanelForReplyQuote(messageObjectToReply, quote);
+                return;
+            }
+        }
+        showFieldPanelForReply(messageObjectToReply);
     }
 
     private Runnable onHideFieldPanelRunnable;
@@ -35927,7 +35933,7 @@ public class ChatActivity extends BaseFragment implements
                     fragment.setDelegate(this);
                     presentFragment(fragment);
                 } else {
-                    showFieldPanelForReply(selectedObject);
+                    showReplyForMessage(selectedObject);
                 }
                 break;
             }
@@ -49033,7 +49039,6 @@ public class ChatActivity extends BaseFragment implements
         boolean isAyuDeleted = message.isAyuDeleted();
 
         if (isAyuDeleted) {
-            allowChatActions = false;
             allowPin = false;
             allowUnpin = false;
             allowEdit = false;
@@ -49046,6 +49051,7 @@ public class ChatActivity extends BaseFragment implements
         boolean allowCopyLinkPm = false;
         boolean allowDelete = false;
         boolean allowReply = false;
+        boolean allowReplyToAyuDeleted = false;
         boolean allowReplyPm = false;
         boolean allowForward = false;
 
@@ -49085,6 +49091,13 @@ public class ChatActivity extends BaseFragment implements
         }
 
         if (currentChat != null && (!ChatObject.canSendMessages(currentChat))) {
+            allowChatActions = false;
+        }
+
+        // Preserve the normal send-permission checks for deleted-message replies,
+        // while keeping every other chat action disabled for these messages.
+        allowReplyToAyuDeleted = isAyuDeleted && allowChatActions && !message.messageOwner.noforwards && !isPeerNoForwards() && getDialogId() != UserObject.VERIFY;
+        if (isAyuDeleted) {
             allowChatActions = false;
         }
 
@@ -49274,7 +49287,7 @@ public class ChatActivity extends BaseFragment implements
                         icons.add(R.drawable.msg_fave);
                     }
                 }
-                if (((allowChatActions || isEphemeralFromBot) || !noforwardsOrPaidMedia && ChatObject.isChannelAndNotMegaGroup(currentChat) && !selectedObject.isSponsored() && selectedObject.contentType == 0 && chatMode == MODE_DEFAULT) && !isInsideContainer && (primaryMessage == null || !primaryMessage.isWelcomeMessage()) && chatMode != MODE_WELCOME_MESSAGES && !isAyuDeleted) {
+                if (((allowChatActions || allowReplyToAyuDeleted || isEphemeralFromBot) || !noforwardsOrPaidMedia && ChatObject.isChannelAndNotMegaGroup(currentChat) && !selectedObject.isSponsored() && selectedObject.contentType == 0 && chatMode == MODE_DEFAULT) && !isInsideContainer && (primaryMessage == null || !primaryMessage.isWelcomeMessage()) && chatMode != MODE_WELCOME_MESSAGES && (!isAyuDeleted || allowReplyToAyuDeleted)) {
                     allowReply = true;
                     if (!GroupedIconsView.useGroupedIcons()) {
                         items.add(LocaleController.getString(R.string.Reply));
