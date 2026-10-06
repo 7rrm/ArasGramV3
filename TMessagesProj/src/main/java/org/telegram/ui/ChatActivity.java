@@ -15809,13 +15809,56 @@ public class ChatActivity extends BaseFragment implements
 
     private void showReplyForMessage(MessageObject messageObjectToReply) {
         if (messageObjectToReply != null && messageObjectToReply.isAyuDeleted()) {
-            ReplyQuote quote = ReplyQuote.from(messageObjectToReply);
-            if (quote != null && !TextUtils.isEmpty(quote.text)) {
-                showFieldPanelForReplyQuote(messageObjectToReply, quote);
-                return;
-            }
+            showDeletedMessageAsNewMessage(messageObjectToReply);
+            return;
         }
         showFieldPanelForReply(messageObjectToReply);
+    }
+
+    private void showDeletedMessageAsNewMessage(MessageObject deletedMessage) {
+        if (chatActivityEnterView == null) {
+            return;
+        }
+
+        CharSequence existingText = chatActivityEnterView.getFieldText();
+        String quoteText = deletedMessage.messageOwner != null ? deletedMessage.messageOwner.message : null;
+        if (quoteText != null) {
+            quoteText = quoteText.trim();
+        }
+
+        SpannableStringBuilder draft = new SpannableStringBuilder();
+        int quoteStart = -1;
+        int quoteEnd = -1;
+        if (!TextUtils.isEmpty(quoteText)) {
+            quoteStart = draft.length();
+            draft.append(quoteText);
+            quoteEnd = draft.length();
+            draft.append("\n\n");
+        }
+        if (existingText != null) {
+            draft.append(existingText);
+        }
+
+        // Do not attach the outgoing message to the deleted server-side message.
+        // Put its text in the body as a native blockquote, then let the user type below it.
+        hideFieldPanel(true);
+        replyingMessageObject = threadMessageObject;
+        replyingQuote = null;
+        replyingQuoteGroup = null;
+        chatActivityEnterView.setReplyingMessageObject(threadMessageObject, null);
+        chatActivityEnterView.setEditingMessageObject(null, null, false);
+        chatActivityEnterView.setFieldText(draft, true);
+
+        EditTextCaption editField = chatActivityEnterView.getEditField();
+        if (editField != null) {
+            if (quoteStart >= 0 && quoteEnd > quoteStart) {
+                QuoteSpan.putQuoteToEditable(editField.getText(), quoteStart, quoteEnd, false);
+                editField.invalidateQuotes(true);
+            }
+            editField.setSelection(editField.length());
+            chatActivityEnterView.setFieldFocused(true);
+            chatActivityEnterView.openKeyboard();
+        }
     }
 
     private Runnable onHideFieldPanelRunnable;
