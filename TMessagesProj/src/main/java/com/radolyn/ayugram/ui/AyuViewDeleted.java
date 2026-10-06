@@ -93,6 +93,7 @@ public class AyuViewDeleted extends NekoDelegateFragment {
     private static final int OPTION_SAVE_TO_GALLERY = 7;
     private static final int OPTION_SAVE_TO_DOWNLOADS = 8;
     private static final int OPTION_TRANSLATE = 9;
+    private static final int OPTION_REPLY = 10;
     private final long dialogId;
     private final boolean isEncrypted;
     private final ArrayList<DeletedMessageFull> deletedMessages = new ArrayList<>();
@@ -441,7 +442,7 @@ public class AyuViewDeleted extends NekoDelegateFragment {
         });
         int actionBarOffset = getGlassActionBarOffset();
 
-        listView = new RecyclerListView(context);
+        listView = new SwipeableDeletedMessagesListView(context);
         listView.setLayoutAnimation(null);
 
         layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
@@ -698,6 +699,125 @@ public class AyuViewDeleted extends NekoDelegateFragment {
         }
     }
 
+    private void replyToDeletedMessage(MessageObject messageObject) {
+        if (messageObject == null || messageObject.messageOwner == null || getParentLayout() == null) {
+            return;
+        }
+
+        if (!(getParentLayout().getBackgroundFragment() instanceof ChatActivity chatActivity)) {
+            return;
+        }
+
+        ChatActivity.ReplyQuote quote = ChatActivity.ReplyQuote.from(messageObject);
+        finishFragment();
+        AndroidUtilities.runOnUIThread(() -> {
+            if (quote != null && quote.isValid()) {
+                chatActivity.showFieldPanelForReplyQuote(messageObject, quote);
+            } else {
+                chatActivity.showFieldPanelForReply(messageObject);
+            }
+            if (chatActivity.getChatActivityEnterView() != null) {
+                chatActivity.getChatActivityEnterView().openKeyboard();
+            }
+        }, 250);
+    }
+
+    private class SwipeableDeletedMessagesListView extends RecyclerListView {
+        private View swipeView;
+        private int swipePointerId = -1;
+        private float swipeStartX;
+        private float swipeStartY;
+        private boolean maybeStartSwipe;
+        private boolean trackingSwipe;
+
+        SwipeableDeletedMessagesListView(Context context) {
+            super(context);
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            boolean handled = super.onTouchEvent(event);
+            processSwipeTouchEvent(event);
+            return trackingSwipe || handled;
+        }
+
+        private void processSwipeTouchEvent(MotionEvent event) {
+            if (event == null) {
+                return;
+            }
+            int action = event.getActionMasked();
+            if (action == MotionEvent.ACTION_DOWN && !trackingSwipe && swipeView == null) {
+                View pressed = getPressedChildView();
+                if (pressed == null) {
+                    pressed = findChildViewUnder(event.getX(), event.getY());
+                }
+                if (pressed instanceof ChatMessageCell cell) {
+                    MessageObject message = cell.getMessageObject();
+                    if (message != null && message.isAyuDeleted()) {
+                        swipeView = pressed;
+                        swipePointerId = event.getPointerId(0);
+                        swipeStartX = event.getX();
+                        swipeStartY = event.getY();
+                        maybeStartSwipe = true;
+                    }
+                }
+                return;
+            }
+
+            if (swipeView == null) {
+                return;
+            }
+
+            if (action == MotionEvent.ACTION_MOVE) {
+                int pointerIndex = event.findPointerIndex(swipePointerId);
+                if (pointerIndex < 0) {
+                    resetSwipe(false);
+                    return;
+                }
+                float dx = event.getX(pointerIndex) - swipeStartX;
+                float dy = Math.abs(event.getY(pointerIndex) - swipeStartY);
+                int offset = Math.max(dp(-80), Math.min(0, (int) dx));
+
+                if (maybeStartSwipe && !trackingSwipe && getScrollState() == RecyclerView.SCROLL_STATE_IDLE
+                        && dx <= -AndroidUtilities.getPixelsInCM(0.4f, true) && Math.abs(dx) / 3f > dy) {
+                    MotionEvent cancel = MotionEvent.obtain(0, 0, MotionEvent.ACTION_CANCEL, 0, 0, 0);
+                    swipeView.onTouchEvent(cancel);
+                    super.onInterceptTouchEvent(cancel);
+                    cancel.recycle();
+                    maybeStartSwipe = false;
+                    trackingSwipe = true;
+                    if (getParent() != null) {
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                    }
+                }
+
+                if (trackingSwipe && swipeView instanceof ChatMessageCell cell) {
+                    cell.setSlidingOffset(offset);
+                    invalidate();
+                }
+            } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                MessageObject message = swipeView instanceof ChatMessageCell cell ? cell.getMessageObject() : null;
+                boolean shouldReply = action == MotionEvent.ACTION_UP && trackingSwipe
+                        && swipeView instanceof ChatMessageCell cell
+                        && cell.getSlidingOffsetX() <= -dp(50);
+                resetSwipe(true);
+                if (shouldReply && message != null) {
+                    replyToDeletedMessage(message);
+                }
+            }
+        }
+
+        private void resetSwipe(boolean resetOffset) {
+            if (resetOffset && swipeView instanceof ChatMessageCell cell) {
+                cell.setSlidingOffset(0);
+            }
+            swipeView = null;
+            swipePointerId = -1;
+            maybeStartSwipe = false;
+            trackingSwipe = false;
+        }
+    }
+
     private void createMenu(View v, float x, float y, int position) {
         final MessageObject msg = (v instanceof ChatMessageCell) ? ((ChatMessageCell) v).getMessageObject() : null;
         if (msg == null || getParentActivity() == null) {
@@ -707,6 +827,10 @@ public class AyuViewDeleted extends NekoDelegateFragment {
         ArrayList<CharSequence> items = new ArrayList<>();
         ArrayList<Integer> options = new ArrayList<>();
         ArrayList<Integer> icons = new ArrayList<>();
+
+        items.add(getString(R.string.Reply));
+        icons.add(R.drawable.menu_reply);
+        options.add(OPTION_REPLY);
 
         items.add(getString(R.string.ShowInChat));
         icons.add(R.drawable.msg_openin);
@@ -776,7 +900,9 @@ public class AyuViewDeleted extends NekoDelegateFragment {
             popupLayout.addView(cell);
             final int pos = position;
             cell.setOnClickListener(v1 -> {
-                if (option == OPTION_SHOW_IN_CHAT) {
+                if (option == OPTION_REPLY) {
+                    replyToDeletedMessage(msg);
+                } else if (option == OPTION_SHOW_IN_CHAT) {
                     Bundle args = new Bundle();
                     long did = msg.getDialogId();
                     if (DialogObject.isEncryptedDialog(did)) {
