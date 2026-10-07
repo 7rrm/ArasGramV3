@@ -139,6 +139,10 @@ public class SimpleTextView extends View implements Drawable.Callback {
     private OnClickListener rightDrawableOnClickListener;
     // ArasGramX: click listener for the secondary right drawable (cherry badge).
     private OnClickListener rightDrawable2OnClickListener;
+    private static final int DRAWABLE_CLICK_NONE = 0;
+    private static final int DRAWABLE_CLICK_PRIMARY = 1;
+    private static final int DRAWABLE_CLICK_SECONDARY = 2;
+    private int drawableClickTarget;
     private boolean maybeClick;
     private float touchDownX, touchDownY;
 
@@ -1553,56 +1557,78 @@ public class SimpleTextView extends View implements Drawable.Callback {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (rightDrawableOnClickListener != null && rightDrawable != null) {
-            AndroidUtilities.rectTmp.set(rightDrawableX - dp(16), rightDrawableY - dp(16), rightDrawableX + dp(16), rightDrawableY + dp(16));
-            if (event.getAction() == MotionEvent.ACTION_DOWN && AndroidUtilities.rectTmp.contains((int) event.getX(), (int) event.getY())) {
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) {
+            drawableClickTarget = DRAWABLE_CLICK_NONE;
+            maybeClick = false;
+
+            boolean primaryHit = false;
+            boolean secondaryHit = false;
+            if (rightDrawableOnClickListener != null && rightDrawable != null) {
+                AndroidUtilities.rectTmp.set(rightDrawableX - dp(16), rightDrawableY - dp(16), rightDrawableX + dp(16), rightDrawableY + dp(16));
+                primaryHit = AndroidUtilities.rectTmp.contains((int) event.getX(), (int) event.getY());
+            }
+            if (rightDrawable2OnClickListener != null && rightDrawable2 != null) {
+                AndroidUtilities.rectTmp.set(rightDrawable2X - dp(16), rightDrawable2Y - dp(16), rightDrawable2X + dp(16), rightDrawable2Y + dp(16));
+                secondaryHit = AndroidUtilities.rectTmp.contains((int) event.getX(), (int) event.getY());
+            }
+
+            // The touch regions can overlap when a short name has icons on
+            // both ends. Select only the nearest drawable; the cherry must not
+            // accidentally invoke the premium-emoji click listener.
+            if (primaryHit && secondaryHit) {
+                float primaryDx = event.getX() - rightDrawableX;
+                float primaryDy = event.getY() - rightDrawableY;
+                float secondaryDx = event.getX() - rightDrawable2X;
+                float secondaryDy = event.getY() - rightDrawable2Y;
+                drawableClickTarget = secondaryDx * secondaryDx + secondaryDy * secondaryDy <= primaryDx * primaryDx + primaryDy * primaryDy
+                        ? DRAWABLE_CLICK_SECONDARY
+                        : DRAWABLE_CLICK_PRIMARY;
+            } else if (primaryHit) {
+                drawableClickTarget = DRAWABLE_CLICK_PRIMARY;
+            } else if (secondaryHit) {
+                drawableClickTarget = DRAWABLE_CLICK_SECONDARY;
+            }
+
+            if (drawableClickTarget != DRAWABLE_CLICK_NONE) {
                 maybeClick = true;
                 touchDownX = event.getX();
                 touchDownY = event.getY();
-                getParent().requestDisallowInterceptTouchEvent(true);
-                if (rightDrawable instanceof PressableDrawable) {
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(true);
+                }
+                if (drawableClickTarget == DRAWABLE_CLICK_PRIMARY && rightDrawable instanceof PressableDrawable) {
                     ((PressableDrawable) rightDrawable).setPressed(true);
                 }
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE && maybeClick) {
-                if (Math.abs(event.getX() - touchDownX) >= AndroidUtilities.touchSlop || Math.abs(event.getY() - touchDownY) >= AndroidUtilities.touchSlop) {
-                    maybeClick = false;
-                    getParent().requestDisallowInterceptTouchEvent(false);
-                    if (rightDrawable instanceof PressableDrawable) {
-                        ((PressableDrawable) rightDrawable).setPressed(false);
-                    }
+            }
+        } else if (drawableClickTarget != DRAWABLE_CLICK_NONE && action == MotionEvent.ACTION_MOVE) {
+            if (Math.abs(event.getX() - touchDownX) >= AndroidUtilities.touchSlop || Math.abs(event.getY() - touchDownY) >= AndroidUtilities.touchSlop) {
+                if (drawableClickTarget == DRAWABLE_CLICK_PRIMARY && rightDrawable instanceof PressableDrawable) {
+                    ((PressableDrawable) rightDrawable).setPressed(false);
                 }
-            } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                if (maybeClick && event.getAction() == MotionEvent.ACTION_UP) {
-                    rightDrawableOnClickListener.onClick(this);
-                    if (rightDrawable instanceof PressableDrawable) {
-                        ((PressableDrawable) rightDrawable).setPressed(false);
-                    }
-                }
+                drawableClickTarget = DRAWABLE_CLICK_NONE;
                 maybeClick = false;
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                }
+            }
+        } else if (drawableClickTarget != DRAWABLE_CLICK_NONE && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)) {
+            int clickedTarget = drawableClickTarget;
+            boolean performClick = maybeClick && action == MotionEvent.ACTION_UP;
+            drawableClickTarget = DRAWABLE_CLICK_NONE;
+            maybeClick = false;
+            if (getParent() != null) {
                 getParent().requestDisallowInterceptTouchEvent(false);
             }
-        }
-        // ArasGramX: same hit-test logic for the secondary right drawable
-        // (the cherry badge). Only fires when rightDrawable2OnClickListener
-        // is set AND rightDrawable2 is non-null.
-        if (rightDrawable2OnClickListener != null && rightDrawable2 != null) {
-            AndroidUtilities.rectTmp.set(rightDrawable2X - dp(16), rightDrawable2Y - dp(16), rightDrawable2X + dp(16), rightDrawable2Y + dp(16));
-            if (event.getAction() == MotionEvent.ACTION_DOWN && AndroidUtilities.rectTmp.contains((int) event.getX(), (int) event.getY())) {
-                maybeClick = true;
-                touchDownX = event.getX();
-                touchDownY = event.getY();
-                getParent().requestDisallowInterceptTouchEvent(true);
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE && maybeClick) {
-                if (Math.abs(event.getX() - touchDownX) >= AndroidUtilities.touchSlop || Math.abs(event.getY() - touchDownY) >= AndroidUtilities.touchSlop) {
-                    maybeClick = false;
-                    getParent().requestDisallowInterceptTouchEvent(false);
+            if (clickedTarget == DRAWABLE_CLICK_PRIMARY) {
+                if (rightDrawable instanceof PressableDrawable) {
+                    ((PressableDrawable) rightDrawable).setPressed(false);
                 }
-            } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                if (maybeClick && event.getAction() == MotionEvent.ACTION_UP) {
-                    rightDrawable2OnClickListener.onClick(this);
+                if (performClick && rightDrawableOnClickListener != null && rightDrawable != null) {
+                    rightDrawableOnClickListener.onClick(this);
                 }
-                maybeClick = false;
-                getParent().requestDisallowInterceptTouchEvent(false);
+            } else if (clickedTarget == DRAWABLE_CLICK_SECONDARY && performClick && rightDrawable2OnClickListener != null && rightDrawable2 != null) {
+                rightDrawable2OnClickListener.onClick(this);
             }
         }
         return super.onTouchEvent(event) || maybeClick;
