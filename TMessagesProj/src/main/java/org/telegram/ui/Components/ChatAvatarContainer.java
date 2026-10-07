@@ -136,6 +136,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     public boolean premiumIconHiddable = false;
 
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable emojiStatusDrawable;
+    private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable arasCherryDrawable;
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable botVerificationDrawable;
 
     protected boolean useAnimatedSubtitle() {
@@ -492,6 +493,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         }
 
         emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleTextView, dp(24));
+        arasCherryDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleTextView, dp(24));
         botVerificationDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(titleTextView, dp(17));
     }
 
@@ -921,6 +923,8 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         titleTextLargerCopyView.setLeftDrawableTopPadding(-dp(1.3f));
         titleTextLargerCopyView.setRightDrawable(titleTextView.getRightDrawable());
         titleTextLargerCopyView.setRightDrawable2(titleTextView.getRightDrawable2());
+        titleTextLargerCopyView.setRightDrawableAtTextEnd(titleTextView.isRightDrawableAtTextEnd());
+        titleTextLargerCopyView.setRightDrawable2AtTextStart(titleTextView.isRightDrawable2AtTextStart());
         titleTextLargerCopyView.setRightDrawableOutside(titleTextView.getRightDrawableOutside());
         titleTextLargerCopyView.setLeftDrawable(titleTextView.getLeftDrawable());
         titleTextLargerCopyView.setText(titleTextView.getText());
@@ -1183,7 +1187,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
 
     public void setTitleIcons(Drawable leftIcon, Drawable mutedIcon) {
         titleTextView.setLeftDrawable(leftIcon);
-        if (!rightDrawableIsScamOrVerified && !rightDrawableIsScam) {
+        if (!rightDrawableIsScamOrVerified && !rightDrawableIsScam && !titleTextView.isRightDrawable2AtTextStart()) {
             if (mutedIcon != null) {
                 rightDrawable2ContentDescription = getString(R.string.NotificationsMuted);
             } else {
@@ -1220,6 +1224,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
 
         titleTextView.setText(value);
         titleTextView.setScrollNonFitText(scrollable || isCentered());
+        titleTextView.setRightDrawableOutside(!isCentered());
+        titleTextView.setRightDrawableAtTextEnd(false);
+        titleTextView.setRightDrawable2AtTextStart(false);
         rightDrawableIsScam = false;
         if (scam || fake) {
             rightDrawableIsScam = true;
@@ -1252,26 +1259,31 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         // لأن اسم القناة لا يظهر داخل جاتها الخاص.
         boolean arasForceCherry = false;
         long arasCherryId = 0L;
+        String arasCherryDescription = "ArasGram";
         if (parentFragment != null) {
             TLRPC.User u = parentFragment.getCurrentUser();
             TLRPC.Chat c = parentFragment.getCurrentChat();
             if (u != null && ArasGramConstants.isOwner(u.id)) {
                 arasForceCherry = true;
                 arasCherryId = ArasGramConstants.CHERRY_EMOJI_ID_VERIFIED_BRA;
+                arasCherryDescription = "ArasGram Owner";
             } else if (c != null && ArasGramConstants.isSparkleChannel(c.id)) {
                 arasForceCherry = true;
                 arasCherryId = ArasGramConstants.CHERRY_EMOJI_ID_VERIFIED;
+                arasCherryDescription = "ArasGram Channel";
             }
         }
-        if (premium || DialogObject.getEmojiStatusDocumentId(emojiStatus) != 0 || arasForceCherry) {
+        boolean hasPremiumOrEmojiStatus = premium || DialogObject.getEmojiStatusDocumentId(emojiStatus) != 0;
+        if (!arasForceCherry && titleTextView.getRightDrawable2() == arasCherryDrawable) {
+            titleTextView.setRightDrawable2(null);
+            rightDrawable2ContentDescription = null;
+        }
+        if (hasPremiumOrEmojiStatus || arasForceCherry) {
             if (titleTextView.getRightDrawable() instanceof AnimatedEmojiDrawable.WrapSizeDrawable &&
                 ((AnimatedEmojiDrawable.WrapSizeDrawable) titleTextView.getRightDrawable()).getDrawable() instanceof AnimatedEmojiDrawable) {
                 ((AnimatedEmojiDrawable) ((AnimatedEmojiDrawable.WrapSizeDrawable) titleTextView.getRightDrawable()).getDrawable()).removeView(titleTextView);
             }
-            // ArasGramX: أَسبِق إيموجي الكرز على أي حالة إيموجي أخرى للمالك/ القنوات.
-            if (arasForceCherry) {
-                emojiStatusDrawable.set(arasCherryId, animated);
-            } else if (DialogObject.getEmojiStatusDocumentId(emojiStatus) != 0) {
+            if (DialogObject.getEmojiStatusDocumentId(emojiStatus) != 0) {
                 emojiStatusDrawable.set(DialogObject.getEmojiStatusDocumentId(emojiStatus), animated);
             } else if (premium) {
                 emojiStatusDefaultDrawable = ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_premium_liststar).mutate();
@@ -1281,15 +1293,29 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
                 emojiStatusDrawable.set((Drawable) null, animated);
             }
             emojiStatusDrawable.setColor(getThemedColor(Theme.key_profile_verifiedBackground));
-            titleTextView.setRightDrawable(emojiStatusDrawable);
+            titleTextView.setRightDrawable(hasPremiumOrEmojiStatus ? emojiStatusDrawable : null);
             rightDrawableIsScamOrVerified = false;
-            rightDrawableContentDescription = getString(R.string.AccDescrPremium);
-            // ArasGramX: فعّل النجوم المتناثرة (radial particles) حول علامة الكرز.
-            if (emojiStatusDrawable != null) {
-                emojiStatusDrawable.setParticles(arasForceCherry, animated);
-            }
-            if (isCentered()) {
-                titleTextView.setRightDrawable2(null);
+            rightDrawableContentDescription = hasPremiumOrEmojiStatus ? getString(R.string.AccDescrPremium) : null;
+            emojiStatusDrawable.setParticles(false, animated);
+
+            if (arasForceCherry) {
+                // Keep the actual premium/status icon at the logical end, and
+                // show the custom cherry independently at the logical start.
+                arasCherryDrawable.set(arasCherryId, animated);
+                arasCherryDrawable.setParticles(true, animated);
+                titleTextView.setRightDrawable2(arasCherryDrawable);
+                titleTextView.setRightDrawableOutside(true);
+                titleTextView.setRightDrawableAtTextEnd(hasPremiumOrEmojiStatus);
+                titleTextView.setRightDrawable2AtTextStart(true);
+                rightDrawableIsScamOrVerified = false;
+                rightDrawable2ContentDescription = arasCherryDescription;
+            } else {
+                arasCherryDrawable.set((Drawable) null, animated);
+                arasCherryDrawable.setParticles(false, animated);
+                titleTextView.setRightDrawableOutside(!isCentered());
+                if (isCentered()) {
+                    titleTextView.setRightDrawable2(null);
+                }
             }
         } else {
             titleTextView.setRightDrawable(null);
@@ -1297,6 +1323,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
             if (emojiStatusDrawable != null) {
                 emojiStatusDrawable.setParticles(false, animated);
             }
+            arasCherryDrawable.set((Drawable) null, animated);
+            arasCherryDrawable.setParticles(false, animated);
+            titleTextView.setRightDrawableOutside(!isCentered());
         }
         checkActionBar(animated);
     }
@@ -1852,6 +1881,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         if (emojiStatusDrawable != null) {
             emojiStatusDrawable.attach();
         }
+        if (arasCherryDrawable != null) {
+            arasCherryDrawable.attach();
+        }
         if (botVerificationDrawable != null) {
             botVerificationDrawable.attach();
         }
@@ -1869,6 +1901,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         }
         if (emojiStatusDrawable != null) {
             emojiStatusDrawable.detach();
+        }
+        if (arasCherryDrawable != null) {
+            arasCherryDrawable.detach();
         }
         if (botVerificationDrawable != null) {
             botVerificationDrawable.detach();

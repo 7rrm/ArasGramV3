@@ -11937,12 +11937,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (nameTextView[a] == null) {
                     continue;
                 }
+                nameTextView[a].setRightDrawableOutside(a == 0);
+                nameTextView[a].setRightDrawableAtTextEnd(false);
+                nameTextView[a].setRightDrawable2AtTextStart(false);
                 if (a == 0 && copyFromChatActivity) {
                     ChatActivity chatActivity = (ChatActivity) prevFragment;
                     SimpleTextView titleTextView = chatActivity.avatarContainer.getTitleTextView();
                     nameTextView[a].setText(titleTextView.getText());
                     nameTextView[a].setRightDrawable(titleTextView.getRightDrawable());
                     nameTextView[a].setRightDrawable2(titleTextView.getRightDrawable2());
+                    nameTextView[a].setRightDrawableAtTextEnd(titleTextView.isRightDrawableAtTextEnd());
+                    nameTextView[a].setRightDrawable2AtTextStart(titleTextView.isRightDrawable2AtTextStart());
                 } else if (a == 0 && user.id != getUserConfig().getClientUserId() && !MessagesController.isSupportUser(user) && user.phone != null && user.phone.length() != 0 && getContactsController().contactsDict.get(user.id) == null &&
                         (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
                     nameTextView[a].setText(PhoneFormat.getInstance().format("+" + user.phone));
@@ -11973,17 +11978,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 } : null);
                 Drawable leftIcon = currentEncryptedChat != null ? getLockIconDrawable() : null;
                 boolean rightIconIsPremium = false, rightIconIsStatus = false;
-                nameTextView[a].setRightDrawableOutside(a == 0);
+                boolean arasCherryAtTextStart = false;
                 if (a == 0 && !copyFromChatActivity) {
                     if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.ScamMessage);
                     } else if (ArasGramConstants.isOwner(user.id)) {
-                        // ArasGramX: cherry badge in setRightDrawable2 — appears
-                        // AFTER the premium emoji (setRightDrawable), not
-                        // instead of it.
+                        // ArasGramX: place the cherry at the logical start of
+                        // the name while keeping the premium emoji at its end.
                         nameTextView[a].setRightDrawable2(getArasCherryStatusDrawable(a, false));
                         nameTextViewRightDrawable2ContentDescription = "ArasGram Owner";
+                        arasCherryAtTextStart = true;
                     } else if (user.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.AccDescrVerified);
@@ -12019,9 +12024,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                     } else if (ArasGramConstants.isOwner(user.id)) {
-                        // ArasGramX: cherry badge in setRightDrawable2 for
-                        // the larger title at the top of the profile.
+                        // ArasGramX: keep the cherry at the logical start of
+                        // the large title and the premium emoji at the end.
                         nameTextView[a].setRightDrawable2(getArasCherryStatusDrawable(a, true));
+                        arasCherryAtTextStart = true;
                     } else if (user.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                     } else {
@@ -12058,6 +12064,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 nameTextView[a].setLeftDrawable(leftIcon);
                 if (a == 1 && (rightIconIsStatus || rightIconIsPremium)) {
                     nameTextView[a].setRightDrawableOutside(true);
+                }
+                if (arasCherryAtTextStart) {
+                    nameTextView[a].setRightDrawableOutside(true);
+                    nameTextView[a].setRightDrawableAtTextEnd(true);
+                    nameTextView[a].setRightDrawable2AtTextStart(true);
                 }
                 if (user.self && getMessagesController().isPremiumUser(user)) {
                     nameTextView[a].setRightDrawableOnClick(v -> {
@@ -12307,6 +12318,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (nameTextView[a] == null) {
                     continue;
                 }
+                nameTextView[a].setRightDrawableOutside(a == 0);
+                nameTextView[a].setRightDrawableAtTextEnd(false);
+                nameTextView[a].setRightDrawable2AtTextStart(false);
+                boolean arasCherryAtTextStart = false;
                 if (a == 0 && copyFromChatActivity) {
                     ChatActivity chatActivity = (ChatActivity) prevFragment;
                     SimpleTextView titleTextView = chatActivity.avatarContainer.getTitleTextView();
@@ -12319,6 +12334,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (nameTextView[a].setRightDrawable2(titleTextView.getRightDrawable2())) {
                         changed = true;
                     }
+                    nameTextView[a].setRightDrawableAtTextEnd(titleTextView.isRightDrawableAtTextEnd());
+                    nameTextView[a].setRightDrawable2AtTextStart(titleTextView.isRightDrawable2AtTextStart());
                 } else if (isTopic) {
                     CharSequence title = topic == null ? "" : topic.title;
                     try {
@@ -12352,11 +12369,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextView[a].setRightDrawable2(getScamDrawable(chat.scam ? 0 : 1));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.ScamMessage);
                     } else if (ArasGramConstants.isSparkleChannel(chat.id)) {
-                        // ArasGramX: cherry badge in setRightDrawable2 for
-                        // whitelisted channels — appears next to the channel's
-                        // own emoji_status, not instead of it.
+                        // ArasGramX: place the cherry at the logical start
+                        // while leaving the channel emoji status at the end.
                         nameTextView[a].setRightDrawable2(getArasCherryStatusDrawable(a, false));
                         nameTextViewRightDrawableContentDescription = "ArasGram Channel";
+                        arasCherryAtTextStart = true;
                     } else if (chat.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.AccDescrVerified);
@@ -12387,9 +12404,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (chat.scam || chat.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(chat.scam ? 0 : 1));
                     } else if (ArasGramConstants.isSparkleChannel(chat.id)) {
-                        // ArasGramX: cherry badge in setRightDrawable2 for
-                        // whitelisted channels (smaller title variant).
+                        // ArasGramX: put the cherry at the logical start of
+                        // the compact title and keep any emoji status at end.
                         nameTextView[a].setRightDrawable2(getArasCherryStatusDrawable(a, false));
+                        arasCherryAtTextStart = true;
                     } else if (chat.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                     } else if (getMessagesController().isDialogMuted(-chatId, topicId)) {
@@ -12409,6 +12427,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     nameTextView[a].setLeftDrawable(getBotVerificationDrawable(chat.bot_verification_icon, false, a));
                 } else {
                     nameTextView[a].setLeftDrawable(null);
+                }
+                if (arasCherryAtTextStart) {
+                    nameTextView[a].setRightDrawableOutside(true);
+                    nameTextView[a].setRightDrawableAtTextEnd(true);
+                    nameTextView[a].setRightDrawable2AtTextStart(true);
                 }
                 if (a == 0 && onlineTextOverride != null) {
                     onlineTextView[a].setText(onlineTextOverride);
