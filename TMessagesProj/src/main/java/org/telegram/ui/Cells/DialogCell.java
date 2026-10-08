@@ -1581,7 +1581,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         drawPremium = MessagesController.getInstance(currentAccount).isPremiumUser(user) && UserConfig.getInstance(currentAccount).clientUserId != user.id && user.id != 0;
                         // ArasGramX: for the owner — show their own premium emoji
                         // if set; only fall back to cherry if not.
-                        boolean arasOwnerDialog = ArasGramConstants.isOwner(user.id);
+                        // ArasGramX: Saved Messages is rendered as a self-chat, not as
+                        // the owner's public identity. Do not attach the personal cherry
+                        // to its row in the chat list (same rule as ChatAvatarContainer).
+                        boolean arasSelfDialog = UserObject.isUserSelf(user)
+                                || user.id == UserConfig.getInstance(currentAccount).getClientUserId();
+                        boolean arasOwnerDialog = ArasGramConstants.isOwner(user.id) && !arasSelfDialog;
                         if (arasOwnerDialog) {
                             drawPremium = true;
                         }
@@ -3512,7 +3517,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         user = MessagesController.getInstance(currentAccount).getUser(user.id);
                         // ArasGramX: for the owner — show their own premium
                         // emoji if set; only fall back to cherry if not.
-                        boolean arasOwnerUpdate = ArasGramConstants.isOwner(user.id);
+                        boolean arasOwnerUpdate = user != null && ArasGramConstants.isOwner(user.id)
+                                && !UserObject.isUserSelf(user)
+                                && user.id != UserConfig.getInstance(currentAccount).getClientUserId();
                         Long arasOwnerUpdateStatusId = user != null ? UserObject.getEmojiStatusDocumentId(user) : null;
                         if (arasOwnerUpdate && (arasOwnerUpdateStatusId == null || arasOwnerUpdateStatusId == 0)) {
                             nameLayoutEllipsizeByGradient = true;
