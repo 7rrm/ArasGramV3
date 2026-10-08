@@ -1257,10 +1257,15 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         // ملاحظة: الكرز يظهر هنا في شريط عنوان المحادثة للقنوات المميّزة،
         // لكن لا يظهر في فقاعة الرسالة (ChatMessageCell.getAuthorStatus)
         // لأن اسم القناة لا يظهر داخل جاتها الخاص.
+        // Saved Messages is rendered as a self-chat, not as the owner's public
+        // identity. Do not attach personal Premium/status or cherry badges to
+        // its system title.
+        boolean isSavedMessagesDialog = parentFragment != null
+                && parentFragment.getDialogId() == UserConfig.getInstance(parentFragment.getCurrentAccount()).getClientUserId();
         boolean arasForceCherry = false;
         long arasCherryId = 0L;
         String arasCherryDescription = "ArasGram";
-        if (parentFragment != null) {
+        if (parentFragment != null && !isSavedMessagesDialog) {
             TLRPC.User u = parentFragment.getCurrentUser();
             TLRPC.Chat c = parentFragment.getCurrentChat();
             if (u != null && ArasGramConstants.isOwner(u.id)) {
@@ -1273,7 +1278,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
                 arasCherryDescription = "ArasGram Channel";
             }
         }
-        boolean hasPremiumOrEmojiStatus = premium || DialogObject.getEmojiStatusDocumentId(emojiStatus) != 0;
+        boolean hasPremiumOrEmojiStatus = !isSavedMessagesDialog && (premium || DialogObject.getEmojiStatusDocumentId(emojiStatus) != 0);
         if (!arasForceCherry && titleTextView.getRightDrawable2() == arasCherryDrawable) {
             titleTextView.setRightDrawable2(null);
             rightDrawable2ContentDescription = null;
