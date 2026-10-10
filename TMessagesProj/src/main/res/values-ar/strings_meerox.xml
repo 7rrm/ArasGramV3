@@ -347,6 +347,11 @@
     <string name="DoActionsInCommonGroups">مطبّق في المجموعات المشتركة</string>
     <string name="ShowFullAbout">توسيع وصف المحادثة دائماً</string>
     <string name="TypeMessageHintUseGroupName">استخدام اسم المجموعة كنص إرشادي</string>
+    <string name="TypeMessageHintMode">اسم حقل كتابة الرسالة</string>
+    <string name="TypeMessageHintOriginal">الأصلي (الرسالة)</string>
+    <string name="TypeMessageHintArasGram">ArasGram</string>
+    <string name="TypeMessageHintMyFirstName">اسم حسابي الأول فقط</string>
+    <string name="TypeMessageHintConversationName">اسم المحادثة</string>
     <string name="HideBotButtonInInputField">إخفاء زر البوت في حقل الإدخال</string>
     <string name="ShowSendAsUnderMessageHint">إظهار المُرسِل أسفل تلميح الرسالة</string>
     <string name="CheckAllForum">إضافة منتدى</string>

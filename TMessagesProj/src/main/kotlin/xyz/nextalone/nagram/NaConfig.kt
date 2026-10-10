@@ -246,7 +246,16 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
-    val typeMessageHintUseGroupName =
+    // Four modes for the message-field placeholder. Keep the old boolean
+    // config below so existing installs can migrate its enabled state to
+    // the conversation-name mode without losing the user's preference.
+    val typeMessageHintMode =
+        addConfig(
+            "TypeMessageHintMode",
+            ConfigItem.configTypeInt,
+            0
+        )
+    private val typeMessageHintUseGroupNameLegacy =
         addConfig(
             "TypeMessageHintUseGroupName",
             ConfigItem.configTypeBool,
@@ -1475,6 +1484,9 @@ object NaConfig {
     private fun fixConfig() {
         if (ApplicationLoader.applicationContext == null) {
             return
+        }
+        if (!getPreferences().contains(typeMessageHintMode.key) && typeMessageHintUseGroupNameLegacy.Bool()) {
+            typeMessageHintMode.setConfigInt(3)
         }
         if (!translatorModeWithOriginalMigrated.Bool()) {
             if (getPreferences().contains(translatorMode.key)) {

@@ -8252,16 +8252,27 @@ public class ChatActivityEnterView extends FrameLayout implements
                         messageEditText.setHintText(getString(R.string.ChannelBroadcast), animated);
                     }
                 } else {
-                    SpannableStringBuilder messageEditTextText = SpannableStringBuilder.valueOf(getString(R.string.TypeMessage));
-                    if (NaConfig.INSTANCE.getTypeMessageHintUseGroupName().Bool()) {
-                        TLRPC.Chat c = accountInstance.getMessagesController().getChat(-dialog_id);
-                        TLRPC.User u = accountInstance.getMessagesController().getUser(dialog_id);
-                        if (c != null) {
-                            messageEditTextText = SpannableStringBuilder.valueOf(c.title);
-                        } else if (u != null && u != accountInstance.getUserConfig().getCurrentUser()) {
-                            messageEditTextText = SpannableStringBuilder.valueOf((user.first_name != null ? user.first_name : "") + " " + (user.last_name != null ? user.last_name : ""));
+                    String defaultHint = getString(R.string.TypeMessage);
+                    String hintText = defaultHint;
+                    switch (NaConfig.INSTANCE.getTypeMessageHintMode().Int()) {
+                        case 1 -> hintText = "ArasGram";
+                        case 2 -> {
+                            TLRPC.User currentUser = accountInstance.getUserConfig().getCurrentUser();
+                            if (currentUser != null && !TextUtils.isEmpty(currentUser.first_name)) {
+                                hintText = currentUser.first_name;
+                            }
+                        }
+                        case 3 -> {
+                            TLRPC.User currentUser = accountInstance.getUserConfig().getCurrentUser();
+                            String conversationName = currentUser != null && dialog_id == currentUser.id
+                                    ? getString(R.string.SavedMessages)
+                                    : accountInstance.getMessagesController().getPeerName(dialog_id);
+                            if (!TextUtils.isEmpty(conversationName)) {
+                                hintText = conversationName;
+                            }
                         }
                     }
+                    SpannableStringBuilder messageEditTextText = SpannableStringBuilder.valueOf(hintText);
                     maybeAppendSendAsUnderMessageHint(messageEditTextText);
                     messageEditText.setHintText(messageEditTextText, animated);
                 }

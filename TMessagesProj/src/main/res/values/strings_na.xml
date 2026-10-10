@@ -46,6 +46,11 @@
     <string name="DoActionsInCommonGroups">Applied in common groups</string>
     <string name="ShowFullAbout">Always Expand Chat Description</string>
     <string name="TypeMessageHintUseGroupName">Use Group Name as Hint Text</string>
+    <string name="TypeMessageHintMode">Message Field Name</string>
+    <string name="TypeMessageHintOriginal">Original (Message)</string>
+    <string name="TypeMessageHintArasGram">ArasGram</string>
+    <string name="TypeMessageHintMyFirstName">My first name only</string>
+    <string name="TypeMessageHintConversationName">Conversation name</string>
     <string name="HideBotButtonInInputField">Hide Bot Button in Input Field</string>
     <string name="ShowSendAsUnderMessageHint">Show Sender Under Message Hint</string>
     <string name="CheckAllForum">Add forum</string>
