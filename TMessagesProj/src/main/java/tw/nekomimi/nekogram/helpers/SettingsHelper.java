@@ -14,6 +14,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import java.util.ArrayList;
 import java.util.Map;
 
+import tw.nekomimi.nekogram.MeeroStrings;
 import tw.nekomimi.nekogram.settings.BaseNekoSettingsActivity;
 import tw.nekomimi.nekogram.settings.BaseNekoXSettingsActivity;
 import tw.nekomimi.nekogram.settings.MeeroSettingsActivity;
@@ -145,7 +146,7 @@ public class SettingsHelper {
                     continue;
                 }
                 int guid = uid + i;
-                String title = getString(key);
+                String title = MeeroStrings.title(key);
                 if (title == null || title.isEmpty()) {
                     continue;
                 }
