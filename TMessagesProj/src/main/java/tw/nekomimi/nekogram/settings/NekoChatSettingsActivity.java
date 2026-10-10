@@ -101,18 +101,13 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final CellGroup cellGroup = new CellGroup(this);
 
     // ---------------------------------------------------------------
-    // MeeroX v257 (his sealed order + placement pick «انقله كله»): the
-    // collapsible chat-top-strip section lives at the TOP of this
-    // «المحادثات» screen. One expander row with a chevron; opening it
-    // reveals the LIVE Cherrygram-exact preview (real header widgets,
-    // his own name/photo, real wallpaper) and the four v254 buttons in
-    // the order he approved, led by his custom "رجوع للأصلي" master
-    // row. Same config keys as v256 - saved values carry over.
+    // Chat top strip is a normal settings section at the top of this
+    // screen: a non-clickable section heading followed immediately by
+    // its preview and controls. The settings are always visible; users
+    // no longer need to tap an accordion row to reveal them.
     // ---------------------------------------------------------------
-    private boolean meeroHdrExpanded = false; // session-only, like the reference
     private final ArrayList<AbstractConfigCell> meeroHdrSubRows = new ArrayList<>();
     private AbstractConfigCell hdrGroupRow;
-    private int meeroHdrAnchor = -1;
 
     private final ConfigCellCustom hdrPreviewRow = new ConfigCellCustom("meeroHdrPreview", ConfigCellCustom.CUSTOM_ITEM_MeeroHeaderPreview, false);
     private final ConfigCellTextCheck hdrStockRow = new ConfigCellTextCheck(NekoConfig.meeroHeaderStock,
@@ -141,44 +136,24 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     };
 
     {
-        // park the collapsible block at the very top of the screen
-        meeroHdrAnchor = cellGroup.rows.size();
-        meeroRebuildHdrRows();
-    }
-
-    private void meeroToggleHdrGroup() {
-        meeroHdrExpanded = !meeroHdrExpanded;
-        meeroRebuildHdrRows();
-        if (listAdapter != null) {
-            listAdapter.notifyDataSetChanged();
-        }
-    }
-
-    private void meeroRebuildHdrRows() {
-        cellGroup.rows.removeAll(meeroHdrSubRows);
-        if (hdrGroupRow != null) {
-            cellGroup.rows.remove(hdrGroupRow);
-        }
-        meeroHdrSubRows.clear();
-        int idx = meeroHdrAnchor;
-        // MeeroX v275 (his order): the edition tag retires with its mission complete - it proved installs reach his device (the v267 install-certainty probe), the header section keeps a clean title.
-        hdrGroupRow = new ConfigCellText(MeeroStrings.s("MeeroHdrSectionTitle"), meeroHdrExpanded ? "⌄" : "‹", this::meeroToggleHdrGroup);
+        // Keep the section at the very top, but render its title like the
+        // other settings-section headings and show every control below it.
+        hdrGroupRow = new ConfigCellHeader(MeeroStrings.s("MeeroHdrSectionTitle"));
         hdrGroupRow.bindCellGroup(cellGroup);
-        cellGroup.rows.add(idx++, hdrGroupRow);
-        if (meeroHdrExpanded) {
-            meeroHdrSubRows.add(hdrPreviewRow);
-            meeroHdrSubRows.add(hdrStockRow);
-            meeroHdrSubRows.add(hdrCenterRow);
-            meeroHdrSubRows.add(hdrAdaptiveRow);
-            meeroHdrSubRows.add(hdrGlareRow);
-            meeroHdrSubRows.add(hdrBadgeRow);
-            meeroHdrSubRows.add(hdrCommunityRow);
-            for (AbstractConfigCell c : meeroHdrSubRows) {
-                c.bindCellGroup(cellGroup);
-                cellGroup.rows.add(idx++, c);
-            }
-            meeroUpdateHdrEnableds();
+        cellGroup.rows.add(hdrGroupRow);
+
+        meeroHdrSubRows.add(hdrPreviewRow);
+        meeroHdrSubRows.add(hdrStockRow);
+        meeroHdrSubRows.add(hdrCenterRow);
+        meeroHdrSubRows.add(hdrAdaptiveRow);
+        meeroHdrSubRows.add(hdrGlareRow);
+        meeroHdrSubRows.add(hdrBadgeRow);
+        meeroHdrSubRows.add(hdrCommunityRow);
+        for (AbstractConfigCell c : meeroHdrSubRows) {
+            c.bindCellGroup(cellGroup);
+            cellGroup.rows.add(c);
         }
+        meeroUpdateHdrEnableds();
     }
 
     // MeeroX v256 rules he picked: stock mode greys center+adaptive; a
