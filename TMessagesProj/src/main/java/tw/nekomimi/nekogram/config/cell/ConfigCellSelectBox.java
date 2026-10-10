@@ -11,6 +11,7 @@ import org.telegram.messenger.FileLog;
 import org.telegram.ui.Cells.TextSettingsCell;
 
 import kotlin.Unit;
+import tw.nekomimi.nekogram.MeeroStrings;
 import tw.nekomimi.nekogram.config.CellGroup;
 import tw.nekomimi.nekogram.config.ConfigItem;
 import tw.nekomimi.nekogram.ui.PopupBuilder;
@@ -43,7 +44,7 @@ public class ConfigCellSelectBox extends AbstractConfigCell implements WithBindC
             case null, default -> this.selectList = null;
         }
         this.selectValues = selectValues;
-        title = getString(this.key);
+        title = MeeroStrings.title(this.key);
         this.onClickCustom = customOnClick;
     }
 
