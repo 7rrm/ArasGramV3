@@ -2016,11 +2016,13 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                             continue;
                         }
                         textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
-                        textView.setGravity(Gravity.TOP | Gravity.LEFT);
+                        textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+                        textView.setTextColor(0xFFFFFFFF); // his pick: first line pure white
                         textView.setPadding(textView.getPaddingLeft(), dp(4), textView.getPaddingRight(), 0);
                         TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
                         if (sub != null) {
-                            sub.setGravity(Gravity.TOP | Gravity.LEFT);
+                            sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+                            sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                             sub.setPadding(sub.getPaddingLeft(), dp(10), sub.getPaddingRight(), 0);
                         }
                     }
