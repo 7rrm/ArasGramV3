@@ -444,12 +444,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 textView.setLines(1);
                 textView.setSingleLine(true);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13.5f);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
                 textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                 if (currentStyle == STYLE_AUDIO_PLAYER || currentStyle == STYLE_LIVE_LOCATION) {
                     textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                     textView.setTypeface(Typeface.DEFAULT);
-                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13.5f);
+                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
                 } else if (currentStyle == STYLE_INACTIVE_GROUP_CALL) {
                     textView.setGravity(Gravity.TOP | Gravity.LEFT);
                     textView.setTextColor(getThemedColor(Theme.key_inappPlayerPerformer));
@@ -475,7 +475,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 textView.setSingleLine(true);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setGravity(Gravity.LEFT);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
                 textView.setTextColor(getThemedColor(Theme.key_inappPlayerClose));
                 return textView;
             }
@@ -1984,7 +1984,10 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                             continue;
                         }
                         textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+                        textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                        textView.setPadding(textView.getPaddingLeft(), 0, textView.getPaddingRight(), 0);
                     }
+                    subtitleTextView.setVisibility(GONE);
 
                     updatePlaybackButton(false);
                 } else {
@@ -2003,17 +2006,31 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     } else {
                         titleTextView.setPadding(0, 0, joinButtonWidth, 0);
                     }
-                    stringBuilder = new SpannableStringBuilder(String.format("%s - %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
+                    // MeeroX v-lab (official Telegram-iOS parity): two-line music
+                    // bar — line 1 = track title (12dp), line 2 = performer (10dp),
+                    // both middle-truncated like MediaNavigationAccessoryHeaderNode.
+                    stringBuilder = new SpannableStringBuilder(messageObject.getMusicTitle());
                     for (int i = 0; i < 2; i++) {
                         TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
                         if (textView == null) {
                             continue;
                         }
-                        textView.setEllipsize(TextUtils.TruncateAt.END);
+                        textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+                        textView.setGravity(Gravity.TOP | Gravity.LEFT);
+                        textView.setPadding(textView.getPaddingLeft(), dp(4), textView.getPaddingRight(), 0);
+                        TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
+                        if (sub != null) {
+                            sub.setGravity(Gravity.TOP | Gravity.LEFT);
+                            sub.setPadding(sub.getPaddingLeft(), dp(10), sub.getPaddingRight(), 0);
+                        }
                     }
+                    subtitleTextView.setText(messageObject.getMusicAuthor(), false);
+                    subtitleTextView.setVisibility(VISIBLE);
                 }
-                TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
-                stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                if (!isMusic) {
+                    TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
+                    stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                }
                 titleTextView.setText(stringBuilder, !create && wasVisible && isMusic);
             }
         }
