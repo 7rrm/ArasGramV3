@@ -1041,9 +1041,10 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     }
                     textView.setTextColor(getThemedColor(colorId));
                     if (currentStyle == STYLE_AUDIO_PLAYER && isMusic) {
-                        // his pick: music first line stays pure white everywhere
-                        // (updateColors re-applies the tag color on re-entry).
-                        textView.setTextColor(0xFFFFFFFF);
+                        // his pick: music first line follows the theme (white at
+                        // night / black at day); updateColors re-applies the tag
+                        // color on re-entry, so re-assert it here.
+                        textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
                     }
 
                     CharSequence text = textView.getText();
@@ -1282,7 +1283,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35 + 16, 0, (isSideMenued ? 64 : 0) + 36, 0));
                 closeButton.setVisibility(GONE);
             } else if (style == STYLE_AUDIO_PLAYER) {
-                playButton.setLayoutParams(LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
+                playButton.setLayoutParams(LayoutHelper.createFrame(34, 34, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
                 createPlaybackSpeedButton();
                 if (playbackSpeedButton != null) {
@@ -1620,7 +1621,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     float micAmplitude;
 
     public int getStyleHeight() {
-        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : 36;
+        // his pick: tighter music bar (no dead space under the performer line)
+        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : currentStyle == STYLE_AUDIO_PLAYER ? 34 : 36;
     }
 
     public boolean isCallTypeVisible() {
@@ -2024,7 +2026,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         }
                         textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                         textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-                        textView.setTextColor(0xFFFFFFFF); // his pick: first line pure white
+                        textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle)); // his pick: white at night, black at day
                         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
                         textView.setPadding(textView.getPaddingLeft(), dp(4), textView.getPaddingRight(), 0);
                         TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
@@ -2032,7 +2034,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                             sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                             sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                             sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
-                            sub.setPadding(sub.getPaddingLeft(), dp(10), sub.getPaddingRight(), 0);
+                            sub.setPadding(sub.getPaddingLeft(), dp(9), sub.getPaddingRight(), 0);
                         }
                     }
                     titleTextView.setIsCenter(true);
