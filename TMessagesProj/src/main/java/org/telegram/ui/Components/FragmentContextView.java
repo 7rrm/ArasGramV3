@@ -444,12 +444,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 textView.setLines(1);
                 textView.setSingleLine(true);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13.5f);
                 textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                 if (currentStyle == STYLE_AUDIO_PLAYER || currentStyle == STYLE_LIVE_LOCATION) {
                     textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                     textView.setTypeface(Typeface.DEFAULT);
-                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13.5f);
                 } else if (currentStyle == STYLE_INACTIVE_GROUP_CALL) {
                     textView.setGravity(Gravity.TOP | Gravity.LEFT);
                     textView.setTextColor(getThemedColor(Theme.key_inappPlayerPerformer));
@@ -475,7 +475,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 textView.setSingleLine(true);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setGravity(Gravity.LEFT);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
                 textView.setTextColor(getThemedColor(Theme.key_inappPlayerClose));
                 return textView;
             }
