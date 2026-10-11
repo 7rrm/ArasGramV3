@@ -5101,9 +5101,6 @@ public class ChatActivity extends BaseFragment implements
             glassBackgroundDrawableFactory,
             BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
             ChatObject.isForum(currentChat));
-        // MeeroX v-lab (official Telegram-iOS parity): the glass chat bar is
-        // 60dp tall (official NavigationBarImpl nominalHeight = 60.0).
-        actionBar.setExtraHeight(dp(4));
 
         // MeeroX v254 (cherry-parity): centered title hosts the avatar container in its own ActionBar slot
         if (isTitleCentered()) {
@@ -5137,12 +5134,12 @@ public class ChatActivity extends BaseFragment implements
             avatarContainer.setActionBar(actionBar);
         } else if (chatMode == MODE_WELCOME_MESSAGES) {
             actionBar.setChatAvatarContainer(avatarContainer);
-            actionBar.setForcedMenuWidth(dp(44));
+            actionBar.setForcedMenuWidth(dp(46));
             actionBar.doNotDrawGlassMenu = true;
             avatarContainer.setActionBar(actionBar);
         } else if (isComments) {
             actionBar.setChatAvatarContainer(avatarContainer);
-            actionBar.setForcedMenuMinWidth(dp(44));
+            actionBar.setForcedMenuMinWidth(dp(46));
             avatarContainer.setActionBar(actionBar);
         }
 

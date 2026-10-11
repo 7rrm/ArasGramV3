@@ -48,7 +48,7 @@ import tw.nekomimi.nekogram.NekoConfig;
  *      ActionBar's OWN adaptive machinery. Two coordinate systems, one bar:
  *      the text slid off its capsule. Reverted to the exact v258 layout
  *      math (proven on HIS device) - container/pill couple again.
- *   3. Bar stays 60dp edge-to-edge (official Telegram-iOS nominalHeight parity).
+ *   3. Bar stays 70dp edge-to-edge (reference parity from v259).
  *
  * Kept from v257/v258: pristine meeroBuild() rebirth on every config flip,
  * menu.setCenteredTitle wiring, real name/photo (showSelf=true),
@@ -109,10 +109,9 @@ public class MeeroHeaderPreviewView extends FrameLayout {
         sourceColor.setColor(fragment.getThemedColor(Theme.key_windowBackgroundWhite));
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(sourceColor);
         actionBar.setupGlass(factory, BlurredBackgroundProviderImpl.topPanelChatActivity(resourcesProvider));
-        actionBar.setExtraHeight(dp(4)); // official glass bar = 60dp
 
-        // v-lab: official-parity bar frame - 60dp tall, edge to edge (Telegram-iOS nominalHeight).
-        addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 60, Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
+        // v259: reference-exact bar frame - 70dp tall, edge to edge.
+        addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 70, Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
 
         avatarContainer = new ChatAvatarContainer(getContext(), fragment, false, resourcesProvider) {
             @Override
@@ -211,7 +210,7 @@ public class MeeroHeaderPreviewView extends FrameLayout {
         // reference OFF behaviour). Lives here, not in meeroBuild, because
         // the badge switch flips the capsule width without a rebuild.
         actionBar.setMeeroPreviewBackZoneEnd(
-                lastCentered ? dp(8) + dp(meeroBadgeOn() ? 66 : 44) : -1);
+                lastCentered ? dp(8) + dp(meeroBadgeOn() ? 63 : 38) : -1);
     }
 
     /** While the capsule is up, the stock back button must not draw under it
@@ -335,7 +334,7 @@ public class MeeroHeaderPreviewView extends FrameLayout {
             chipPaint.setStyle(Paint.Style.FILL);
             chipPaint.setColor(Color.WHITE);
             chipTextPaint.setColor(ColorUtils.blendARGB(actionBarColor, Color.BLACK, 0.55f));
-            chipTextPaint.setTextSize(dp(13));
+            chipTextPaint.setTextSize(dp(12));
             chipTextPaint.setFakeBoldText(true);
             updateVisibilityState();
         }
@@ -356,7 +355,7 @@ public class MeeroHeaderPreviewView extends FrameLayout {
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            setMeasuredDimension(chip ? dp(66) : dp(44), dp(44));
+            setMeasuredDimension(chip ? dp(63) : dp(38), dp(34));
         }
 
         @Override
@@ -367,9 +366,9 @@ public class MeeroHeaderPreviewView extends FrameLayout {
             canvas.drawRoundRect(rect, h / 2f, h / 2f, strokePaint);
 
             // chevron zone (left when chip shown, centered when alone)
-            float zoneW = chip ? w - dp(32) : w;
+            float zoneW = chip ? w - dp(33) : w;
             float cx = zoneW / 2f - dp(1), cy = h / 2f;
-            float dx = dp(5f), dy = dp(8f);
+            float dx = dp(4.2f), dy = dp(6.6f);
             chevron.reset();
             chevron.moveTo(cx + dx, cy - dy);
             chevron.lineTo(cx - dx, cy);
@@ -381,7 +380,7 @@ public class MeeroHeaderPreviewView extends FrameLayout {
                 String s = "10";
                 chipTextPaint.getTextBounds(s, 0, s.length(), textBounds);
                 float tw = chipTextPaint.measureText(s);
-                float cw = tw + dp(16), chh = dp(26);
+                float cw = tw + dp(14), chh = dp(21);
                 float cl = w - dp(7.5f) - cw, ct = (h - chh) / 2f;
                 rect.set(cl, ct, cl + cw, ct + chh);
                 canvas.drawRoundRect(rect, chh / 2f, chh / 2f, chipPaint);

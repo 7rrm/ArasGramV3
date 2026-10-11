@@ -877,7 +877,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         int padding = isCentered() ? dp(isPreviewMode() ? 35 : 10) : 0;
         final int width = MeasureSpec.getSize(widthMeasureSpec);
         final int availableWidth = width - dp(((avatarImageView.getVisibility() == VISIBLE || isCentered()) ? 54 : 0) + 16);
-        avatarImageView.measure(MeasureSpec.makeMeasureSpec((glassMode ? dp(38) : dp(avatarSizeInDp)) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec((glassMode ? dp(38) : dp(avatarSizeInDp)) - 2, MeasureSpec.EXACTLY));
+        avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY));
         titleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth - padding, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(24 + 8), MeasureSpec.AT_MOST));
         if (subtitleTextView != null) {
             subtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth - padding, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.AT_MOST));
@@ -917,7 +917,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         titleTextLargerCopyView = new SimpleTextView(getContext());
         this.titleTextLargerCopyView.set(titleTextLargerCopyView);
         titleTextLargerCopyView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
-        titleTextLargerCopyView.setTextSizePx(dp(glassMode ? 17f : 18));
+        titleTextLargerCopyView.setTextSizePx(dp(glassMode ? 15f : 18));
         titleTextLargerCopyView.setGravity(isCentered() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
         titleTextLargerCopyView.setTypeface(AndroidUtilities.bold());
         titleTextLargerCopyView.setLeftDrawableTopPadding(-dp(1.3f));
@@ -945,7 +945,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         this.subtitleTextLargerCopyView.set(subtitleTextLargerCopyView);
         subtitleTextLargerCopyView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
         subtitleTextLargerCopyView.setTag(Theme.key_actionBarDefaultSubtitle);
-        subtitleTextLargerCopyView.setTextSizePx(dp(glassMode ? 13f : 14));
+        subtitleTextLargerCopyView.setTextSizePx(dp(glassMode ? 12f : 14));
         subtitleTextLargerCopyView.setGravity(isCentered() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
         if (subtitleTextView != null) {
             subtitleTextLargerCopyView.setText(subtitleTextView.getText());
@@ -978,19 +978,19 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     private boolean glassMode;
     public void setGlassMode() {
         if (titleTextView != null) {
-            titleTextView.setTextSizePx(dp(17f));
+            titleTextView.setTextSizePx(dp(15f));
         }
         if (subtitleTextView != null) {
-            subtitleTextView.setTextSizePx(dp(13f));
+            subtitleTextView.setTextSizePx(dp(12f));
         }
         glassMode = true;
     }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        final int actionBarHeight = actionBar != null ? actionBar.getMeeroEffectiveBarHeight() : ActionBar.getCurrentActionBarHeight();
+        final int actionBarHeight = ActionBar.getCurrentActionBarHeight();
         final int viewTop = (actionBarHeight - avatarImageView.getMeasuredHeight() - 2) / 2 + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0);
-        final int subtitleTop = viewTop + dp(glassMode ? 22.4f : 24);
+        final int subtitleTop = viewTop + dp(glassMode ? 23f : 24);
 
         int avatarLeft = 1 + leftPadding;
         if (isCentered()) {
@@ -1017,14 +1017,14 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         }
         SimpleTextView titleTextLargerCopyView = this.titleTextLargerCopyView.get();
         if (getSubtitleTextView().getVisibility() != GONE) {
-            titleTextView.layout(l, viewTop + dp(glassMode ? 2f : 1.66f) - titleTextView.getPaddingTop(), l + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(glassMode ? 2f : 1.66f) - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
+            titleTextView.layout(l, viewTop + dp(glassMode ? 5f : 1.66f) - titleTextView.getPaddingTop(), l + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(glassMode ? 5f : 1.66f) - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
             if (titleTextLargerCopyView != null) {
-                titleTextLargerCopyView.layout(l, viewTop + dp(glassMode ? 2f : 1.66f), l + titleTextLargerCopyView.getMeasuredWidth(), viewTop + titleTextLargerCopyView.getTextHeight() + dp(glassMode ? 2f : 1.66f));
+                titleTextLargerCopyView.layout(l, viewTop + dp(1.66f), l + titleTextLargerCopyView.getMeasuredWidth(), viewTop + titleTextLargerCopyView.getTextHeight() + dp(1.66f));
             }
         } else {
-            titleTextView.layout(l, viewTop + dp(glassMode ? 10f : 11) - titleTextView.getPaddingTop(), l + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(glassMode ? 10f : 11) - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
+            titleTextView.layout(l, viewTop + dp(11) - titleTextView.getPaddingTop(), l + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(11) - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
             if (titleTextLargerCopyView != null) {
-                titleTextLargerCopyView.layout(l, viewTop + dp(glassMode ? 9f : 10), l + titleTextLargerCopyView.getMeasuredWidth(), viewTop + titleTextLargerCopyView.getTextHeight() + dp(glassMode ? 9f : 10));
+                titleTextLargerCopyView.layout(l, viewTop + dp(10), l + titleTextLargerCopyView.getMeasuredWidth(), viewTop + titleTextLargerCopyView.getTextHeight() + dp(10));
             }
         }
         if (communityItem != null) {
