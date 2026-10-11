@@ -247,7 +247,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     }
 
     private int getBackPillWidth() {
-        return dp(46) + dp(6) * 2;
+        return dp(44) + dp(6) * 2;
     }
 
     public int getBackPillGrowth() {
@@ -2442,7 +2442,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                 //visualWidth = Math.max(visualWidth, dp(168));
             }
 
-            final int width = Math.min(getMeasuredWidth() - dp(6 + 46 + 6 + 6 + 46 + 6), visualWidth);
+            final int width = Math.min(getMeasuredWidth() - dp(6 + 44 + 6 + 6 + 44 + 6), visualWidth);
             if (animated) {
                 if (animatorAvatarContainerWidth.getToFactor() != width) {
                     animatorAvatarContainerWidth.animateTo(width);
@@ -2517,10 +2517,10 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     public void checkMenuItemsWidth() {
         int defaultMenuWidth = Math.max(0, menu != null ? (int) menu.getItemsWidth() - dp(1) - dp(1) : 0);
         if (!isSearchFieldVisible && chatAvatarContainer == null && menu != null && menu.isCenteredTitle()) {
-            defaultMenuWidth = Math.max(defaultMenuWidth, dp(46));
+            defaultMenuWidth = Math.max(defaultMenuWidth, dp(44));
         }
         final int actionMenuWidth = Math.max(0, actionMode != null ? actionMode.getItemsWidth() - dp(1) - dp(1) : 0);
-        final int searchMenuWidth = dp(46);
+        final int searchMenuWidth = dp(44);
         final int width = /*isSearchFieldVisible ? searchMenuWidth :*/ (actionModeVisible ? actionMenuWidth : defaultMenuWidth);
 
         animatorHasMenuItems.setValue(width > 0, isAnimationsAllowed);
@@ -2554,7 +2554,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     @Override
     protected void dispatchDraw(Canvas canvas) {
         final int p = dp(6);
-        final int s = dp(46);
+        final int s = dp(44);
 
         final float actionModeFactor = getActionModeFactor();
         final int menuWidthA = hasForcedMenuWidth ? forcedMenuWidth : (int) animatorMenuItemsWidth.getFactor();
