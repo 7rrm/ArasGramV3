@@ -12470,14 +12470,14 @@ public class ChatActivity extends BaseFragment implements
 
         pinnedCounterTextView = new NumberTextView(getContext());
         pinnedCounterTextView.setAddNumber();
-        pinnedCounterTextView.setTextSize(12.5f);
+        pinnedCounterTextView.setTextSize(12);
         pinnedCounterTextView.setTextColor(getThemedColor(Theme.key_chat_topPanelTitle));
         pinnedCounterTextView.setTypeface(AndroidUtilities.bold());
         pinnedMessageView.addView(pinnedCounterTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 18, Gravity.TOP | Gravity.LEFT, 23, 7, 44 + possibleLeftMarginDp, 0));
 
         for (int a = 0; a < 2; a++) {
             pinnedNameTextView[a] = new TrackingWidthSimpleTextView(getContext());
-            pinnedNameTextView[a].setTextSize(12.5f);
+            pinnedNameTextView[a].setTextSizePx(dp(12.5f));
             pinnedNameTextView[a].setTextColor(getThemedColor(Theme.key_chat_topPanelTitle));
             pinnedNameTextView[a].setTypeface(AndroidUtilities.bold());
             pinnedMessageView.addView(pinnedNameTextView[a], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 18, Gravity.TOP | Gravity.LEFT, 23, 7.3f, 44 + possibleLeftMarginDp, 0));
@@ -12495,7 +12495,7 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
             };
-            pinnedMessageTextView[a].setTextSize(12.5f);
+            pinnedMessageTextView[a].setTextSizePx(dp(12.5f));
             pinnedMessageTextView[a].setTextColor(getThemedColor(Theme.key_chat_topPanelMessage));
             pinnedMessageView.addView(pinnedMessageTextView[a], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 18, Gravity.TOP | Gravity.LEFT, 23, 25.3f, 44 + possibleLeftMarginDp, 0));
 
