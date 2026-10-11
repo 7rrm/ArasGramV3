@@ -2168,6 +2168,13 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         }
     }
 
+    // MeeroX v-lab (official Telegram-iOS parity): the glass chat bar runs at
+    // 60dp (ChatActivity adds dp(4) via setExtraHeight); centered children
+    // (glass pills, avatar container) must centre against the effective height.
+    public int getMeeroEffectiveBarHeight() {
+        return getCurrentActionBarHeight() + extraHeight;
+    }
+
     public void setTitleAnimated(CharSequence title, boolean fromBottom, long duration) {
         setTitleAnimated(title, fromBottom, duration, null);
     }
@@ -2562,7 +2569,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
         final boolean hasBackButton = backButtonImageView != null && backButtonImageView.getVisibility() == View.VISIBLE;
 
-        final int t = getHeight() - (getCurrentActionBarHeight() + s) / 2 - p;
+        final int t = getHeight() - (getCurrentActionBarHeight() + extraHeight + s) / 2 - p;
         final int b = t + s + p * 2;
 
         if (glassDrawable != null && !glassOnlyBack) {

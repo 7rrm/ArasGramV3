@@ -48,7 +48,7 @@ import tw.nekomimi.nekogram.NekoConfig;
  *      ActionBar's OWN adaptive machinery. Two coordinate systems, one bar:
  *      the text slid off its capsule. Reverted to the exact v258 layout
  *      math (proven on HIS device) - container/pill couple again.
- *   3. Bar stays 56dp edge-to-edge (his calibrated pick, matches the real chat bar).
+ *   3. Bar stays 60dp edge-to-edge (official Telegram-iOS nominalHeight parity).
  *
  * Kept from v257/v258: pristine meeroBuild() rebirth on every config flip,
  * menu.setCenteredTitle wiring, real name/photo (showSelf=true),
@@ -109,9 +109,10 @@ public class MeeroHeaderPreviewView extends FrameLayout {
         sourceColor.setColor(fragment.getThemedColor(Theme.key_windowBackgroundWhite));
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(sourceColor);
         actionBar.setupGlass(factory, BlurredBackgroundProviderImpl.topPanelChatActivity(resourcesProvider));
+        actionBar.setExtraHeight(dp(4)); // official glass bar = 60dp
 
-        // v-lab: calibrated bar frame - 56dp tall, edge to edge (matches the real chat bar).
-        addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 56, Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
+        // v-lab: official-parity bar frame - 60dp tall, edge to edge (Telegram-iOS nominalHeight).
+        addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 60, Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
 
         avatarContainer = new ChatAvatarContainer(getContext(), fragment, false, resourcesProvider) {
             @Override
