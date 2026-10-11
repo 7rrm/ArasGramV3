@@ -1040,6 +1040,11 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         continue;
                     }
                     textView.setTextColor(getThemedColor(colorId));
+                    if (currentStyle == STYLE_AUDIO_PLAYER && isMusic) {
+                        // his pick: music first line stays pure white everywhere
+                        // (updateColors re-applies the tag color on re-entry).
+                        textView.setTextColor(0xFFFFFFFF);
+                    }
 
                     CharSequence text = textView.getText();
                     if (text instanceof Spanned) {
@@ -1987,6 +1992,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                         textView.setPadding(textView.getPaddingLeft(), 0, textView.getPaddingRight(), 0);
                     }
+                    titleTextView.setIsCenter(false);
+                    subtitleTextView.setIsCenter(false);
                     subtitleTextView.setVisibility(GONE);
 
                     updatePlaybackButton(false);
@@ -2018,14 +2025,18 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                         textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                         textView.setTextColor(0xFFFFFFFF); // his pick: first line pure white
+                        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
                         textView.setPadding(textView.getPaddingLeft(), dp(4), textView.getPaddingRight(), 0);
                         TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
                         if (sub != null) {
                             sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                             sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+                            sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
                             sub.setPadding(sub.getPaddingLeft(), dp(10), sub.getPaddingRight(), 0);
                         }
                     }
+                    titleTextView.setIsCenter(true);
+                    subtitleTextView.setIsCenter(true);
                     subtitleTextView.setText(messageObject.getMusicAuthor(), false);
                     subtitleTextView.setVisibility(VISIBLE);
                 }

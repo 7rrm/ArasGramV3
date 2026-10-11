@@ -3508,7 +3508,12 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         private boolean isCenter;
 
         public void setIsCenter() {
-            isCenter = true;
+            setIsCenter(true);
+        }
+
+        public void setIsCenter(boolean value) {
+            isCenter = value;
+            requestLayout();
         }
 
         @Override
