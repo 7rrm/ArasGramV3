@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import tw.nekomimi.nekogram.MeeroFonts;
+import tw.nekomimi.nekogram.MeeroStrings;
 
 /**
  * MeeroX v231: per-slot font picker. Rows: from-files import, device font,
