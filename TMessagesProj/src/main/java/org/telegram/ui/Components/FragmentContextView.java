@@ -449,7 +449,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 if (currentStyle == STYLE_AUDIO_PLAYER || currentStyle == STYLE_LIVE_LOCATION) {
                     textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                     textView.setTypeface(Typeface.DEFAULT);
-                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13.5f);
+                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
                 } else if (currentStyle == STYLE_INACTIVE_GROUP_CALL) {
                     textView.setGravity(Gravity.TOP | Gravity.LEFT);
                     textView.setTextColor(getThemedColor(Theme.key_inappPlayerPerformer));
@@ -1040,6 +1040,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         continue;
                     }
                     textView.setTextColor(getThemedColor(colorId));
+                    if (currentStyle == STYLE_AUDIO_PLAYER && isMusic) {
+                        // his pick: music first line follows the theme (white at
+                        // night / black at day); updateColors re-applies the tag
+                        // color on re-entry, so re-assert it here.
+                        textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
+                    }
 
                     CharSequence text = textView.getText();
                     if (text instanceof Spanned) {
@@ -1615,7 +1621,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     float micAmplitude;
 
     public int getStyleHeight() {
-        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : 36;
+        // his pick: tighter music bar (no dead space under the performer line)
+        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : 36; // stock height restored (his report: original bar had no gap)
     }
 
     public boolean isCallTypeVisible() {
@@ -1984,7 +1991,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                             continue;
                         }
                         textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+                        textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                        textView.setPadding(textView.getPaddingLeft(), 0, textView.getPaddingRight(), 0);
                     }
+                    titleTextView.setIsCenter(false);
+                    subtitleTextView.setIsCenter(false);
+                    subtitleTextView.setVisibility(GONE);
 
                     updatePlaybackButton(false);
                 } else {
@@ -2003,17 +2015,37 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     } else {
                         titleTextView.setPadding(0, 0, joinButtonWidth, 0);
                     }
-                    stringBuilder = new SpannableStringBuilder(String.format("%s - %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
+                    // MeeroX v-lab (official Telegram-iOS parity): two-line music
+                    // bar — line 1 = track title (12dp), line 2 = performer (10dp),
+                    // both middle-truncated like MediaNavigationAccessoryHeaderNode.
+                    stringBuilder = new SpannableStringBuilder(messageObject.getMusicTitle());
                     for (int i = 0; i < 2; i++) {
                         TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
                         if (textView == null) {
                             continue;
                         }
-                        textView.setEllipsize(TextUtils.TruncateAt.END);
+                        textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+                        textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+                        textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle)); // his pick: white at night, black at day
+                        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12); // his pick: same as header status line
+                        textView.setPadding(textView.getPaddingLeft(), dp(5), textView.getPaddingRight(), 0); // official iOS: title y=5
+                        TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
+                        if (sub != null) {
+                            sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+                            sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+                            sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11); // his pick: +1
+                            sub.setPadding(sub.getPaddingLeft(), dp(11), sub.getPaddingRight(), 0); // official iOS: subtitle y=21 (10 margin + 11)
+                        }
                     }
+                    titleTextView.setIsCenter(true);
+                    subtitleTextView.setIsCenter(true);
+                    subtitleTextView.setText(messageObject.getMusicAuthor(), false);
+                    subtitleTextView.setVisibility(VISIBLE);
                 }
-                TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
-                stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                if (!isMusic) {
+                    TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
+                    stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                }
                 titleTextView.setText(stringBuilder, !create && wasVisible && isMusic);
             }
         }
