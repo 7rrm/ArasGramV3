@@ -1283,7 +1283,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35 + 16, 0, (isSideMenued ? 64 : 0) + 36, 0));
                 closeButton.setVisibility(GONE);
             } else if (style == STYLE_AUDIO_PLAYER) {
-                playButton.setLayoutParams(LayoutHelper.createFrame(34, 34, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
+                playButton.setLayoutParams(LayoutHelper.createFrame(32, 32, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
                 createPlaybackSpeedButton();
                 if (playbackSpeedButton != null) {
@@ -1622,7 +1622,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
     public int getStyleHeight() {
         // his pick: tighter music bar (no dead space under the performer line)
-        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : currentStyle == STYLE_AUDIO_PLAYER ? 34 : 36;
+        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : currentStyle == STYLE_AUDIO_PLAYER ? 32 : 36;
     }
 
     public boolean isCallTypeVisible() {
@@ -2027,14 +2027,14 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                         textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                         textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle)); // his pick: white at night, black at day
-                        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
-                        textView.setPadding(textView.getPaddingLeft(), dp(4), textView.getPaddingRight(), 0);
+                        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12); // his pick: same as header status line
+                        textView.setPadding(textView.getPaddingLeft(), dp(3), textView.getPaddingRight(), 0);
                         TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
                         if (sub != null) {
                             sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                             sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-                            sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
-                            sub.setPadding(sub.getPaddingLeft(), dp(9), sub.getPaddingRight(), 0);
+                            sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11); // his pick: +1
+                            sub.setPadding(sub.getPaddingLeft(), dp(8), sub.getPaddingRight(), 0);
                         }
                     }
                     titleTextView.setIsCenter(true);

@@ -99,7 +99,7 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
         };
         textView.setAnimationProperties(.3f, 0, 450, CubicBezierInterpolator.EASE_OUT_QUINT);
 
-        textView.setTextSize(dp(14));
+        textView.setTextSize(dp(15)); // his pick: same size as the chat name line
         textView.setTypeface(AndroidUtilities.bold());
         textView.setPadding(dp(4), 0, dp(4), 0);
         textView.setGravity(Gravity.CENTER_HORIZONTAL);
