@@ -2402,14 +2402,23 @@ public class AndroidUtilities {
     }
 
     public static Typeface getTypeface(String assetPath) {
-        // MeeroX: every text view resolves its font through this method, so a
-        // face chosen here replaces the stock one across the whole app. The
-        // weight/slant Telegram asked for is inferred from the asset name.
-        // rmono is left alone so code blocks stay monospaced.
-        if (assetPath == null || !assetPath.contains("rmono")) {
-            Typeface meero = tw.nekomimi.nekogram.MeeroFonts.appTypeface(
-                    assetPath != null && (assetPath.contains("medium") || assetPath.contains("bold")),
-                    assetPath != null && assetPath.contains("italic"));
+        // MeeroX v231: every text view resolves its font through this method.
+        // The weight/slant Telegram asked for (inferred from the asset name)
+        // picks one of the four user-configurable slots: regular/bold/italic
+        // and - new - mono, so each style can carry its own face.
+        if (assetPath != null) {
+            boolean meeroBold = assetPath.contains("medium") || assetPath.contains("bold") || assetPath.contains("extrabold");
+            boolean meeroItalic = assetPath.contains("italic");
+            boolean meeroMono = assetPath.contains("rmono") || assetPath.contains("mono");
+            String slot = meeroMono ? tw.nekomimi.nekogram.MeeroFonts.SLOT_MONO
+                    : meeroItalic ? tw.nekomimi.nekogram.MeeroFonts.SLOT_ITALIC
+                    : meeroBold ? tw.nekomimi.nekogram.MeeroFonts.SLOT_BOLD
+                    : tw.nekomimi.nekogram.MeeroFonts.SLOT_REGULAR;
+            int style = meeroBold && meeroItalic ? Typeface.BOLD_ITALIC
+                    : meeroBold ? Typeface.BOLD
+                    : meeroItalic ? Typeface.ITALIC
+                    : Typeface.NORMAL;
+            Typeface meero = tw.nekomimi.nekogram.MeeroFonts.slotTypeface(slot, style);
             if (meero != null) {
                 return meero;
             }

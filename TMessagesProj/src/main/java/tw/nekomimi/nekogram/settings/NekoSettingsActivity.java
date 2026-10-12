@@ -483,7 +483,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
         } else if (position == experimentRow) {
             presentFragment(new NekoExperimentalSettingsActivity());
         } else if (position == fontsRow) {
-            presentFragment(new MeeroFontsActivity());
+            presentFragment(new MeeroFontSlotsActivity());
         } else if (position == translatorRow) {
             presentFragment(new NekoTranslatorSettingsActivity());
         } else if (position == aboutRow) {
@@ -578,7 +578,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                     } else if (position == experimentRow) {
                         textCell.setTextAndIcon(getString(R.string.Experimental), R.drawable.msg_fave, true);
                     } else if (position == fontsRow) {
-                        textCell.setTextAndValueAndIcon(MeeroStrings.s(97), tw.nekomimi.nekogram.MeeroFonts.titleOf(tw.nekomimi.nekogram.MeeroFonts.getSelected()), R.drawable.msg_photo_text_regular, true);
+                        textCell.setTextAndValueAndIcon(MeeroStrings.s(97), tw.nekomimi.nekogram.MeeroFonts.displayNameOf(tw.nekomimi.nekogram.MeeroFonts.getSlot(tw.nekomimi.nekogram.MeeroFonts.SLOT_REGULAR)), R.drawable.msg_photo_text_regular, true);
                     } else if (position == importSettingsRow) {
                         textCell.setTextAndIcon(getString(R.string.ImportSettings), R.drawable.import_solar, true);
                     } else if (position == exportSettingsRow) {

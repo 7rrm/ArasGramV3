@@ -76,6 +76,20 @@ public class MeeroFonts {
     public static void load() {
         if (loaded) return;
         selected = prefs().getString("font", DEFAULT);
+        // MeeroX v231: migrate the legacy single-font pick into the new
+        // per-style slots (regular/bold/italic); mono stays stock.
+        android.content.SharedPreferences p = prefs();
+        if (p.contains("font")) {
+            String legacy = p.getString("font", DEFAULT);
+            if (!DEFAULT.equals(legacy)) {
+                for (String s : new String[]{SLOT_REGULAR, SLOT_BOLD, SLOT_ITALIC}) {
+                    if (!p.contains("slot_" + s)) {
+                        p.edit().putString("slot_" + s, legacy).apply();
+                    }
+                }
+            }
+            p.edit().remove("font").apply();
+        }
         loaded = true;
     }
 
@@ -89,6 +103,64 @@ public class MeeroFonts {
         selected = id;
         prefs().edit().putString("font", id).apply();
         cache.clear();
+    }
+
+    /* ---- MeeroX v231: per-style font slots (regular/bold/italic/mono) ---- */
+    public static final String SLOT_REGULAR = "regular";
+    public static final String SLOT_BOLD = "bold";
+    public static final String SLOT_ITALIC = "italic";
+    public static final String SLOT_MONO = "mono";
+    /** the device's own system font */
+    public static final String DEVICE = "device";
+
+    public static String slotTitle(String slot) {
+        switch (slot) {
+            case SLOT_BOLD: return "خط غامق";
+            case SLOT_ITALIC: return "خط مائل";
+            case SLOT_MONO: return "خط أحادي";
+            default: return "خط عادي";
+        }
+    }
+
+    public static String getSlot(String slot) {
+        load();
+        return prefs().getString("slot_" + slot, DEFAULT);
+    }
+
+    public static void setSlot(String slot, String id) {
+        load();
+        prefs().edit().putString("slot_" + slot, id).apply();
+        cache.clear();
+    }
+
+    public static String displayNameOf(String id) {
+        if (id == null || DEFAULT.equals(id)) return "الافتراضي";
+        if (DEVICE.equals(id)) return "خط الجهاز";
+        if (id.startsWith(CUSTOM_PREFIX)) {
+            String n = id.substring(CUSTOM_PREFIX.length());
+            int d = n.lastIndexOf('.');
+            return d > 0 ? n.substring(0, d) : n;
+        }
+        return id;
+    }
+
+    /**
+     * The face a slot should draw with, or null to keep Telegram's stock
+     * face for that style. `style` is a Typeface style constant.
+     */
+    public static Typeface slotTypeface(String slot, int style) {
+        String id = getSlot(slot);
+        if (DEFAULT.equals(id)) return null;
+        if (DEVICE.equals(id)) return Typeface.create("sans-serif", style);
+        Typeface base = resolve(id);
+        if (base == null) return null;
+        if (style == Typeface.NORMAL) return base;
+        String key = id + "#" + style;
+        Typeface c = cache.get(key);
+        if (c != null) return c;
+        Typeface derived = Typeface.create(base, style);
+        cache.put(key, derived);
+        return derived;
     }
 
     public static File customDir() {
@@ -209,26 +281,16 @@ public class MeeroFonts {
     }
 
     /**
-     * The face the whole app should use, or null to keep Telegram's own.
-     * Bold/italic are derived so headers and emphasis stay consistent.
+     * Legacy entry kept for Theme.meeroApplyFont: maps the requested weight
+     * onto its slot so regular/bold/italic each honour their own pick.
      */
     public static Typeface appTypeface(boolean bold, boolean italic) {
-        Typeface base = resolve(getSelected());
-        if (base == null) return null;
-
-        int style = Typeface.NORMAL;
-        if (bold && italic) style = Typeface.BOLD_ITALIC;
-        else if (bold) style = Typeface.BOLD;
-        else if (italic) style = Typeface.ITALIC;
-
-        if (style == Typeface.NORMAL) return base;
-
-        String key = getSelected() + "#" + style;
-        Typeface c = cache.get(key);
-        if (c != null) return c;
-        Typeface derived = Typeface.create(base, style);
-        cache.put(key, derived);
-        return derived;
+        String slot = italic ? SLOT_ITALIC : (bold ? SLOT_BOLD : SLOT_REGULAR);
+        int style = bold && italic ? Typeface.BOLD_ITALIC
+                : bold ? Typeface.BOLD
+                : italic ? Typeface.ITALIC
+                : Typeface.NORMAL;
+        return slotTypeface(slot, style);
     }
 
     public static void clearCache() {

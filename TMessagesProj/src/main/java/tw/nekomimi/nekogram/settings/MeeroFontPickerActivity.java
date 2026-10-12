@@ -1,7 +1,5 @@
 package tw.nekomimi.nekogram.settings;
 
-import tw.nekomimi.nekogram.MeeroStrings;
-
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.app.Activity;
@@ -28,47 +26,51 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import tw.nekomimi.nekogram.MeeroFonts;
-import tw.nekomimi.nekogram.NekoConfig;
 
 /**
- * Font picker: bundled faces plus any .ttf/.otf the user imports.
- * Each row previews itself in the face it offers.
+ * MeeroX v231: per-slot font picker. Rows: from-files import, device font,
+ * app default, then the bundled + user-added faces (each previews itself).
  */
-public class MeeroFontsActivity extends BaseNekoSettingsActivity {
+public class MeeroFontPickerActivity extends BaseNekoSettingsActivity {
 
-    private static final int PICK_FONT = 4711;
+    private static final int PICK_FONT = 4712;
 
+    private final String slot;
     private final ArrayList<MeeroFonts.Option> options = new ArrayList<>();
 
+    private int addFontRow;
+    private int deviceRow;
+    private int defaultRow;
+    private int dividerRow;
     private int fontsStartRow;
     private int fontsEndRow;
-    private int addFontRow;
-    private int dividerRow;
-    // MeeroX v230: send-text-style picker row (bottom of the Fonts page).
-    private int meeroStyleDividerRow;
-    private int meeroSendStyleRow;
+
+    public MeeroFontPickerActivity(String slot) {
+        this.slot = slot;
+    }
 
     @Override
     protected void updateRows() {
         super.updateRows();
 
-        options.clear();
-        options.addAll(MeeroFonts.getOptions());
+        addFontRow = addRow();
+        deviceRow = addRow();
+        defaultRow = addRow();
+        dividerRow = addRow();
 
+        options.clear();
+        for (MeeroFonts.Option o : MeeroFonts.getOptions()) {
+            if (!MeeroFonts.DEFAULT.equals(o.id)) {
+                options.add(o);
+            }
+        }
         fontsStartRow = rowCount;
         for (int i = 0; i < options.size(); i++) {
             addRow();
         }
         fontsEndRow = rowCount;
-
-        dividerRow = addRow();
-        addFontRow = addRow();
-        meeroStyleDividerRow = addRow();
-        meeroSendStyleRow = addRow();
     }
 
-    // MeeroX v129: opt into the fixed glass design (chrome, cards,
-    // mock switches, entrance stagger) via the shared support pass.
     @Override
     protected boolean meeroGlassScreen() {
         return true;
@@ -76,23 +78,30 @@ public class MeeroFontsActivity extends BaseNekoSettingsActivity {
 
     @Override
     protected String getActionBarTitle() {
-        return MeeroStrings.s(97);
+        return MeeroFonts.slotTitle(slot);
+    }
+
+    private void apply(String id) {
+        MeeroFonts.setSlot(slot, id);
+        AndroidUtilities.clearTypefaceCache();
+        if (listAdapter != null) {
+            listAdapter.notifyDataSetChanged();
+        }
+        if (parentLayout != null) {
+            parentLayout.rebuildAllFragmentViews(true, true);
+        }
     }
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
-        if (position >= fontsStartRow && position < fontsEndRow) {
-            MeeroFonts.Option o = options.get(position - fontsStartRow);
-            MeeroFonts.setSelected(o.id);
-            AndroidUtilities.clearTypefaceCache();
-            listAdapter.notifyItemRangeChanged(fontsStartRow, options.size());
-            if (parentLayout != null) {
-                parentLayout.rebuildAllFragmentViews(true, true);
-            }
-        } else if (position == addFontRow) {
+        if (position == addFontRow) {
             pickFont();
-        } else if (position == meeroSendStyleRow) {
-            showMeeroSendStyleDialog();
+        } else if (position == deviceRow) {
+            apply(MeeroFonts.DEVICE);
+        } else if (position == defaultRow) {
+            apply(MeeroFonts.DEFAULT);
+        } else if (position >= fontsStartRow && position < fontsEndRow) {
+            apply(options.get(position - fontsStartRow).id);
         }
     }
 
@@ -109,9 +118,6 @@ public class MeeroFontsActivity extends BaseNekoSettingsActivity {
                     AndroidUtilities.clearTypefaceCache();
                     updateRows();
                     listAdapter.notifyDataSetChanged();
-                    if (parentLayout != null) {
-                        parentLayout.rebuildAllFragmentViews(true, true);
-                    }
                 });
                 b.setNegativeButton(getString(R.string.Cancel), null);
                 showDialog(b.create());
@@ -119,49 +125,6 @@ public class MeeroFontsActivity extends BaseNekoSettingsActivity {
             }
         }
         return false;
-    }
-
-    // MeeroX v230: values 0..8 - the order matters, entityFor() in
-    // MeeroMessageStyler maps the same indexes 1:1. Never reorder.
-    private static final int[] MEERO_STYLE_RES = {
-            R.string.MeeroStyleDefault,
-            R.string.MeeroStyleBold,
-            R.string.MeeroStyleItalic,
-            R.string.MeeroStyleUnderline,
-            R.string.MeeroStyleStrike,
-            R.string.MeeroStyleSpoiler,
-            R.string.MeeroStyleQuote,
-            R.string.MeeroStyleMono,
-            R.string.MeeroStyleCode
-    };
-
-    private int currentMeeroSendStyle() {
-        try {
-            final int v = NekoConfig.meeroSendTextStyle.Int();
-            return v >= 0 && v < MEERO_STYLE_RES.length ? v : 0;
-        } catch (Throwable ignore) {
-            return 0;
-        }
-    }
-
-    private void showMeeroSendStyleDialog() {
-        if (getParentActivity() == null) {
-            return;
-        }
-        final int current = currentMeeroSendStyle();
-        final String[] names = new String[MEERO_STYLE_RES.length];
-        for (int i = 0; i < names.length; i++) {
-            names[i] = (i == current ? "✓ " : "") + getString(MEERO_STYLE_RES[i]);
-        }
-        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
-        b.setTitle(getString(R.string.MeeroSendStyleTitle));
-        b.setItems(names, (d, which) -> {
-            NekoConfig.meeroSendTextStyle.setConfigInt(which);
-            if (listAdapter != null) {
-                listAdapter.notifyItemChanged(meeroSendStyleRow);
-            }
-        });
-        showDialog(b.create());
     }
 
     private void pickFont() {
@@ -225,13 +188,9 @@ public class MeeroFontsActivity extends BaseNekoSettingsActivity {
             return;
         }
 
-        MeeroFonts.setSelected(id);
-        AndroidUtilities.clearTypefaceCache();
+        apply(id);
         updateRows();
         listAdapter.notifyDataSetChanged();
-        if (parentLayout != null) {
-            parentLayout.rebuildAllFragmentViews(true, true);
-        }
     }
 
     @Override
@@ -248,29 +207,33 @@ public class MeeroFontsActivity extends BaseNekoSettingsActivity {
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position, boolean partial) {
             int type = holder.getItemViewType();
+            String current = MeeroFonts.getSlot(slot);
             if (type == TYPE_CHECK) {
                 TextCheckCell cell = (TextCheckCell) holder.itemView;
-                MeeroFonts.Option o = options.get(position - fontsStartRow);
-                boolean selected = o.id.equals(MeeroFonts.getSelected());
-                cell.setTextAndCheck(o.title, selected, position < fontsEndRow - 1);
-                Typeface tf = MeeroFonts.previewOf(o.id);
-                cell.setTypeface(tf != null ? tf : Typeface.DEFAULT);
+                if (position == deviceRow) {
+                    cell.setTextAndCheck("خط الجهاز", MeeroFonts.DEVICE.equals(current), true);
+                    cell.setTypeface(Typeface.DEFAULT);
+                } else if (position == defaultRow) {
+                    cell.setTextAndCheck("الافتراضي", MeeroFonts.DEFAULT.equals(current), true);
+                    cell.setTypeface(Typeface.DEFAULT);
+                } else {
+                    MeeroFonts.Option o = options.get(position - fontsStartRow);
+                    cell.setTextAndCheck(o.title, o.id.equals(current), position < fontsEndRow - 1);
+                    Typeface tf = MeeroFonts.previewOf(o.id);
+                    cell.setTypeface(tf != null ? tf : Typeface.DEFAULT);
+                }
             } else if (type == TYPE_SETTINGS) {
                 TextSettingsCell cell = (TextSettingsCell) holder.itemView;
-                if (position == meeroSendStyleRow) {
-                    cell.setTextAndValue(getString(R.string.MeeroSendStyleTitle),
-                            getString(MEERO_STYLE_RES[currentMeeroSendStyle()]), false);
-                } else {
-                    cell.setText(MeeroStrings.s(93), false);
-                }
+                cell.setText("من الملفات", false);
                 cell.getTextView().setTypeface(Typeface.DEFAULT);
             }
         }
 
         @Override
         public int getItemViewType(int position) {
+            if (position == addFontRow) return TYPE_SETTINGS;
+            if (position == deviceRow || position == defaultRow) return TYPE_CHECK;
             if (position >= fontsStartRow && position < fontsEndRow) return TYPE_CHECK;
-            if (position == addFontRow || position == meeroSendStyleRow) return TYPE_SETTINGS;
             return TYPE_SHADOW;
         }
     }
