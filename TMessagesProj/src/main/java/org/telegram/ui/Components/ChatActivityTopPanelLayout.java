@@ -68,16 +68,14 @@ public class ChatActivityTopPanelLayout extends AnimatedLinearLayout {
 
         clipRectF.set(getPaddingLeft(), getPaddingTop(), getMeasuredWidth() - getPaddingRight(), getPaddingTop() + bgHeight);
 
-        final float r = Math.min(dp(24), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
+        final float r = Math.min(dp(18), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
         clipPath.rewind();
         clipPath.addRoundRect(clipRectF, r, r, Path.Direction.CW);
 
         if (backgroundDrawable != null) {
             backgroundDrawable.setAlpha((int) (bgAlpha * 255));
-            // MeeroX: draw the glass as a floating capsule like the dialogs list
-            // (inset bounds + 24dp radius) so the top white highlight line shows.
-            backgroundDrawable.setBounds(dp(4), dp(6), getMeasuredWidth() - dp(4), getPaddingTop() + getPaddingBottom() + (int) bgHeight - dp(6));
-            backgroundDrawable.setRadius(Math.min(dp(24), bgHeight / 2));
+            backgroundDrawable.setBounds(getPaddingLeft() - dp(7), 0, getMeasuredWidth() - getPaddingRight() + dp(7), getPaddingTop() + getPaddingBottom() + (int) bgHeight);
+            backgroundDrawable.setRadius(Math.min(dp(18), bgHeight / 2));
         }
     }
 
