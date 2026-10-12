@@ -1283,8 +1283,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35 + 16, 0, (isSideMenued ? 64 : 0) + 36, 0));
                 closeButton.setVisibility(GONE);
             } else if (style == STYLE_AUDIO_PLAYER) {
-                playButton.setLayoutParams(LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
-                titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
+                playButton.setLayoutParams(LayoutHelper.createFrame(30, 30, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
+                titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 30, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
+                subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 30, Gravity.LEFT | Gravity.TOP, 37, 10, (isSideMenued ? 64 : 0) + 36, 0));
                 createPlaybackSpeedButton();
                 if (playbackSpeedButton != null) {
                     playbackSpeedButton.setVisibility(VISIBLE);
@@ -1622,7 +1623,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
     public int getStyleHeight() {
         // his pick: tighter music bar (no dead space under the performer line)
-        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : 36; // stock height restored (his report: original bar had no gap)
+        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : currentStyle == STYLE_AUDIO_PLAYER ? 30 : 36; // his pick: 30dp bar
     }
 
     public boolean isCallTypeVisible() {
@@ -2028,13 +2029,13 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                         textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle)); // his pick: white at night, black at day
                         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12); // his pick: same as header status line
-                        textView.setPadding(textView.getPaddingLeft(), dp(5), textView.getPaddingRight(), 0); // official iOS: title y=5
+                        textView.setPadding(textView.getPaddingLeft(), dp(3), textView.getPaddingRight(), 0); // 30dp bar: title y=3
                         TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
                         if (sub != null) {
                             sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                             sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                             sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11); // his pick: +1
-                            sub.setPadding(sub.getPaddingLeft(), dp(11), sub.getPaddingRight(), 0); // official iOS: subtitle y=21 (10 margin + 11)
+                            sub.setPadding(sub.getPaddingLeft(), dp(7), sub.getPaddingRight(), 0); // 30dp bar: artist y=17 (10 margin + 7)
                         }
                     }
                     titleTextView.setIsCenter(true);
