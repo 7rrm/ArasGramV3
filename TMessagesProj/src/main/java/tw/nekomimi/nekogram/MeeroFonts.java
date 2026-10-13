@@ -90,6 +90,17 @@ public class MeeroFonts {
             }
             p.edit().remove("font").apply();
         }
+        // MeeroX v232: one-time default for the slot UI - regular text uses
+        // the bundled iOS font, every other style stays on the stock face.
+        if (!p.getBoolean("v232_slots_default", false)) {
+            p.edit()
+                    .putString("slot_" + SLOT_REGULAR, IOS16)
+                    .putString("slot_" + SLOT_BOLD, DEFAULT)
+                    .putString("slot_" + SLOT_ITALIC, DEFAULT)
+                    .putString("slot_" + SLOT_MONO, DEFAULT)
+                    .putBoolean("v232_slots_default", true)
+                    .apply();
+        }
         loaded = true;
     }
 
@@ -112,6 +123,8 @@ public class MeeroFonts {
     public static final String SLOT_MONO = "mono";
     /** the device's own system font */
     public static final String DEVICE = "device";
+    /** MeeroX v232: the bundled iOS font (IOS 15 R SemiBold) - default face for the regular slot. */
+    public static final String IOS16 = "ios16";
 
     public static String slotTitle(String slot) {
         switch (slot) {
@@ -136,6 +149,7 @@ public class MeeroFonts {
     public static String displayNameOf(String id) {
         if (id == null || DEFAULT.equals(id)) return "الافتراضي";
         if (DEVICE.equals(id)) return "خط الجهاز";
+        if (IOS16.equals(id)) return "خط الآيفون";
         if (id.startsWith(CUSTOM_PREFIX)) {
             String n = id.substring(CUSTOM_PREFIX.length());
             int d = n.lastIndexOf('.');
@@ -193,6 +207,9 @@ public class MeeroFonts {
         list.add(new Option("almarai", "هـكذا يبـدو النـص", "fonts/meero_almarai.ttf"));
         list.add(new Option("inter", "هـكذا يبـدو النـص", "fonts/meero_inter.ttf"));
     }
+
+    // MeeroX v232: the bundled iOS font, first face in the list.
+    list.add(1, new Option(IOS16, "هـكذا يبـدو النـص", "fonts/meerox_ios16.ttf"));
 
     File[] files = customDir().listFiles();
     if (files != null) {
