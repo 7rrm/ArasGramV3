@@ -1629,13 +1629,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         playButton.setLayoutParams(LayoutHelper.createFrame(play, play, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
         titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, bar, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
         if (tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
-            subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, bar, Gravity.LEFT | Gravity.TOP, 37, (int) dp(10 * tw.nekomimi.nekogram.MeeroTopBar.musicK()), (isSideMenued ? 64 : 0) + 36, 0));
+            subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, bar, Gravity.LEFT | Gravity.TOP, 37, dp(10), (isSideMenued ? 64 : 0) + 36, 0));
         }
     }
 
     // MeeroX v233: two-line music text sizes (custom mode only).
     private void meeroApplyAudioTextSizes() {
-        float k = tw.nekomimi.nekogram.MeeroTopBar.musicK();
         for (int i = 0; i < 2; i++) {
             TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
             if (textView == null) {
@@ -1645,13 +1644,13 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
             textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle)); // his pick: white at night, black at day
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicTitleDp());
-            textView.setPadding(textView.getPaddingLeft(), dp(3 * k), textView.getPaddingRight(), 0);
+            textView.setPadding(textView.getPaddingLeft(), dp(3), textView.getPaddingRight(), 0);
             TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
             if (sub != null) {
                 sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                 sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                 sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicSubDp());
-                sub.setPadding(sub.getPaddingLeft(), dp(7 * k), sub.getPaddingRight(), 0);
+                sub.setPadding(sub.getPaddingLeft(), dp(7), sub.getPaddingRight(), 0);
             }
         }
     }

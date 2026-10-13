@@ -178,13 +178,6 @@ public class NekoConfig {
     // MeeroX v233: top bar sizes & fonts (chat header, pinned strip, music bar).
     // Master off = the conversation-start originals; on = tuned baseline x scale%.
     public static ConfigItem meeroTopBarSizesOn = addConfig("meeroTopBarSizesOn", configTypeBool, true);
-    public static ConfigItem meeroTopBarAvatarScale = addConfig("meeroTopBarAvatarScale", configTypeInt, 100);
-    public static ConfigItem meeroTopBarTitleScale = addConfig("meeroTopBarTitleScale", configTypeInt, 100);
-    public static ConfigItem meeroTopBarStatusScale = addConfig("meeroTopBarStatusScale", configTypeInt, 100);
-    public static ConfigItem meeroTopBarCapsuleScale = addConfig("meeroTopBarCapsuleScale", configTypeInt, 100);
-    public static ConfigItem meeroTopBarBackScale = addConfig("meeroTopBarBackScale", configTypeInt, 100);
-    public static ConfigItem meeroTopBarPinnedScale = addConfig("meeroTopBarPinnedScale", configTypeInt, 100);
-    public static ConfigItem meeroTopBarMusicScale = addConfig("meeroTopBarMusicScale", configTypeInt, 100);
     // MeeroX v256 (his sealed order): "رجوع للأصلي" master switch of the new
     // collapsible chat-top-strip settings section. Default OFF so the user's
     // current capsule look survives the update untouched. It GATES reads of

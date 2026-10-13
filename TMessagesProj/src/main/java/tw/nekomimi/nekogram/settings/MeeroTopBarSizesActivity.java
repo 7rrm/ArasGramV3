@@ -1,20 +1,14 @@
 package tw.nekomimi.nekogram.settings;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
-import static org.telegram.messenger.LocaleController.getString;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.graphics.drawable.ClipDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.LayerDrawable;
 import android.text.TextPaint;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -22,66 +16,31 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextCheckCell;
-import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 
 import tw.nekomimi.nekogram.MeeroTopBar;
 import tw.nekomimi.nekogram.NekoConfig;
-import tw.nekomimi.nekogram.config.ConfigItem;
 
 /**
- * MeeroX v233: "مقاسات وحجم خطوط الشريط العلوي" - per-element sizing for the
- * chat top bar, with a live header preview drawn right in the settings.
+ * MeeroX v235: "مقاسات الشريط العلوي" - ONE switch, no sliders.
  *
- * Master switch off (or the reset row) = the conversation-start originals,
- * as if this session's tuning never happened. On = the MeeroX-tuned sizes
- * as the 100% baseline, every element scalable 60%-160%.
+ * ON  = the measurements we tuned and shrank (title 15, status 12, pinned
+ *       12/12.5, two-line music 12/11 on a 30dp bar, translate 15).
+ * OFF = the conversation-start originals - as if nothing was done.
  *
- * v234 (his reports): thick clearly-visible slider with the percentage
- * BESIDE the line; the preview paints the real glass colours; the oval
- * behind the avatar and the back capsule track their sliders with the
- * icon/image staying dead-centre.
+ * The live header preview stays pinned above the list so both looks can
+ * be compared while flipping the switch.
  */
 public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
 
-    private static final int TYPE_SLIDER = 101;
-    private static final int SLIDERS = 7;
-    private static final int MIN_SCALE = 60;
-    private static final int MAX_SCALE = 160;
-
-    private static final String[] TITLES = {
-            "الصورة (مع الدائرة اللي خلفها)",
-            "اسم المحادثة",
-            "الحالة",
-            "كبسولة الاسم والحالة",
-            "زر الرجوع (الأيقونة والكبسولة)",
-            "خطوط التثبيت",
-            "خطوط الموسيقى",
-    };
-
-    private static final ConfigItem[] ITEMS = {
-            NekoConfig.meeroTopBarAvatarScale,
-            NekoConfig.meeroTopBarTitleScale,
-            NekoConfig.meeroTopBarStatusScale,
-            NekoConfig.meeroTopBarCapsuleScale,
-            NekoConfig.meeroTopBarBackScale,
-            NekoConfig.meeroTopBarPinnedScale,
-            NekoConfig.meeroTopBarMusicScale,
-    };
-
     private int masterRow = -1;
-    private int sliderStart = -1;
-    private int resetRow = -1;
     private LinearLayout pinnedBox;
     private MeeroTopBarPreview previewView;
 
@@ -89,18 +48,10 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
     protected void updateRows() {
         super.updateRows();
         masterRow = addRow();
-        if (NekoConfig.meeroTopBarSizesOn.Bool()) {
-            sliderStart = rowCount;
-            for (int i = 0; i < SLIDERS; i++) {
-                addRow();
-            }
-            resetRow = addRow();
-        }
     }
 
     /**
-     * v234 (his report: "اريد معاينة حية"): pin the header preview ABOVE the
-     * list so it stays on screen while every slider is dragged. The box
+     * Pin the header preview ABOVE the list so it stays on screen. The box
      * takes the listView's exact place in the fragment, so the preview
      * lands exactly where the old first row was - no inset math.
      */
@@ -129,24 +80,15 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
 
     @Override
     protected String getActionBarTitle() {
-        return "مقاسات وحجم خطوط الشريط العلوي";
+        return "مقاسات الشريط العلوي";
     }
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
         if (position == masterRow) {
+            // ON = our tuned measurements, OFF = the conversation-start ones
             NekoConfig.meeroTopBarSizesOn.setConfigBool(!NekoConfig.meeroTopBarSizesOn.Bool());
             MeeroTopBar.notifyChanged();
-            updateRows();
-            listAdapter.notifyDataSetChanged();
-        } else if (position == resetRow) {
-            // back to the conversation-start originals: switch off + clean scales
-            NekoConfig.meeroTopBarSizesOn.setConfigBool(false);
-            for (ConfigItem item : ITEMS) {
-                item.setConfigInt(100);
-            }
-            MeeroTopBar.notifyChanged();
-            updateRows();
             listAdapter.notifyDataSetChanged();
         }
     }
@@ -165,18 +107,12 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
         @Override
         public int getItemViewType(int position) {
             if (position == masterRow) return TYPE_CHECK;
-            if (position >= sliderStart && position < sliderStart + SLIDERS) return TYPE_SLIDER;
-            if (position == resetRow) return TYPE_SETTINGS;
             return TYPE_SHADOW;
         }
 
         @NonNull
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            if (viewType == TYPE_SLIDER) {
-                return new RecyclerView.ViewHolder(new MeeroSliderCell(parent.getContext())) {
-                };
-            }
             return super.onCreateViewHolder(parent, viewType);
         }
 
@@ -185,111 +121,12 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
             int type = holder.getItemViewType();
             if (type == TYPE_CHECK) {
                 TextCheckCell cell = (TextCheckCell) holder.itemView;
-                cell.setTextAndCheck("مقاسات وحجم خطوط الشريط العلوي", NekoConfig.meeroTopBarSizesOn.Bool(), false);
-            } else if (type == TYPE_SLIDER) {
-                MeeroSliderCell cell = (MeeroSliderCell) holder.itemView;
-                cell.bind(position - sliderStart);
-            } else if (type == TYPE_SETTINGS) {
-                TextSettingsCell cell = (TextSettingsCell) holder.itemView;
-                cell.setText("رجع المقاسات الأصلية", false);
+                cell.setTextAndCheck("المقاسات المضبوطة (مفعل = المقاسات اللي صغّرناها، مطفي = مقاسات بداية المحادثة)", NekoConfig.meeroTopBarSizesOn.Bool(), false);
             }
         }
     }
 
-    /* ---------------- slider row (v234: thick bar + % beside the line) ---------------- */
-
-    private class MeeroSliderCell extends FrameLayout {
-
-        private final TextView titleView;
-        private final TextView valueView;
-        private final SeekBar seekBar;
-        private int index;
-
-        public MeeroSliderCell(Context context) {
-            super(context);
-            setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
-
-            titleView = new TextView(context);
-            titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            titleView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
-            addView(titleView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 21, 13, 21, 0));
-
-            LinearLayout row = new LinearLayout(context);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(Gravity.CENTER_VERTICAL);
-
-            seekBar = new SeekBar(context);
-            seekBar.setMax(MAX_SCALE - MIN_SCALE);
-            final int accent = getThemedColor(Theme.key_windowBackgroundWhiteBlueText);
-            seekBar.setProgressTintList(ColorStateList.valueOf(accent));
-            seekBar.setThumbTintList(ColorStateList.valueOf(accent));
-
-            // v234 (his report: "the progress bar is way too small"): a thick
-            // iOS-style track + a big round thumb, impossible to miss.
-            GradientDrawable track = new GradientDrawable();
-            track.setCornerRadius(dp(3));
-            track.setColor(getThemedColor(Theme.key_graySection));
-            GradientDrawable progressFill = new GradientDrawable();
-            progressFill.setCornerRadius(dp(3));
-            progressFill.setColor(accent);
-            ClipDrawable progressClip = new ClipDrawable(progressFill, Gravity.LEFT, ClipDrawable.HORIZONTAL);
-            LayerDrawable layers = new LayerDrawable(new Drawable[]{track, progressClip});
-            layers.setLayerHeight(0, dp(6));
-            layers.setLayerGravity(0, Gravity.CENTER_VERTICAL);
-            layers.setLayerHeight(1, dp(6));
-            layers.setLayerGravity(1, Gravity.CENTER_VERTICAL);
-            seekBar.setProgressDrawable(layers);
-            GradientDrawable thumb = new GradientDrawable();
-            thumb.setShape(GradientDrawable.OVAL);
-            thumb.setSize(dp(20), dp(20));
-            thumb.setColor(accent);
-            seekBar.setThumb(thumb);
-            seekBar.setPadding(dp(2), 0, dp(2), 0);
-
-            seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (!fromUser) {
-                        return;
-                    }
-                    int value = MIN_SCALE + progress;
-                    ITEMS[index].setConfigInt(value);
-                    valueView.setText(value + "%");
-                    MeeroTopBar.notifyChanged();
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                }
-            });
-            row.addView(seekBar, new LinearLayout.LayoutParams(0, dp(32), 1f));
-
-            // v234 (his report: "the percentage sits above the line"): the
-            // value lives on the slider's own row now, right of the line.
-            valueView = new TextView(context);
-            valueView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            valueView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueText));
-            row.addView(valueView, new LinearLayout.LayoutParams(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
-
-            addView(row, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 16, 38, 16, 12));
-        }
-
-        public void bind(int idx) {
-            index = idx;
-            titleView.setText(TITLES[idx]);
-            int value = ITEMS[idx].Int();
-            if (value < MIN_SCALE) value = MIN_SCALE;
-            if (value > MAX_SCALE) value = MAX_SCALE;
-            seekBar.setProgress(value - MIN_SCALE);
-            valueView.setText(value + "%");
-        }
-    }
-
-    /* ---------------- live header preview (v234: real glass colours) ---------------- */
+    /* ---------------- live header preview ---------------- */
 
     private class MeeroTopBarPreview extends View implements MeeroTopBar.Listener {
 
@@ -357,20 +194,18 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
             float headerH = Math.max(pillH, backH) + dp(6f);
             float cy = dp(8f) + headerH / 2f;
 
-            // back capsule + chevron (icon scales with the capsule, stays centred)
+            // back capsule + chevron
             rect.set(side, cy - backH / 2f, side + backH, cy + backH / 2f);
             drawCapsule(canvas, rect, backH / 2f);
             strokePaint.setStyle(Paint.Style.STROKE);
             strokePaint.setStrokeCap(Paint.Cap.ROUND);
-            strokePaint.setStrokeWidth(dp(2.2f) * MeeroTopBar.backK());
+            strokePaint.setStrokeWidth(dp(2.2f));
             strokePaint.setColor(titleColor);
             float cx = side + backH / 2f;
-            float chH = dp(13f) * MeeroTopBar.backK();
-            float chW = dp(4.5f) * MeeroTopBar.backK();
             path.reset();
-            path.moveTo(cx + chW, cy - chH / 2f);
-            path.lineTo(cx - chW * 0.6f, cy);
-            path.lineTo(cx + chW, cy + chH / 2f);
+            path.moveTo(cx + dp(4.5f), cy - dp(13f) / 2f);
+            path.lineTo(cx - dp(4.5f) * 0.6f, cy);
+            path.lineTo(cx + dp(4.5f), cy + dp(13f) / 2f);
             canvas.drawPath(path, strokePaint);
 
             // name+status capsule
@@ -378,16 +213,16 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
             rect.set(pillX0, cy - pillH / 2f, w - side, cy + pillH / 2f);
             drawCapsule(canvas, rect, pillH / 2f);
 
-            // avatar + its oval: the oval always hugs the picture (avatar + 16)
+            // avatar + its oval
             float oval = dp(MeeroTopBar.avatarDp() + 16f);
             float ovalX0 = pillX0 + dp(2f);
             rect.set(ovalX0, cy - oval / 2f, ovalX0 + oval, cy + oval / 2f);
             fillPaint.setColor(glassColor());
-            canvas.drawRoundRect(rect, dp(23f) * MeeroTopBar.avatarK(), dp(23f) * MeeroTopBar.avatarK(), fillPaint);
+            canvas.drawRoundRect(rect, dp(23f), dp(23f), fillPaint);
             strokePaint.setStyle(Paint.Style.STROKE);
             strokePaint.setStrokeWidth(dp(1f));
             strokePaint.setColor(glassStrokeColor());
-            canvas.drawRoundRect(rect, dp(23f) * MeeroTopBar.avatarK(), dp(23f) * MeeroTopBar.avatarK(), strokePaint);
+            canvas.drawRoundRect(rect, dp(23f), dp(23f), strokePaint);
 
             float avatar = dp(MeeroTopBar.avatarDp());
             float acx = ovalX0 + oval / 2f;

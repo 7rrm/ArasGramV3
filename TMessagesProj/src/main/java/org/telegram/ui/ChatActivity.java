@@ -591,13 +591,11 @@ public class ChatActivity extends BaseFragment implements
         if (pinnedMessageView == null || pinnedCounterTextView == null) {
             return;
         }
-        final boolean orig = tw.nekomimi.nekogram.MeeroTopBar.original();
-        final float k = tw.nekomimi.nekogram.MeeroTopBar.pinnedK();
         pinnedCounterTextView.setTextSize((int) Math.ceil(tw.nekomimi.nekogram.MeeroTopBar.pinnedCounterDp()));
-        final float topCounter = orig ? 7f : 7f * k;
-        final float topName = orig ? 7.3f : 7.3f * k;
-        final float topMessage = orig ? 25.3f : 25.3f * k;
-        final float h = orig ? 18f : 18f * k;
+        final float topCounter = 7f;
+        final float topName = 7.3f;
+        final float topMessage = 25.3f;
+        final float h = 18f;
         android.widget.FrameLayout.LayoutParams lp;
         lp = (android.widget.FrameLayout.LayoutParams) pinnedCounterTextView.getLayoutParams();
         lp.topMargin = dp(topCounter);

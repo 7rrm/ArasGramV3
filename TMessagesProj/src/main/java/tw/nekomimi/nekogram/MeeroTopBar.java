@@ -4,20 +4,20 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * MeeroX v233: per-element sizing for the chat top bar.
+ * MeeroX v235: top-bar measurements - ONE switch, no scaling.
  *
- * One master switch in Chat settings ("مقاسات وحجم خطوط الشريط العلوي"):
- *  - ON  (default): the MeeroX-tuned sizes (the ones we shipped during the
- *    tuning passes) are the 100% baseline, and every element can be scaled
- *    60%–160% live with a slider.
- *  - OFF: the conversation-start originals - the exact values the fork had
- *    before any of this session's top-bar tuning (glass title 17.5dp,
- *    status 13.5dp, pinned lines 14dp, single-line 15dp music bar at 36dp,
- *    translate 14dp). "باعتبار ممسوي شيء" - as if nothing was done.
+ * ON (default) = the measurements we tuned and shrank during the session:
+ *   glass title 15dp, status 12dp, titleTop 5 / subtitleTop 23, pinned
+ *   lines 12 / 12.5dp on the 48dp bar, two-line music bar (12 / 11dp) on
+ *   a 30dp strip, translate line 15dp.
+ * OFF = the conversation-start originals - the exact values the fork had
+ *   before any tuning (title 17.5dp, status 13.5dp, pinned 14dp,
+ *   single-line 15dp music bar at 36dp, translate 14dp).
+ *   "باعتبار ممسوي شيء" - as if nothing was done.
  *
  * Consumers: ChatAvatarContainer (avatar/title/status), ActionBar (glass
- * capsules, back button), ChatActivity (pinned strip), FragmentContextView
- * (music bar), TranslateButton (translate line).
+ * capsules), ChatActivity (pinned strip), FragmentContextView (music bar),
+ * TranslateButton (translate line).
  */
 public final class MeeroTopBar {
 
@@ -39,64 +39,34 @@ public final class MeeroTopBar {
         return !enabled();
     }
 
-    private static float k(tw.nekomimi.nekogram.config.ConfigItem item) {
-        if (original()) return 1f; // v234: scales are inert in original mode
-        try {
-            int v = item.Int();
-            if (v < 60) v = 60;
-            if (v > 160) v = 160;
-            return v / 100f;
-        } catch (Throwable t) {
-            return 1f;
-        }
-    }
-
-    public static float avatarK()  { return k(NekoConfig.meeroTopBarAvatarScale); }
-    public static float titleK()   { return k(NekoConfig.meeroTopBarTitleScale); }
-    public static float statusK()  { return k(NekoConfig.meeroTopBarStatusScale); }
-    public static float capsuleK() { return k(NekoConfig.meeroTopBarCapsuleScale); }
-    public static float backK()    { return k(NekoConfig.meeroTopBarBackScale); }
-    public static float pinnedK()  { return k(NekoConfig.meeroTopBarPinnedScale); }
-    public static float musicK()   { return k(NekoConfig.meeroTopBarMusicScale); }
-
     /* ---- header (ChatAvatarContainer + ActionBar capsules) ---- */
 
-    public static float avatarDp()      { return original() ? 42f   : 42f * avatarK(); }
-    public static float titleDp()       { return original() ? 17.5f : 15f * titleK(); }
-    public static float statusDp()      { return original() ? 13.5f : 12f * statusK(); }
-    public static float titleTopDp()    { return original() ? 1.66f : 5f * titleK(); }
-    public static float subtitleTopDp() { return original() ? 23.66f : 23f * titleK(); }
+    /** Avatar and both glass capsules are identical in the two looks. */
+    public static float avatarDp()      { return 42f; }
+    public static float pillDp()        { return 46f; }
+    public static float backPillDp()    { return 46f; }
     /** X offset of the text block after the avatar (glass layout). */
-    public static float avatarLeftDp()  { return original() ? 49.66f : 49.66f * avatarK(); }
+    public static float avatarLeftDp()  { return 49.66f; }
 
-    /**
-     * Glass pill height behind avatar + name + status (ActionBar "s").
-     * v234 (his report): the oval behind the picture tracks the avatar
-     * slider - everything stays proportional to the original look - and
-     * the capsule slider scales it further.
-     */
-    public static float pillDp() {
-        if (original()) return 46f;
-        return 46f * avatarK() * capsuleK();
-    }
-
-    /** Back-button capsule height. */
-    public static float backPillDp() { return original() ? 46f : 46f * backK(); }
+    public static float titleDp()       { return original() ? 17.5f : 15f; }
+    public static float statusDp()      { return original() ? 13.5f : 12f; }
+    public static float titleTopDp()    { return original() ? 1.66f : 5f; }
+    public static float subtitleTopDp() { return original() ? 23.66f : 23f; }
 
     /* ---- pinned strip (ChatActivity) ---- */
 
-    public static float pinnedCounterDp() { return original() ? 14f : 12f * pinnedK(); }
-    public static float pinnedTextDp()    { return original() ? 14f : 12.5f * pinnedK(); }
-    public static float pinnedBarDp()     { return original() ? 48f : 48f * pinnedK(); }
+    public static float pinnedCounterDp() { return original() ? 14f : 12f; }
+    public static float pinnedTextDp()    { return original() ? 14f : 12.5f; }
+    public static float pinnedBarDp()     { return 48f; }
 
     /* ---- music / audio player (FragmentContextView) ---- */
 
-    /** Original = the pre-session single-line "author - title" bar. */
+    /** Original = the conversation-start single-line "author - title" bar. */
     public static boolean musicTwoLine() { return !original(); }
-    public static float musicTitleDp()   { return original() ? 15f : 12f * musicK(); }
-    public static float musicSubDp()     { return original() ? 13f : 11f * musicK(); }
-    public static float musicBarDp()     { return original() ? 36f : 30f * musicK(); }
-    public static float musicPlayDp()    { return original() ? 36f : 30f * musicK(); }
+    public static float musicTitleDp()   { return original() ? 15f : 12f; }
+    public static float musicSubDp()     { return original() ? 13f : 11f; }
+    public static float musicBarDp()     { return original() ? 36f : 30f; }
+    public static float musicPlayDp()    { return original() ? 36f : 30f; }
 
     /* ---- translate button (TranslateButton) ---- */
 
@@ -116,7 +86,7 @@ public final class MeeroTopBar {
         listeners.add(new WeakReference<>(l));
     }
 
-    /** Fire on every slider move / toggle: live views re-apply and relayout. */
+    /** Fire on toggle: live views re-apply and relayout. */
     public static void notifyChanged() {
         for (WeakReference<Listener> r : listeners) {
             Listener l = r.get();
