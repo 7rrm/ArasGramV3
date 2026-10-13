@@ -88,7 +88,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     private Integer storiesForceState;
     private int avatarSizeInDp = 42;
     /** MeeroX v233: live top-bar sizing listener (kept strongly reachable). */
-    private final Runnable meeroTopBarListener;
+    private final tw.nekomimi.nekogram.MeeroTopBar.Listener meeroTopBarListener;
     public BackupImageView avatarImageView;
     private ActionBarMenuItem avatarOptionsMenuItem;
     private boolean avatarImageIsHidden;
