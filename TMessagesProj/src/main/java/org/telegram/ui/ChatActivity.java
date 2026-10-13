@@ -585,7 +585,7 @@ public class ChatActivity extends BaseFragment implements
     private ChatActivityTopPanelLayout topPanelLayout;
 
     /** MeeroX v233: pinned strip sizes follow the top-bar settings (live). */
-    private final Runnable meeroTopBarPinnedListener = this::meeroApplyPinnedStripSizes;
+    private final tw.nekomimi.nekogram.MeeroTopBar.Listener meeroTopBarPinnedListener = this::meeroApplyPinnedStripSizes;
 
     private void meeroApplyPinnedStripSizes() {
         if (pinnedMessageView == null || pinnedCounterTextView == null) {
