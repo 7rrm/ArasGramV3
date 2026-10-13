@@ -1622,14 +1622,32 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     float speakerAmplitude;
     float micAmplitude;
 
-    // MeeroX v233: audio bar geometry from the top-bar settings.
+    /**
+     * MeeroX v233: audio bar geometry from the top-bar settings.
+     * v236 (his report: "the bar got huge"): LayoutHelper.createFrame takes
+     * DIP values and dp-converts internally - the old code fed it raw px
+     * (dp(dp(30)) = ~3x too big on his device). Now everything is passed in
+     * DIP, every child fits inside the bar height (the notify pill, close
+     * and speed buttons were still 36 and the subtitle reached 40, so the
+     * wrap-height strip never went below the original), and the exact stock
+     * 36dp geometry is restored when the switch is off.
+     */
     private void meeroApplyAudioPlayerLayout() {
-        int play = dp(tw.nekomimi.nekogram.MeeroTopBar.musicPlayDp());
-        int bar = dp(tw.nekomimi.nekogram.MeeroTopBar.musicBarDp());
-        playButton.setLayoutParams(LayoutHelper.createFrame(play, play, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
-        titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, bar, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
+        boolean orig = tw.nekomimi.nekogram.MeeroTopBar.original();
+        int playDip = (int) tw.nekomimi.nekogram.MeeroTopBar.musicPlayDp();
+        int barDip = (int) tw.nekomimi.nekogram.MeeroTopBar.musicBarDp();
+        playButton.setLayoutParams(LayoutHelper.createFrame(playDip, playDip, Gravity.TOP | Gravity.LEFT, orig ? 0 : 3, 0, 0, 0));
+        titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, barDip, Gravity.LEFT | Gravity.TOP, orig ? 35 + 16 : 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
+        frameLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, barDip, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
+        if (closeButton != null) {
+            closeButton.setLayoutParams(LayoutHelper.createFrame(barDip, barDip, Gravity.RIGHT | Gravity.TOP, 0, 0, 4, 0));
+        }
+        if (playbackSpeedButton != null) {
+            playbackSpeedButton.setLayoutParams(LayoutHelper.createFrame(barDip, barDip, Gravity.TOP | Gravity.RIGHT, 0, 0, barDip, 0));
+        }
         if (tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
-            subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, bar, Gravity.LEFT | Gravity.TOP, 37, dp(10), (isSideMenued ? 64 : 0) + 36, 0));
+            int half = barDip / 2;
+            subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, barDip - half, Gravity.LEFT | Gravity.TOP, 37, half, (isSideMenued ? 64 : 0) + 36, 0));
         }
     }
 
@@ -1644,13 +1662,13 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
             textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle)); // his pick: white at night, black at day
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicTitleDp());
-            textView.setPadding(textView.getPaddingLeft(), dp(3), textView.getPaddingRight(), 0);
+            textView.setPadding(textView.getPaddingLeft(), dp(1), textView.getPaddingRight(), 0);
             TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
             if (sub != null) {
                 sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
                 sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                 sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicSubDp());
-                sub.setPadding(sub.getPaddingLeft(), dp(7), sub.getPaddingRight(), 0);
+                sub.setPadding(sub.getPaddingLeft(), dp(1), sub.getPaddingRight(), 0);
             }
         }
     }
@@ -1662,9 +1680,11 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private final tw.nekomimi.nekogram.MeeroTopBar.Listener meeroTopBarListener = new tw.nekomimi.nekogram.MeeroTopBar.Listener() {
         @Override
         public void onMeeroTopBarChanged() {
-            if (currentStyle == STYLE_AUDIO_PLAYER && lastMessageObject != null && isMusic) {
+            if (currentStyle == STYLE_AUDIO_PLAYER) {
                 meeroApplyAudioPlayerLayout();
-                meeroFormatMusicText();
+                if (lastMessageObject != null && isMusic) {
+                    meeroFormatMusicText();
+                }
             }
             requestLayout();
             invalidate();
