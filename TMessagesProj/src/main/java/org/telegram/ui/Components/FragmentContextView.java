@@ -1657,17 +1657,53 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     }
 
     // MeeroX v233: live refresh on every slider move.
+    // v234 (his report: "music went back to the original"): a mode toggle
+    // changes the TEXT SPLIT too, so re-format the lines fully - sizes
+    // alone left a half-single-line bar after re-enabling.
     private final tw.nekomimi.nekogram.MeeroTopBar.Listener meeroTopBarListener = new tw.nekomimi.nekogram.MeeroTopBar.Listener() {
         @Override
         public void onMeeroTopBarChanged() {
-            if (currentStyle == STYLE_AUDIO_PLAYER && tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
+            if (currentStyle == STYLE_AUDIO_PLAYER && lastMessageObject != null && isMusic) {
                 meeroApplyAudioPlayerLayout();
-                meeroApplyAudioTextSizes();
+                meeroFormatMusicText();
             }
             requestLayout();
             invalidate();
         }
     };
+
+    /** v234: re-split title/artist for the current mode (two-line vs original single line). */
+    private void meeroFormatMusicText() {
+        if (tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
+            titleTextView.setText(new SpannableStringBuilder(lastMessageObject.getMusicTitle()), false);
+            subtitleTextView.setText(lastMessageObject.getMusicAuthor(), false);
+            subtitleTextView.setVisibility(VISIBLE);
+            titleTextView.setIsCenter(true);
+            subtitleTextView.setIsCenter(true);
+            meeroApplyAudioTextSizes();
+        } else {
+            // faithful restore of the pre-session single line: "author - title"
+            // with the bold performer span, exactly like setMessageObject.
+            String author = lastMessageObject.getMusicAuthor();
+            SpannableStringBuilder sb = new SpannableStringBuilder(String.format("%s - %s", author, lastMessageObject.getMusicTitle()));
+            TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
+            sb.setSpan(span, 0, author.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            titleTextView.setText(sb, false);
+            subtitleTextView.setVisibility(GONE);
+            titleTextView.setIsCenter(false);
+            subtitleTextView.setIsCenter(false);
+            for (int i = 0; i < 2; i++) {
+                TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
+                if (textView != null) {
+                    textView.setEllipsize(TextUtils.TruncateAt.END);
+                    textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                    textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
+                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicTitleDp());
+                    textView.setPadding(textView.getPaddingLeft(), 0, textView.getPaddingRight(), 0);
+                }
+            }
+        }
+    }
 
     public int getStyleHeight() {
         // MeeroX v233: music bar height follows the top-bar settings

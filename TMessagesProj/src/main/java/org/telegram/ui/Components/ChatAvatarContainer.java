@@ -1019,7 +1019,8 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         final int viewTop = (actionBarHeight - avatarImageView.getMeasuredHeight() - 2) / 2 + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0);
         final int subtitleTop = viewTop + dp(glassMode ? tw.nekomimi.nekogram.MeeroTopBar.subtitleTopDp() : 24);
 
-        int avatarLeft = 1 + leftPadding;
+        // MeeroX v234: scale the left inset with the avatar so the picture stays centred in its oval
+        int avatarLeft = glassMode ? 1 + (int) (leftPadding * tw.nekomimi.nekogram.MeeroTopBar.avatarK()) : 1 + leftPadding;
         if (isCentered()) {
             avatarLeft = getWidth() - leftPadding - avatarImageView.getMeasuredWidth() - 1;
         }

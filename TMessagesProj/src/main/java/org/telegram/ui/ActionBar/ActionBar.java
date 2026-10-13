@@ -215,21 +215,41 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
             if (!meeroTopBarSizing) {
                 return;
             }
-            if (backButtonImageView != null) {
-                float k = tw.nekomimi.nekogram.MeeroTopBar.backK();
-                backButtonImageView.setScaleX(k);
-                backButtonImageView.setScaleY(k);
-            }
+            meeroApplyBackScale();
             requestLayout();
             invalidate();
         }
     };
 
+    /**
+     * MeeroX v234 (his report): the back chevron must shrink INTO the
+     * capsule - scaling around the capsule centre keeps it dead-centre at
+     * any size instead of drifting off.
+     */
+    private void meeroApplyBackScale() {
+        if (backButtonImageView == null || getHeight() <= 0) {
+            return;
+        }
+        final int p = dp(6);
+        final int sBack = dp(tw.nekomimi.nekogram.MeeroTopBar.backPillDp());
+        final int capSize = sBack + p * 2;
+        final int tBack = getHeight() - (getCurrentActionBarHeight() + sBack) / 2 - p;
+        backButtonImageView.setPivotX(capSize / 2f - backButtonImageView.getLeft());
+        backButtonImageView.setPivotY(tBack + capSize / 2f - backButtonImageView.getTop());
+        final float k = tw.nekomimi.nekogram.MeeroTopBar.backK();
+        backButtonImageView.setScaleX(k);
+        backButtonImageView.setScaleY(k);
+    }
+
     public void setMeeroTopBarSizing(boolean on) {
         meeroTopBarSizing = on;
         if (on) {
             tw.nekomimi.nekogram.MeeroTopBar.addListener(meeroTopBarListener);
-            meeroTopBarListener.onMeeroTopBarChanged();
+            if (getHeight() > 0) {
+                meeroApplyBackScale();
+            } else {
+                post(this::meeroApplyBackScale);
+            }
         }
     }
 

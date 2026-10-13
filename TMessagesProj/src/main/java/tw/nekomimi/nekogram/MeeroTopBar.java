@@ -40,6 +40,7 @@ public final class MeeroTopBar {
     }
 
     private static float k(tw.nekomimi.nekogram.config.ConfigItem item) {
+        if (original()) return 1f; // v234: scales are inert in original mode
         try {
             int v = item.Int();
             if (v < 60) v = 60;
@@ -68,11 +69,15 @@ public final class MeeroTopBar {
     /** X offset of the text block after the avatar (glass layout). */
     public static float avatarLeftDp()  { return original() ? 49.66f : 49.66f * avatarK(); }
 
-    /** Glass pill height behind avatar + name + status (ActionBar "s"). */
+    /**
+     * Glass pill height behind avatar + name + status (ActionBar "s").
+     * v234 (his report): the oval behind the picture tracks the avatar
+     * slider - everything stays proportional to the original look - and
+     * the capsule slider scales it further.
+     */
     public static float pillDp() {
         if (original()) return 46f;
-        // the oval behind the avatar must always hug the picture
-        return Math.max(46f * capsuleK(), avatarDp() + 8f);
+        return 46f * avatarK() * capsuleK();
     }
 
     /** Back-button capsule height. */
