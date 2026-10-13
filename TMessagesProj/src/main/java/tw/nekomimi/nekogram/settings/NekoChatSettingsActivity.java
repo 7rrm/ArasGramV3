@@ -246,6 +246,10 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
 
     // Chats
     private final AbstractConfigCell headerChats = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Chat)));
+    // MeeroX v233: per-element top bar sizing
+    private final AbstractConfigCell meeroTopBarSizesRow = cellGroup.appendCell(new ConfigCellText("MeeroTopBarSizes", () -> {
+        presentFragment(new MeeroTopBarSizesActivity());
+    }));
     private final AbstractConfigCell emojiSetsRow = cellGroup.appendCell(new ConfigCellCustom("EmojiSets", ConfigCellCustom.CUSTOM_ITEM_EmojiSet, true));
     private final AbstractConfigCell premiumElementsToggleRow = cellGroup.appendCell(new ConfigCellTextCheck2("PremiumElements", getString(R.string.PremiumElements), new ArrayList<>() {{
         add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemEmojiStatus()));

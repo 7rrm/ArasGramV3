@@ -444,12 +444,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 textView.setLines(1);
                 textView.setSingleLine(true);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.original() ? 15f : 12f); // MeeroX v233
                 textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                 if (currentStyle == STYLE_AUDIO_PLAYER || currentStyle == STYLE_LIVE_LOCATION) {
                     textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                     textView.setTypeface(Typeface.DEFAULT);
-                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+                    textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.original() ? 15f : 12f); // MeeroX v233
                 } else if (currentStyle == STYLE_INACTIVE_GROUP_CALL) {
                     textView.setGravity(Gravity.TOP | Gravity.LEFT);
                     textView.setTextColor(getThemedColor(Theme.key_inappPlayerPerformer));
@@ -466,6 +466,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         };
         addView(titleTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35, 0, 36 + (isSideMenued ? 64 : 0), 0));
 
+        // MeeroX v233: live top-bar sizing
+        tw.nekomimi.nekogram.MeeroTopBar.addListener(meeroTopBarListener);
+
         subtitleTextView = new AudioPlayerAlert.ClippingTextViewSwitcher(context) {
             @Override
             protected TextView createTextView() {
@@ -475,7 +478,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 textView.setSingleLine(true);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setGravity(Gravity.LEFT);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.original() ? 13f : 10f); // MeeroX v233
                 textView.setTextColor(getThemedColor(Theme.key_inappPlayerClose));
                 return textView;
             }
@@ -1283,9 +1286,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35 + 16, 0, (isSideMenued ? 64 : 0) + 36, 0));
                 closeButton.setVisibility(GONE);
             } else if (style == STYLE_AUDIO_PLAYER) {
-                playButton.setLayoutParams(LayoutHelper.createFrame(30, 30, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
-                titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 30, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
-                subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 30, Gravity.LEFT | Gravity.TOP, 37, 10, (isSideMenued ? 64 : 0) + 36, 0));
+                meeroApplyAudioPlayerLayout(); // MeeroX v233: sizes from top-bar settings
                 createPlaybackSpeedButton();
                 if (playbackSpeedButton != null) {
                     playbackSpeedButton.setVisibility(VISIBLE);
@@ -1621,9 +1622,57 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     float speakerAmplitude;
     float micAmplitude;
 
+    // MeeroX v233: audio bar geometry from the top-bar settings.
+    private void meeroApplyAudioPlayerLayout() {
+        int play = dp(tw.nekomimi.nekogram.MeeroTopBar.musicPlayDp());
+        int bar = dp(tw.nekomimi.nekogram.MeeroTopBar.musicBarDp());
+        playButton.setLayoutParams(LayoutHelper.createFrame(play, play, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
+        titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, bar, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
+        if (tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
+            subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, bar, Gravity.LEFT | Gravity.TOP, 37, (int) dp(10 * tw.nekomimi.nekogram.MeeroTopBar.musicK()), (isSideMenued ? 64 : 0) + 36, 0));
+        }
+    }
+
+    // MeeroX v233: two-line music text sizes (custom mode only).
+    private void meeroApplyAudioTextSizes() {
+        float k = tw.nekomimi.nekogram.MeeroTopBar.musicK();
+        for (int i = 0; i < 2; i++) {
+            TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
+            if (textView == null) {
+                continue;
+            }
+            textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+            textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+            textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle)); // his pick: white at night, black at day
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicTitleDp());
+            textView.setPadding(textView.getPaddingLeft(), dp(3 * k), textView.getPaddingRight(), 0);
+            TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
+            if (sub != null) {
+                sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+                sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+                sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicSubDp());
+                sub.setPadding(sub.getPaddingLeft(), dp(7 * k), sub.getPaddingRight(), 0);
+            }
+        }
+    }
+
+    // MeeroX v233: live refresh on every slider move.
+    private final tw.nekomimi.nekogram.MeeroTopBar.Listener meeroTopBarListener = new tw.nekomimi.nekogram.MeeroTopBar.Listener() {
+        @Override
+        public void onMeeroTopBarChanged() {
+            if (currentStyle == STYLE_AUDIO_PLAYER && tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
+                meeroApplyAudioPlayerLayout();
+                meeroApplyAudioTextSizes();
+            }
+            requestLayout();
+            invalidate();
+        }
+    };
+
     public int getStyleHeight() {
-        // his pick: tighter music bar (no dead space under the performer line)
-        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : currentStyle == STYLE_AUDIO_PLAYER ? 30 : 36; // his pick: 30dp bar
+        // MeeroX v233: music bar height follows the top-bar settings
+        // (original mode = the pre-session 36dp bar).
+        return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : currentStyle == STYLE_AUDIO_PLAYER ? dp(tw.nekomimi.nekogram.MeeroTopBar.musicBarDp()) : 36;
     }
 
     public boolean isCallTypeVisible() {
@@ -2019,31 +2068,29 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     // MeeroX v-lab (official Telegram-iOS parity): two-line music
                     // bar — line 1 = track title (12dp), line 2 = performer (10dp),
                     // both middle-truncated like MediaNavigationAccessoryHeaderNode.
-                    stringBuilder = new SpannableStringBuilder(messageObject.getMusicTitle());
-                    for (int i = 0; i < 2; i++) {
-                        TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
-                        if (textView == null) {
-                            continue;
+                    if (tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
+                        stringBuilder = new SpannableStringBuilder(messageObject.getMusicTitle());
+                        meeroApplyAudioTextSizes();
+                        titleTextView.setIsCenter(true);
+                        subtitleTextView.setIsCenter(true);
+                        subtitleTextView.setText(messageObject.getMusicAuthor(), false);
+                        subtitleTextView.setVisibility(VISIBLE);
+                    } else {
+                        // MeeroX v233 original mode: the pre-session single line
+                        stringBuilder = new SpannableStringBuilder(String.format("%s - %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
+                        for (int i = 0; i < 2; i++) {
+                            TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
+                            if (textView == null) {
+                                continue;
+                            }
+                            textView.setEllipsize(TextUtils.TruncateAt.END);
                         }
-                        textView.setEllipsize(TextUtils.TruncateAt.MIDDLE);
-                        textView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-                        textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle)); // his pick: white at night, black at day
-                        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12); // his pick: same as header status line
-                        textView.setPadding(textView.getPaddingLeft(), dp(3), textView.getPaddingRight(), 0); // 30dp bar: title y=3
-                        TextView sub = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
-                        if (sub != null) {
-                            sub.setEllipsize(TextUtils.TruncateAt.MIDDLE);
-                            sub.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-                            sub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11); // his pick: +1
-                            sub.setPadding(sub.getPaddingLeft(), dp(7), sub.getPaddingRight(), 0); // 30dp bar: artist y=17 (10 margin + 7)
-                        }
+                        titleTextView.setIsCenter(false);
+                        subtitleTextView.setIsCenter(false);
+                        subtitleTextView.setVisibility(GONE);
                     }
-                    titleTextView.setIsCenter(true);
-                    subtitleTextView.setIsCenter(true);
-                    subtitleTextView.setText(messageObject.getMusicAuthor(), false);
-                    subtitleTextView.setVisibility(VISIBLE);
                 }
-                if (!isMusic) {
+                if (!isMusic || !tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
                     TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
                     stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                 }

@@ -584,6 +584,48 @@ public class ChatActivity extends BaseFragment implements
     private HintView2 bottomSuggestHintView;
     private ChatActivityTopPanelLayout topPanelLayout;
 
+    /** MeeroX v233: pinned strip sizes follow the top-bar settings (live). */
+    private final Runnable meeroTopBarPinnedListener = this::meeroApplyPinnedStripSizes;
+
+    private void meeroApplyPinnedStripSizes() {
+        if (pinnedMessageView == null || pinnedCounterTextView == null) {
+            return;
+        }
+        final boolean orig = tw.nekomimi.nekogram.MeeroTopBar.original();
+        final float k = tw.nekomimi.nekogram.MeeroTopBar.pinnedK();
+        pinnedCounterTextView.setTextSize((int) Math.ceil(tw.nekomimi.nekogram.MeeroTopBar.pinnedCounterDp()));
+        final float topCounter = orig ? 7f : 7f * k;
+        final float topName = orig ? 7.3f : 7.3f * k;
+        final float topMessage = orig ? 25.3f : 25.3f * k;
+        final float h = orig ? 18f : 18f * k;
+        android.widget.FrameLayout.LayoutParams lp;
+        lp = (android.widget.FrameLayout.LayoutParams) pinnedCounterTextView.getLayoutParams();
+        lp.topMargin = dp(topCounter);
+        lp.height = dp(h);
+        pinnedCounterTextView.setLayoutParams(lp);
+        for (int a = 0; a < 2; a++) {
+            if (pinnedNameTextView != null && pinnedNameTextView[a] != null) {
+                pinnedNameTextView[a].setTextSizePx(dp(tw.nekomimi.nekogram.MeeroTopBar.pinnedTextDp()));
+                lp = (android.widget.FrameLayout.LayoutParams) pinnedNameTextView[a].getLayoutParams();
+                lp.topMargin = dp(topName);
+                lp.height = dp(h);
+                pinnedNameTextView[a].setLayoutParams(lp);
+            }
+            if (pinnedMessageTextView != null && pinnedMessageTextView[a] != null) {
+                pinnedMessageTextView[a].setTextSizePx(dp(tw.nekomimi.nekogram.MeeroTopBar.pinnedTextDp()));
+                lp = (android.widget.FrameLayout.LayoutParams) pinnedMessageTextView[a].getLayoutParams();
+                lp.topMargin = dp(topMessage);
+                lp.height = dp(h);
+                pinnedMessageTextView[a].setLayoutParams(lp);
+            }
+        }
+        if (pinnedMessageView.getLayoutParams() instanceof android.widget.LinearLayout.LayoutParams) {
+            android.widget.LinearLayout.LayoutParams lpv = (android.widget.LinearLayout.LayoutParams) pinnedMessageView.getLayoutParams();
+            lpv.height = dp(tw.nekomimi.nekogram.MeeroTopBar.pinnedBarDp());
+            pinnedMessageView.setLayoutParams(lpv);
+        }
+    }
+
     private boolean ignoreItemAnimation;
     private ChatActivityChannelButtonsLayout bottomChannelButtonsLayout;
     private ChatActivityActionsButtonsLayout actionsButtonsLayout;
@@ -5101,6 +5143,7 @@ public class ChatActivity extends BaseFragment implements
             glassBackgroundDrawableFactory,
             BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
             ChatObject.isForum(currentChat));
+        actionBar.setMeeroTopBarSizing(true); // MeeroX v233: per-element top bar sizing
 
         // MeeroX v254 (cherry-parity): centered title hosts the avatar container in its own ActionBar slot
         if (isTitleCentered()) {
@@ -12545,6 +12588,10 @@ public class ChatActivity extends BaseFragment implements
                 pinnedMessageImageView[a].setVisibility(View.INVISIBLE);
             }
         }
+
+        // MeeroX v233: pinned strip follows the top-bar size settings
+        tw.nekomimi.nekogram.MeeroTopBar.addListener(meeroTopBarPinnedListener);
+        meeroApplyPinnedStripSizes();
 
         pinnedListButton = new ImageView(getContext());
         pinnedListButton.setImageResource(R.drawable.msg_pinnedlist);

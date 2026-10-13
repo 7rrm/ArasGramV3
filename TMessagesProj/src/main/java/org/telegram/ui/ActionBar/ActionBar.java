@@ -206,6 +206,33 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     private boolean glassOnlyBack;
     private boolean glassModeIsForum;
 
+    // MeeroX v233: chat top-bar sizing - only the chat action bar opts in,
+    // every other glass action bar keeps the stock 46dp capsules.
+    private boolean meeroTopBarSizing;
+    private final tw.nekomimi.nekogram.MeeroTopBar.Listener meeroTopBarListener = new tw.nekomimi.nekogram.MeeroTopBar.Listener() {
+        @Override
+        public void onMeeroTopBarChanged() {
+            if (!meeroTopBarSizing) {
+                return;
+            }
+            if (backButtonImageView != null) {
+                float k = tw.nekomimi.nekogram.MeeroTopBar.backK();
+                backButtonImageView.setScaleX(k);
+                backButtonImageView.setScaleY(k);
+            }
+            requestLayout();
+            invalidate();
+        }
+    };
+
+    public void setMeeroTopBarSizing(boolean on) {
+        meeroTopBarSizing = on;
+        if (on) {
+            tw.nekomimi.nekogram.MeeroTopBar.addListener(meeroTopBarListener);
+            meeroTopBarListener.onMeeroTopBarChanged();
+        }
+    }
+
     private ChatAvatarContainer chatAvatarContainer;
     // MeeroX v254 (cherry-parity): centered-title owns a dedicated container slot,
     // the glass pill hugs it with an animated adaptive width
@@ -2554,7 +2581,28 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     @Override
     protected void dispatchDraw(Canvas canvas) {
         final int p = dp(6);
-        final int s = dp(46);
+        // MeeroX v233: chat top-bar sizing - the capsule behind avatar/name/
+        // status and the back-button capsule scale independently.
+        int s = dp(46);
+        int sBack = dp(46);
+        if (meeroTopBarSizing) {
+            s = dp(tw.nekomimi.nekogram.MeeroTopBar.pillDp());
+            sBack = dp(tw.nekomimi.nekogram.MeeroTopBar.backPillDp());
+            if (glassDrawable != null) {
+                if (glassModeIsForum) {
+                    float f = s / (float) dp(46);
+                    glassDrawable.setRadius(dp(18.33f) * f, dp(23) * f, dp(23) * f, dp(18.33f) * f);
+                } else {
+                    glassDrawable.setRadius(s / 2f);
+                }
+            }
+            if (glassDrawableBack != null) {
+                glassDrawableBack.setRadius(sBack / 2f);
+            }
+            if (glassDrawableMenu != null) {
+                glassDrawableMenu.setRadius(s / 2f);
+            }
+        }
 
         final float actionModeFactor = getActionModeFactor();
         final int menuWidthA = hasForcedMenuWidth ? forcedMenuWidth : (int) animatorMenuItemsWidth.getFactor();
@@ -2564,6 +2612,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
         final int t = getHeight() - (getCurrentActionBarHeight() + s) / 2 - p;
         final int b = t + s + p * 2;
+        final int tBack = getHeight() - (getCurrentActionBarHeight() + sBack) / 2 - p;
+        final int bBack = tBack + sBack + p * 2;
 
         if (glassDrawable != null && !glassOnlyBack) {
             // MeeroX v273: the alpha is animated per-frame below for the
@@ -2578,7 +2628,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                     // (the drawable's own 6dp padding separates the two pills
                     // visually, matching the reference's touching-capsules look)
                     ? meeroPreviewBackZoneEndPx - p
-                    : lerp(hasBackButton ? s + p : 0, s + p, chatAvatarContainer == null? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
+                    : lerp(hasBackButton ? sBack + p : 0, sBack + p, chatAvatarContainer == null? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
             final int rightDefault = getWidth() - rightOffset;
             final int widthDefault = rightDefault - leftDefault;
             final int left, right;
@@ -2671,7 +2721,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
             glassDrawable.draw(canvas);
         }
         if (glassDrawableBack != null && hasBackButton) {
-            glassDrawableBack.setBounds(0, t, s + p * 2, b);
+            glassDrawableBack.setBounds(0, tBack, sBack + p * 2, bBack);
             glassDrawableBack.draw(canvas);
         }
         // MeeroX v272 (his order, «كان موجود افتراضي كان»): v263 wrongly

@@ -87,6 +87,8 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     public boolean allowDrawStories;
     private Integer storiesForceState;
     private int avatarSizeInDp = 42;
+    /** MeeroX v233: live top-bar sizing listener (kept strongly reachable). */
+    private final Runnable meeroTopBarListener;
     public BackupImageView avatarImageView;
     private ActionBarMenuItem avatarOptionsMenuItem;
     private boolean avatarImageIsHidden;
@@ -194,6 +196,31 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         if (baseFragment instanceof ChatActivity) {
             parentFragment = (ChatActivity) baseFragment;
         }
+
+        // MeeroX v233: live top-bar sizing - re-apply sizes and relayout on
+        // every slider move (the field keeps the lambda strongly reachable).
+        meeroTopBarListener = () -> {
+            if (glassMode) {
+                if (titleTextView != null) {
+                    titleTextView.setTextSizePx(dp(tw.nekomimi.nekogram.MeeroTopBar.titleDp()));
+                }
+                if (subtitleTextView != null) {
+                    subtitleTextView.setTextSizePx(dp(tw.nekomimi.nekogram.MeeroTopBar.statusDp()));
+                }
+                SimpleTextView largerTitle = titleTextLargerCopyView == null ? null : titleTextLargerCopyView.get();
+                if (largerTitle != null) {
+                    largerTitle.setTextSizePx(dp(tw.nekomimi.nekogram.MeeroTopBar.titleDp()));
+                }
+                SimpleTextView largerSubtitle = subtitleTextLargerCopyView == null ? null : subtitleTextLargerCopyView.get();
+                if (largerSubtitle != null) {
+                    largerSubtitle.setTextSizePx(dp(tw.nekomimi.nekogram.MeeroTopBar.statusDp()));
+                }
+            }
+            avatarImageView.setRoundRadius(dp(tw.nekomimi.nekogram.MeeroTopBar.avatarDp() / 2f));
+            requestLayout();
+            invalidate();
+        };
+        tw.nekomimi.nekogram.MeeroTopBar.addListener(meeroTopBarListener);
 
         final boolean avatarClickable = parentFragment != null && (parentFragment.getChatMode() == 0 || parentFragment.getChatMode() == ChatActivity.MODE_SUGGESTIONS || (parentFragment.getChatMode() == ChatActivity.MODE_PINNED && isCentered())) && !UserObject.isReplyUser(parentFragment.getCurrentUser()) && (parentFragment.getCurrentUser() == null || parentFragment.getCurrentUser().id != UserObject.VERIFY);
         avatarImageView = new BackupImageView(context) {
@@ -368,7 +395,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
             }
         }
         avatarImageView.setContentDescription(getString(R.string.AccDescrProfilePicture));
-        avatarImageView.setRoundRadius(dp(21));
+        avatarImageView.setRoundRadius(dp(tw.nekomimi.nekogram.MeeroTopBar.avatarDp() / 2f)); // MeeroX v233: scaled avatar
         addView(avatarImageView);
         if (avatarClickable) {
             final TLRPC.Chat chat = parentFragment != null ? parentFragment.getCurrentChat() : null;
@@ -877,12 +904,12 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         int padding = isCentered() ? dp(isPreviewMode() ? 35 : 10) : 0;
         final int width = MeasureSpec.getSize(widthMeasureSpec);
         final int availableWidth = width - dp(((avatarImageView.getVisibility() == VISIBLE || isCentered()) ? 54 : 0) + 16);
-        avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY));
-        titleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth - padding, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(24 + 8), MeasureSpec.AT_MOST));
+        avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(tw.nekomimi.nekogram.MeeroTopBar.avatarDp()) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(tw.nekomimi.nekogram.MeeroTopBar.avatarDp()) - 2, MeasureSpec.EXACTLY));
+        titleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth - padding, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(glassMode ? (24 + 8) * tw.nekomimi.nekogram.MeeroTopBar.titleK() : (24 + 8)), MeasureSpec.AT_MOST));
         if (subtitleTextView != null) {
-            subtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth - padding, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.AT_MOST));
+            subtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth - padding, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(glassMode ? 20 * tw.nekomimi.nekogram.MeeroTopBar.statusK() : 20), MeasureSpec.AT_MOST));
         } else if (animatedSubtitleTextView != null) {
-            animatedSubtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth - padding, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.AT_MOST));
+            animatedSubtitleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth - padding, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(glassMode ? 20 * tw.nekomimi.nekogram.MeeroTopBar.statusK() : 20), MeasureSpec.AT_MOST));
         }
         if (communityItem != null) {
             communityItem.measure(MeasureSpec.makeMeasureSpec(dp(14), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(14), MeasureSpec.EXACTLY));
@@ -903,7 +930,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         SimpleTextView titleTextLargerCopyView = this.titleTextLargerCopyView.get();
         if (titleTextLargerCopyView != null) {
             int largerAvailableWidth = largerWidth - dp((avatarImageView.getVisibility() == VISIBLE ? 54 : 0) + 16);
-            titleTextLargerCopyView.measure(MeasureSpec.makeMeasureSpec(largerAvailableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(24), MeasureSpec.AT_MOST));
+            titleTextLargerCopyView.measure(MeasureSpec.makeMeasureSpec(largerAvailableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(glassMode ? 24 * tw.nekomimi.nekogram.MeeroTopBar.titleK() : 24), MeasureSpec.AT_MOST));
         }
         lastWidth = width;
     }
@@ -917,7 +944,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         titleTextLargerCopyView = new SimpleTextView(getContext());
         this.titleTextLargerCopyView.set(titleTextLargerCopyView);
         titleTextLargerCopyView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
-        titleTextLargerCopyView.setTextSizePx(dp(glassMode ? 15f : 18));
+        titleTextLargerCopyView.setTextSizePx(dp(glassMode ? tw.nekomimi.nekogram.MeeroTopBar.titleDp() : 18));
         titleTextLargerCopyView.setGravity(isCentered() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
         titleTextLargerCopyView.setTypeface(AndroidUtilities.bold());
         titleTextLargerCopyView.setLeftDrawableTopPadding(-dp(1.3f));
@@ -945,7 +972,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         this.subtitleTextLargerCopyView.set(subtitleTextLargerCopyView);
         subtitleTextLargerCopyView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
         subtitleTextLargerCopyView.setTag(Theme.key_actionBarDefaultSubtitle);
-        subtitleTextLargerCopyView.setTextSizePx(dp(glassMode ? 12f : 14));
+        subtitleTextLargerCopyView.setTextSizePx(dp(glassMode ? tw.nekomimi.nekogram.MeeroTopBar.statusDp() : 14));
         subtitleTextLargerCopyView.setGravity(isCentered() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
         if (subtitleTextView != null) {
             subtitleTextLargerCopyView.setText(subtitleTextView.getText());
@@ -978,10 +1005,10 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     private boolean glassMode;
     public void setGlassMode() {
         if (titleTextView != null) {
-            titleTextView.setTextSizePx(dp(15f));
+            titleTextView.setTextSizePx(dp(tw.nekomimi.nekogram.MeeroTopBar.titleDp()));
         }
         if (subtitleTextView != null) {
-            subtitleTextView.setTextSizePx(dp(12f));
+            subtitleTextView.setTextSizePx(dp(tw.nekomimi.nekogram.MeeroTopBar.statusDp()));
         }
         glassMode = true;
     }
@@ -990,7 +1017,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         final int actionBarHeight = ActionBar.getCurrentActionBarHeight();
         final int viewTop = (actionBarHeight - avatarImageView.getMeasuredHeight() - 2) / 2 + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0);
-        final int subtitleTop = viewTop + dp(glassMode ? 23f : 24);
+        final int subtitleTop = viewTop + dp(glassMode ? tw.nekomimi.nekogram.MeeroTopBar.subtitleTopDp() : 24);
 
         int avatarLeft = 1 + leftPadding;
         if (isCentered()) {
@@ -1013,11 +1040,11 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
         } else if (isCentered()) {
             l = leftPadding + (isPreviewMode() ? dp(AndroidUtilities.isTablet() ? 80 : 72) / 2 : dp(6));
         } else {
-            l = leftPadding + (avatarImageView.getVisibility() == VISIBLE ? dp(glassMode ? 49.66f : 55) : dp(glassMode ? 13 : 1)) + rightAvatarPadding;
+            l = leftPadding + (avatarImageView.getVisibility() == VISIBLE ? dp(glassMode ? tw.nekomimi.nekogram.MeeroTopBar.avatarLeftDp() : 55) : dp(glassMode ? 13 : 1)) + rightAvatarPadding;
         }
         SimpleTextView titleTextLargerCopyView = this.titleTextLargerCopyView.get();
         if (getSubtitleTextView().getVisibility() != GONE) {
-            titleTextView.layout(l, viewTop + dp(glassMode ? 5f : 1.66f) - titleTextView.getPaddingTop(), l + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(glassMode ? 5f : 1.66f) - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
+            titleTextView.layout(l, viewTop + dp(glassMode ? tw.nekomimi.nekogram.MeeroTopBar.titleTopDp() : 1.66f) - titleTextView.getPaddingTop(), l + titleTextView.getMeasuredWidth(), viewTop + titleTextView.getTextHeight() + dp(glassMode ? tw.nekomimi.nekogram.MeeroTopBar.titleTopDp() : 1.66f) - titleTextView.getPaddingTop() + titleTextView.getPaddingBottom());
             if (titleTextLargerCopyView != null) {
                 titleTextLargerCopyView.layout(l, viewTop + dp(1.66f), l + titleTextLargerCopyView.getMeasuredWidth(), viewTop + titleTextLargerCopyView.getTextHeight() + dp(1.66f));
             }
@@ -1835,7 +1862,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
                 avatarImageView.setAnimatedEmojiDrawable(null);
                 ForumUtilities.setMonoForumAvatar(currentAccount, chat, avatarDrawable, avatarImageView);
             }
-            avatarImageView.setRoundRadius(dp(21));
+            avatarImageView.setRoundRadius(dp(tw.nekomimi.nekogram.MeeroTopBar.avatarDp() / 2f)); // MeeroX v233: scaled avatar
         } else if (chat != null) {
             avatarDrawable.setScaleSize(1f);
             avatarDrawable.setInfo(currentAccount, chat);
