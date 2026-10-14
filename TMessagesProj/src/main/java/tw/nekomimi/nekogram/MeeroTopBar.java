@@ -64,7 +64,7 @@ public final class MeeroTopBar {
     /** Original = the conversation-start single-line "author - title" bar. */
     public static boolean musicTwoLine() { return !original(); }
     public static float musicTitleDp()   { return original() ? 15f : 12f; }
-    public static float musicSubDp()     { return original() ? 13f : 11f; }
+    public static float musicSubDp()     { return original() ? 13f : 10f; }
     public static float musicBarDp()     { return original() ? 36f : 33f; }
     public static float musicPlayDp()    { return original() ? 36f : 33f; }
 
