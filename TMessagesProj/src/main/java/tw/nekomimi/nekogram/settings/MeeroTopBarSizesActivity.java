@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.LayoutHelper;
@@ -80,7 +81,7 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
 
     @Override
     protected String getActionBarTitle() {
-        return "مقاسات الشريط العلوي";
+        return getString(R.string.MeeroTopBarSizes);
     }
 
     @Override
@@ -121,7 +122,7 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
             int type = holder.getItemViewType();
             if (type == TYPE_CHECK) {
                 TextCheckCell cell = (TextCheckCell) holder.itemView;
-                cell.setTextAndCheck("المقاسات المضبوطة (مفعل = المقاسات اللي صغّرناها، مطفي = مقاسات بداية المحادثة)", NekoConfig.meeroTopBarSizesOn.Bool(), false);
+                cell.setTextAndCheck(getString(R.string.MeeroTopBarSizes), NekoConfig.meeroTopBarSizesOn.Bool(), false);
             }
         }
     }
@@ -239,14 +240,14 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
             subPaint.setTypeface(Typeface.DEFAULT);
             subPaint.setColor(subColor);
             float tx = ovalX0 + oval + dp(7f);
-            canvas.drawText("اسم المحادثة", tx, cy - dp(2f), titlePaint);
-            canvas.drawText("الحالة", tx, cy + dp(3f) - subPaint.ascent(), subPaint);
+            canvas.drawText(getString(R.string.MeeroTopBarPreviewChatName), tx, cy - dp(2f), titlePaint);
+            canvas.drawText(getString(R.string.MeeroTopBarPreviewStatus), tx, cy + dp(3f) - subPaint.ascent(), subPaint);
 
             // ---------- pinned strip ----------
             float py = dp(8f) + headerH + dp(5f);
             captionPaint.setTextSize(dp(10f));
             captionPaint.setColor(subColor);
-            canvas.drawText("التثبيت", side, py + dp(10f), captionPaint);
+            canvas.drawText(getString(R.string.MeeroTopBarPreviewPinned), side, py + dp(10f), captionPaint);
             float pBarY = py + dp(15f);
             float pBarH = dp(MeeroTopBar.pinnedBarDp());
             rect.set(side, pBarY, w - side, pBarY + pBarH);
@@ -254,15 +255,15 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
             linePaint.setColor(titleColor);
             linePaint.setTypeface(AndroidUtilities.bold());
             linePaint.setTextSize(dp(MeeroTopBar.pinnedCounterDp()));
-            canvas.drawText("رسالة مثبتة", side + dp(23f), pBarY + pBarH * 0.45f, linePaint);
+            canvas.drawText(getString(R.string.MeeroTopBarPreviewPinnedMessage), side + dp(23f), pBarY + pBarH * 0.45f, linePaint);
             linePaint.setTypeface(Typeface.DEFAULT);
             linePaint.setColor(subColor);
             linePaint.setTextSize(dp(MeeroTopBar.pinnedTextDp()));
-            canvas.drawText("نص الرسالة المثبتة هنا…", side + dp(23f), pBarY + pBarH * 0.85f, linePaint);
+            canvas.drawText(getString(R.string.MeeroTopBarPreviewPinnedText), side + dp(23f), pBarY + pBarH * 0.85f, linePaint);
 
             // ---------- music bar ----------
             float my = pBarY + pBarH + dp(5f);
-            canvas.drawText("الموسيقى", side, my + dp(10f), captionPaint);
+            canvas.drawText(getString(R.string.MeeroTopBarPreviewMusic), side, my + dp(10f), captionPaint);
             float mBarY = my + dp(15f);
             float mBarH = dp(MeeroTopBar.musicBarDp());
             rect.set(side, mBarY, w - side, mBarY + mBarH);
@@ -283,8 +284,8 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
                 linePaint.setColor(titleColor);
                 linePaint.setTypeface(Typeface.DEFAULT);
                 linePaint.setTextSize(dp(MeeroTopBar.musicTitleDp()));
-                String t1 = "عنوان الأغنية";
-                String t2 = "اسم الفنان";
+                String t1 = getString(R.string.MeeroTopBarPreviewSongTitle);
+                String t2 = getString(R.string.MeeroTopBarPreviewArtist);
                 float tw1 = linePaint.measureText(t1);
                 float centerX = (side + dp(6f) + ps + w - side) / 2f;
                 canvas.drawText(t1, centerX - tw1 / 2f, mBarY + mBarH * 0.44f, linePaint);
@@ -296,7 +297,7 @@ public class MeeroTopBarSizesActivity extends BaseNekoSettingsActivity {
                 linePaint.setColor(titleColor);
                 linePaint.setTypeface(Typeface.DEFAULT);
                 linePaint.setTextSize(dp(15f));
-                canvas.drawText("اسم الفنان - عنوان الأغنية", side + dp(6f) + ps + dp(6f), mcy - (linePaint.ascent() + linePaint.descent()) / 2f, linePaint);
+                canvas.drawText(String.format("%s - %s", getString(R.string.MeeroTopBarPreviewArtist), getString(R.string.MeeroTopBarPreviewSongTitle)), side + dp(6f) + ps + dp(6f), mcy - (linePaint.ascent() + linePaint.descent()) / 2f, linePaint);
             }
         }
     }

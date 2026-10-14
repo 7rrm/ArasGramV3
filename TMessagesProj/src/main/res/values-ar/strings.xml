@@ -1283,4 +1283,13 @@
     <string name="MeeroHdrBadgeDesc">عداد أحمر يعد محادثاتك غير المقروءة الثانية وأنت داخل دردشة</string>
     <string name="MeeroHdrCommunityTitle">شارة المجتمع المرتبط </string>
     <string name="MeeroHdrCommunityDesc">قرص أبيض بسهم على صور القنوات/المجموعات المربوطة بمجتمع - بالقائمة والبحث والبروفايل </string>
+    <string name="MeeroTopBarSizes">تصغير المقاسات</string>
+    <string name="MeeroTopBarPreviewChatName">اسم المحادثة</string>
+    <string name="MeeroTopBarPreviewStatus">آخر ظهور قريباً</string>
+    <string name="MeeroTopBarPreviewPinned">التثبيت</string>
+    <string name="MeeroTopBarPreviewPinnedMessage">رسالة مثبتة</string>
+    <string name="MeeroTopBarPreviewPinnedText">نص الرسالة المثبتة هنا…</string>
+    <string name="MeeroTopBarPreviewMusic">الموسيقى</string>
+    <string name="MeeroTopBarPreviewSongTitle">عنوان الأغنية</string>
+    <string name="MeeroTopBarPreviewArtist">اسم الفنان</string>
 </resources>

@@ -9,7 +9,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * ON (default) = the measurements we tuned and shrank during the session:
  *   glass title 15dp, status 12dp, titleTop 5 / subtitleTop 23, pinned
  *   lines 12 / 12.5dp on the 48dp bar, two-line music bar (12 / 11dp) on
- *   a 31dp strip, translate line 15dp.
+ *   a 33dp strip, translate line 15dp.
  * OFF = the conversation-start originals - the exact values the fork had
  *   before any tuning (title 17.5dp, status 13.5dp, pinned 14dp,
  *   single-line 15dp music bar at 36dp, translate 14dp).
@@ -65,8 +65,8 @@ public final class MeeroTopBar {
     public static boolean musicTwoLine() { return !original(); }
     public static float musicTitleDp()   { return original() ? 15f : 12f; }
     public static float musicSubDp()     { return original() ? 13f : 11f; }
-    public static float musicBarDp()     { return original() ? 36f : 31f; }
-    public static float musicPlayDp()    { return original() ? 36f : 31f; }
+    public static float musicBarDp()     { return original() ? 36f : 33f; }
+    public static float musicPlayDp()    { return original() ? 36f : 33f; }
 
     /* ---- translate button (TranslateButton) ---- */
 
