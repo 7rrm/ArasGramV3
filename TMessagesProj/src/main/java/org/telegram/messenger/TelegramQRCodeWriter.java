@@ -234,6 +234,9 @@ public final class TelegramQRCodeWriter {
             drawable.setBounds(imageX, imageX, imageX + imageSize, imageX + imageSize);
             drawable.draw(canvas);
         }
+        canvas.setBitmap(null);
+
+        return bitmap;
     }
 
     private boolean has(int x, int y) {
