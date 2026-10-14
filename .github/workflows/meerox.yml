@@ -78,8 +78,14 @@ jobs:
           # MeeroX v217 hotfix 2: bump prefix - a stale restored .cxx tree held
           # read-only objects and broke h264_encoder_impl.cc.o ('Operation not
           # permitted'). Fresh prefix = clean rebuild once, then cached again.
-          key: meerox-cxx2-arm64-${{ hashFiles('TMessagesProj/jni/**/CMakeLists.txt') }}
-          restore-keys: meerox-cxx2-arm64-
+          # v240: bumped again (cxx2 -> cxx3). 13.0.2 moved tgcalls out of
+          # jni/voip into its own submodule, so every restored
+          # CMakeFiles/tgcalls.dir/voip/... object is stale AND read-only;
+          # the hashFiles() glob only sees tracked CMakeLists.txt, so the key
+          # did not change on its own and ninja died with the same
+          # 'Operation not permitted' on webrtc_voice_engine.cc.o.
+          key: meerox-cxx3-arm64-${{ hashFiles('TMessagesProj/jni/**/CMakeLists.txt') }}
+          restore-keys: meerox-cxx3-arm64-
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
