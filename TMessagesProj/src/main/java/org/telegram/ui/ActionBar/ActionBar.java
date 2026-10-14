@@ -2556,6 +2556,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     }
 
     public boolean doNotDrawGlassMenu;
+    private boolean drawGlassTitle = true;
+
+    public void setDrawGlassTitle(boolean draw) {
+        if (drawGlassTitle != draw) {
+            drawGlassTitle = draw;
+            invalidate();
+        }
+    }
 
     // MeeroX v275 (his report: with the adaptive switch OFF, the settings
     // preview's name capsule merged with the back capsule - «الكبسولة تندمج
@@ -2610,7 +2618,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         final int tBack = getHeight() - (getCurrentActionBarHeight() + sBack) / 2 - p;
         final int bBack = tBack + sBack + p * 2;
 
-        if (glassDrawable != null && !glassOnlyBack) {
+        if (glassDrawable != null && !glassOnlyBack && drawGlassTitle) {
             // MeeroX v273: the alpha is animated per-frame below for the
             // adaptive pill, so always reset it for the other branches (the
             // drawable is kept and reused across frames).

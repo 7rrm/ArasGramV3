@@ -98,6 +98,9 @@ set_target_properties(tde2e PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}
 add_library(tdutils STATIC IMPORTED)
 set_target_properties(tdutils PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libtdutils.a)
 
+add_library(prisma STATIC IMPORTED)
+set_target_properties(prisma PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libprisma.a)
+
 #tgnet
 add_library(tgnet STATIC
         openssl/aes_ige.c
@@ -138,6 +141,30 @@ add_library(tlottie STATIC IMPORTED)
 set_target_properties(tlottie PROPERTIES
         IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/prebuild/lib/${ANDROID_ABI}/libtlottie.a)
 
+# Wallet Engine: matching Rust archive and generated UniFFI C++20 wrapper.
+set(WALLET_ENGINE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/prebuild/include/wallet-engine)
+add_library(wallet_engine STATIC IMPORTED)
+set_target_properties(wallet_engine PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/prebuild/lib/${ANDROID_ABI}/libwallet_engine.a)
+
+add_library(wallet_engine_cpp STATIC
+        ${WALLET_ENGINE_INCLUDE_DIR}/wallet_engine.cpp
+        ${WALLET_ENGINE_INCLUDE_DIR}/gram_wallet.cpp)
+# Keep C++20 local: existing JNI sources include Breakpad's C++17-only headers.
+# Any new source that includes wallet_engine.hpp must also opt into C++20.
+target_compile_features(wallet_engine_cpp PRIVATE cxx_std_20)
+# Keep unused bindings discardable even when voip resets CMAKE_CXX_FLAGS below.
+target_compile_options(wallet_engine_cpp PRIVATE -ffunction-sections -fdata-sections)
+target_include_directories(wallet_engine_cpp PUBLIC ${WALLET_ENGINE_INCLUDE_DIR})
+target_link_libraries(wallet_engine_cpp PUBLIC wallet_engine dl m)
+
+# Compile the JNI bridge as C++20 without changing the legacy JNI sources.
+# An object library keeps its JNI entry points in the existing tmessages .so.
+add_library(wallet_engine_jni OBJECT wallet/WalletEngineBridge.cpp wallet/GramWalletAdapter.cpp)
+target_compile_features(wallet_engine_jni PRIVATE cxx_std_20)
+set_target_properties(wallet_engine_jni PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(wallet_engine_jni PRIVATE wallet_engine_cpp)
+
 #sqlite
 add_library(sqlite STATIC
         sqlite/sqlite3.c)
@@ -150,6 +177,25 @@ target_compile_definitions(sqlite PUBLIC
 
 
 #voip
+# ArasGram: custom group-call audio bitrate (ArasGram/Nagram setting
+# "customGroupVoipAudioBitrate"). Since Telegram 13.0.0 tgcalls lives in a git
+# submodule, so the tweak ships as a build-time patch instead of an in-tree
+# edit. It is applied once per clean checkout; --forward makes it a no-op when
+# the patch is already present, and a failure must never break the build.
+execute_process(
+        COMMAND patch -p1 --forward --batch
+        -i ${CMAKE_HOME_DIRECTORY}/patches/tgcalls_custom_audio_bitrate.patch
+        WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}/tgcalls
+        RESULT_VARIABLE TGCALLS_PATCH_RESULT
+        OUTPUT_VARIABLE TGCALLS_PATCH_OUTPUT
+        ERROR_VARIABLE TGCALLS_PATCH_OUTPUT)
+if (NOT TGCALLS_PATCH_RESULT EQUAL 0 AND NOT TGCALLS_PATCH_RESULT EQUAL 1)
+    message(WARNING "ArasGram: could not patch tgcalls for the custom audio "
+            "bitrate (${TGCALLS_PATCH_RESULT}): ${TGCALLS_PATCH_OUTPUT}")
+else()
+    message(STATUS "ArasGram: tgcalls custom audio bitrate patch applied")
+endif()
+
 include(${CMAKE_HOME_DIRECTORY}/voip/CMakeLists.txt)
 
 # cpu features
@@ -177,6 +223,20 @@ add_library(${NATIVE_LIB} SHARED
         tde2e/bridge.cpp
         tests.cpp
 )
+
+# Compile JNI directly into the shared library so archive extraction cannot drop its exports.
+set(PRISMA_BRIDGE_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/prisma/bridge/PrismaEngine.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/prisma/bridge/PrismaJni.cpp")
+target_sources(${NATIVE_LIB} PRIVATE ${PRISMA_BRIDGE_SOURCES})
+target_include_directories(${NATIVE_LIB} PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/prisma/bridge"
+        "${CMAKE_CURRENT_SOURCE_DIR}/third_party/boost-regex/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libprisma/libprisma")
+set_property(SOURCE ${PRISMA_BRIDGE_SOURCES} APPEND PROPERTY
+        COMPILE_OPTIONS -fexceptions -frtti)
+set_property(SOURCE ${PRISMA_BRIDGE_SOURCES} APPEND PROPERTY
+        COMPILE_DEFINITIONS BOOST_REGEX_STANDALONE)
 
 target_compile_options(${NATIVE_LIB} PUBLIC
         -ffast-math -Oz -funroll-loops -ffast-math -fno-strict-aliasing -fno-math-errno)
@@ -229,7 +289,10 @@ target_link_libraries(${NATIVE_LIB}
         wasm
         tgcalls_tp
         tgnet
+        prisma
         tlottie
+        wallet_engine_jni
+        wallet_engine_cpp
         sqlite
         swscale
         avformat
