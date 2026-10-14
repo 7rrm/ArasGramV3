@@ -9,6 +9,7 @@
 package org.telegram.messenger;
 
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.graphics.Color;
 
 public class Bitmaps {
@@ -118,4 +119,16 @@ public class Bitmaps {
         return bitmap;
     }
 
+
+    public static Bitmap createBitmap(Bitmap source, int x, int y, int width, int height, Matrix m, boolean filter) {
+        return Bitmap.createBitmap(source, x, y, width, height, m, filter);
+    }
+
+    public static Bitmap createBitmap(Bitmap source, int x, int y, int width, int height) {
+        return createBitmap(source, x, y, width, height, null, false);
+    }
+
+    public static Bitmap createScaledBitmap(Bitmap src, int dstWidth, int dstHeight, boolean filter) {
+        return Bitmap.createScaledBitmap(src, dstWidth, dstHeight, filter);
+    }
 }

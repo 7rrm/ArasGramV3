@@ -144,7 +144,7 @@ public class VoipAudioManager {
                 AndroidUtilities.runOnUIThread(() -> onDone.run(false, false));
                 return;
             }
-            boolean isBluetoothScoOn = audioManager.isBluetoothScoOn();
+            boolean isBluetoothOn = isBluetoothOn();
             boolean isSpeakerphoneOn = audioManager.isSpeakerphoneOn();
             AndroidUtilities.runOnUIThread(() -> onDone.run(isBluetoothOn, isSpeakerphoneOn));
         });
