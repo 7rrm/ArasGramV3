@@ -82,6 +82,34 @@ public class ActionBarMenuSubItem extends FrameLayout {
     protected final Theme.ResourcesProvider resourcesProvider;
     public Runnable openSwipeBackLayout;
 
+    /**
+     * MeeroX v245 (owner report: "save to gallery" stored TWO copies per tap):
+     * EVERY popup row must report its click to MeeroMenuWatch, not only the
+     * id-tagged rows dispatched from ActionBarMenuItem's guarded sites. The
+     * v205 dead-tap rescue in ActionBarPopupWindow compares the click serial
+     * before/after a gesture; a row whose listener never bumps it looks like
+     * a dead tap, so the rescue re-delivers performClick() and the action
+     * runs twice - PhotoViewer's swipe-back save button did exactly that.
+     * Routing every row listener through here makes the serial complete;
+     * id-based rows simply bump it twice, which is harmless (the rescue only
+     * checks whether it changed at all). iOS skin OFF = the counter is never
+     * consulted.
+     */
+    @Override
+    public void setOnClickListener(View.OnClickListener l) {
+        if (l == null) {
+            super.setOnClickListener(null);
+            return;
+        }
+        super.setOnClickListener(v -> {
+            try {
+                tw.nekomimi.nekogram.MeeroMenuWatch.onClickFired(v.getTag());
+            } catch (Throwable ignore) {
+            }
+            l.onClick(v);
+        });
+    }
+
     public ActionBarMenuSubItem(Context context, boolean top, boolean bottom) {
         this(context, false, top, bottom);
     }
