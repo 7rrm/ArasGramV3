@@ -224,6 +224,17 @@ public class LiteMode {
             batteryDefaultValue = BATTERY_MEDIUM;
         }
 
+        // MeeroX v244 (his order): a FRESH install starts with every effect
+        // enabled, whatever the performance class. The stock presets dropped
+        // half the chat effects on average/low-tier devices (background,
+        // spoiler, scale, stickers) and left the glass bit off even on
+        // high-tier ones. Existing installs keep their saved lite_mode6 -
+        // only the first-launch default changes.
+        defaultValue = PRESET_HIGH | FLAG_LIQUID_GLASS;
+        if (!isLiquidGlassSupported()) {
+            defaultValue &= ~FLAG_LIQUID_GLASS;
+        }
+
         final SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         if (!preferences.contains("lite_mode6")) {
             if (preferences.contains("lite_mode5")) {
