@@ -250,6 +250,13 @@ public class FragmentSearchField extends FrameLayout implements FactorAnimator.T
         }
         super.dispatchDraw(canvas);
         canvas.restore();
+        if (meeroIdleCentered()) {
+            final CharSequence h = editText.getHint();
+            if (h != null && !h.equals(meeroLastHint)) {
+                meeroLastHint = h;
+                post(this::meeroRefreshIdleGroup);
+            }
+        }
     }
 
     /**
@@ -259,6 +266,17 @@ public class FragmentSearchField extends FrameLayout implements FactorAnimator.T
      */
     /** MeeroX: hairline edge radius, set alongside the background. */
     private int meeroBorderRadius;
+
+    /**
+     * MeeroX v241 (his report: the search field sometimes renders wrong
+     * until it is tapped): TextView.setHint() only invalidates - it never
+     * requests a layout - so when a screen swaps the wording ("Search" vs
+     * "Search in Topics") the centred idle group kept the paddings and the
+     * icon offset measured for the OLD hint. The swap is caught here and
+     * the centring re-run after the frame; posted so a relayout never
+     * happens inside a draw pass.
+     */
+    private CharSequence meeroLastHint;
 
     private static int meeroFieldRadius() {
         try {
