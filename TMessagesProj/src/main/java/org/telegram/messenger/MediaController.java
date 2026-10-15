@@ -5512,6 +5512,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         saveFile(selectedObject, fullPath, context, type, name, mime, onSaved, true);
     }
 
+    // MeeroX v246: duplicate-save backstop state (see saveFile below).
+    private static final Object meeroSaveDedupeLock = new Object();
+    private static String meeroSaveDedupeKey;
+    private static long meeroSaveDedupeAt;
+
     public static void saveFile(MessageObject selectedObject, String fullPath, Context context, final int type, final String name, final String mime, final Utilities.Callback<Uri> onSaved, boolean showProgress) {
         if (fullPath == null || context == null) {
             return;
@@ -5530,6 +5535,30 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         }
 
         final File sourceFile = file;
+        // MeeroX v246 (owner report, third pass): with the iOS popup skin ON a
+        // single "save to gallery" tap still produced two files on his device
+        // although the click order provably runs once per guarded layer. This
+        // is the backstop that can not miss: whatever layer still re-delivers
+        // the tap, a second write of the SAME source file into the SAME folder
+        // within 2s is always a duplicate. A different photo, a different
+        // folder, or a deliberate later re-save always passes; the guard never
+        // blocks a save (any failure here falls through to a normal save).
+        try {
+            String meeroFolder = NekoConfig.customSavePath.String();
+            if (selectedObject != null && NaConfig.INSTANCE.getSaveToChatSubfolder().Bool()) {
+                meeroFolder = meeroFolder + File.separator + ChatsHelper.getChatFolderName(selectedObject);
+            }
+            final String meeroKey = sourceFile.getAbsolutePath() + "|" + sourceFile.length() + "|" + type + "|" + meeroFolder;
+            synchronized (meeroSaveDedupeLock) {
+                final long meeroNow = System.currentTimeMillis();
+                if (meeroKey.equals(meeroSaveDedupeKey) && meeroNow - meeroSaveDedupeAt < 2000) {
+                    return;
+                }
+                meeroSaveDedupeKey = meeroKey;
+                meeroSaveDedupeAt = meeroNow;
+            }
+        } catch (Throwable ignore) {
+        }
         final boolean[] cancelled = new boolean[]{false};
         if (sourceFile.exists()) {
 
@@ -5678,6 +5707,19 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         if (!photoFile.exists() || !videoFile.exists()) {
             saveFile(fullPath, context, 0, null, null, onSaved);
             return;
+        }
+        // MeeroX v246: same duplicate-write backstop for live photos.
+        try {
+            final String meeroKey = fullPath + "|" + liveVideoPath + "|" + photoFile.length() + "|" + videoFile.length();
+            synchronized (meeroSaveDedupeLock) {
+                final long meeroNow = System.currentTimeMillis();
+                if (meeroKey.equals(meeroSaveDedupeKey) && meeroNow - meeroSaveDedupeAt < 2000) {
+                    return;
+                }
+                meeroSaveDedupeKey = meeroKey;
+                meeroSaveDedupeAt = meeroNow;
+            }
+        } catch (Throwable ignore) {
         }
         if (AndroidUtilities.isInternalUri(Uri.fromFile(photoFile)) || AndroidUtilities.isInternalUri(Uri.fromFile(videoFile))) {
             return;
