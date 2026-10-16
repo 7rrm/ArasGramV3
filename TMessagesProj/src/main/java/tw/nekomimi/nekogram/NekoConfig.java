@@ -414,6 +414,9 @@ public class NekoConfig {
     public static ConfigItem markReadAfterSend = addConfig("markReadAfterSend", configTypeBool, true);
     public static ConfigItem showGhostInDrawer = addConfig("showGhostInDrawer", configTypeBool, false);
     public static ConfigItem showGhostModeStatus = addConfig("showGhostModeStatus", configTypeBool, false);
+    // Global ghost exclusions by dialog type: 0 = default, 1 = exclude read, 2 = exclude typing, 3 = exclude both.
+    public static ConfigItem ghostPrivateExclusions = addConfig("ghostPrivateExclusions", configTypeInt, 0);
+    public static ConfigItem ghostGroupExclusions = addConfig("ghostGroupExclusions", configTypeInt, 0);
 
     // --- Locked Status ---
     public static ConfigItem sendReadMessagePacketsLocked = addConfig("sendReadMessagePacketsLocked", configTypeBool, false);

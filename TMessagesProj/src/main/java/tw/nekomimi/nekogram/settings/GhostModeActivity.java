@@ -11,6 +11,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.radolyn.ayugram.utils.AyuGhostPreferences;
 import com.radolyn.ayugram.utils.AyuState;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -60,6 +61,11 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
     private int sendWithoutSoundNoticeRow;
     private int showGhostInDrawerRow;
     private int showGhostModeStatusRow;
+    // Global ghost exclusions applied to every private chat / every group.
+    private int ghostExclusionsHeaderRow;
+    private int ghostPrivateExclusionsRow;
+    private int ghostGroupExclusionsRow;
+    private int ghostExclusionsNoticeRow;
     private boolean ghostModeMenuExpanded;
 
     @Override
@@ -92,6 +98,10 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
         sendWithoutSoundNoticeRow = addRow();
         showGhostInDrawerRow = addRow();
         showGhostModeStatusRow = addRow();
+        ghostExclusionsHeaderRow = addRow();
+        ghostPrivateExclusionsRow = addRow();
+        ghostGroupExclusionsRow = addRow();
+        ghostExclusionsNoticeRow = addRow();
     }
 
     @Override
@@ -156,6 +166,45 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
             case SwipeGestureSettingsView.SWIPE_GESTURE_ARCHIVE:
             default:
                 return getString(R.string.SwipeSettingsArchive);
+        }
+    }
+
+    // Global ghost exclusions for all private chats or all groups.
+    // Values: 0 = default, 1 = exclude read, 2 = exclude typing, 3 = exclude both.
+    private void showGhostExclusionsDialog(boolean forPrivate) {
+        ConfigItem item = forPrivate ? NekoConfig.ghostPrivateExclusions : NekoConfig.ghostGroupExclusions;
+        String[] names = {
+                getString(R.string.Default),
+                getString(R.string.GhostModeExcludeRead),
+                getString(R.string.GhostModeExcludeTyping),
+                getString(R.string.GhostModeExcludeBoth)
+        };
+        int current = item.Int();
+        for (int i = 0; i < names.length; i++) {
+            if (i == current) {
+                names[i] = names[i] + "  ✓";
+            }
+        }
+        new AlertDialog.Builder(getParentActivity())
+                .setTitle(forPrivate ? getString(R.string.GhostModePrivateChats) : getString(R.string.GhostModeGroupsChats))
+                .setItems(names, (dialog, which) -> {
+                    item.setConfigInt(which);
+                    listAdapter.notifyItemChanged(forPrivate ? ghostPrivateExclusionsRow : ghostGroupExclusionsRow);
+                })
+                .setNegativeButton(getString(R.string.Cancel), null)
+                .show();
+    }
+
+    private String getGhostExclusionValueName(int value) {
+        switch (value) {
+            case AyuGhostPreferences.EXCLUSION_READ:
+                return getString(R.string.GhostModeExcludeRead);
+            case AyuGhostPreferences.EXCLUSION_TYPING:
+                return getString(R.string.GhostModeExcludeTyping);
+            case AyuGhostPreferences.EXCLUSION_BOTH:
+                return getString(R.string.GhostModeExcludeBoth);
+            default:
+                return getString(R.string.Default);
         }
     }
 
@@ -226,6 +275,10 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
             NekoConfig.showGhostModeStatus.toggleConfigBool();
             ((TextCheckCell) view).setChecked(NekoConfig.showGhostModeStatus.Bool());
             NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+        } else if (position == ghostPrivateExclusionsRow) {
+            showGhostExclusionsDialog(true);
+        } else if (position == ghostGroupExclusionsRow) {
+            showGhostExclusionsDialog(false);
         }
     }
 
@@ -340,6 +393,8 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
                     if (position == ghostEssentialsHeaderRow) {
                         headerCell.setText(getString(R.string.GhostEssentialsHeader));
+                    } else if (position == ghostExclusionsHeaderRow) {
+                        headerCell.setText(getString(R.string.GhostModeExclusionsHeader));
                     }
                     break;
                 case TYPE_INFO_PRIVACY:
@@ -351,6 +406,8 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
                         cell.setText(getString(R.string.MarkReadAfterSendNotice));
                     } else if (position == sendWithoutSoundNoticeRow) {
                         cell.setText(getString(R.string.SendWithoutSoundRowNotice));
+                    } else if (position == ghostExclusionsNoticeRow) {
+                        cell.setText(getString(R.string.GhostModeExclusionsNotice));
                     }
                     break;
                 case TYPE_CHECK2:
@@ -378,6 +435,10 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
                     } else if (position == ghostSwipeReadNoticeRow) {
                         // v111: usage-guide button instead of the long footer.
                         textCell.setTextAndValue(MeeroStrings.s(268), "", true);
+                    } else if (position == ghostPrivateExclusionsRow) {
+                        textCell.setTextAndValue(getString(R.string.GhostModePrivateChats), getGhostExclusionValueName(NekoConfig.ghostPrivateExclusions.Int()), true);
+                    } else if (position == ghostGroupExclusionsRow) {
+                        textCell.setTextAndValue(getString(R.string.GhostModeGroupsChats), getGhostExclusionValueName(NekoConfig.ghostGroupExclusions.Int()), true);
                     }
                     break;
                 case TYPE_CHECKBOX2:
@@ -433,13 +494,13 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == ghostEssentialsHeaderRow) {
+            if (position == ghostEssentialsHeaderRow || position == ghostExclusionsHeaderRow) {
                 return TYPE_HEADER;
-            } else if (position == ghostModeNoticeRow || position == markReadAfterSendNoticeRow || position == sendWithoutSoundNoticeRow) {
+            } else if (position == ghostModeNoticeRow || position == markReadAfterSendNoticeRow || position == sendWithoutSoundNoticeRow || position == ghostExclusionsNoticeRow) {
                 return TYPE_INFO_PRIVACY;
             } else if (position == ghostModeToggleRow) {
                 return TYPE_CHECK2;
-            } else if (position == swipeActionRow || position == ghostSwipeReadNoticeRow) {
+            } else if (position == swipeActionRow || position == ghostSwipeReadNoticeRow || position == ghostPrivateExclusionsRow || position == ghostGroupExclusionsRow) {
                 return TYPE_TEXT;
             } else if (position == ghostSwipeReadRow || (position >= sendReadMessagePacketsRow && position <= sendOfflinePacketAfterOnlineRow)) {
                 return TYPE_CHECKBOX2;

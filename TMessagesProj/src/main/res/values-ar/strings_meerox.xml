@@ -527,6 +527,11 @@
     <string name="GhostReadMessage">قراءة الرسالة</string>
     <string name="GhostModeExcludeRead">استثناء القراءة</string>
     <string name="GhostModeExcludeTyping">استثناء الكتابة</string>
+    <string name="GhostModeExcludeBoth">استثناء القراءة والكتابة</string>
+    <string name="GhostModeExclusionsHeader">الاستثناءات العامة</string>
+    <string name="GhostModePrivateChats">المحادثات الخاصة</string>
+    <string name="GhostModeGroupsChats">المجموعات</string>
+    <string name="GhostModeExclusionsNotice">يُطبَّق على جميع المحادثات الخاصة أو المجموعات. تُضاف استثناءات المحادثات المفردة فوق هذا الإعداد.</string>
     <string name="SendWithSound">إرسال مع صوت</string>
     <string name="PerformanceClass">فئة أداء الجهاز</string>
     <string name="PerformanceClassHigh">عالٍ</string>

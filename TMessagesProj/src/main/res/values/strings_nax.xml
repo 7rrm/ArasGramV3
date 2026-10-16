@@ -158,6 +158,11 @@
     <string name="GhostReadMessage">Read Message</string>
     <string name="GhostModeExcludeRead">Exclude Read</string>
     <string name="GhostModeExcludeTyping">Exclude Typing</string>
+    <string name="GhostModeExcludeBoth">Exclude Read and Typing</string>
+    <string name="GhostModeExclusionsHeader">Global exclusions</string>
+    <string name="GhostModePrivateChats">Private chats</string>
+    <string name="GhostModeGroupsChats">Groups</string>
+    <string name="GhostModeExclusionsNotice">Applies to every private chat or group. Per-chat exclusions are added on top of this setting.</string>
     <string name="SendWithSound">Send with Sound</string>
     <string name="PerformanceClass">Device Performance Class</string>
     <string name="PerformanceClassHigh">High</string>

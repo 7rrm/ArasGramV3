@@ -146,8 +146,8 @@ public class AyuGhostUtils {
 
     public static InterceptResult interceptRequest(TLObject object, RequestDelegate onCompleteOrig) {
         Long dialogId = extractDialogId(object);
-        boolean readExcluded = dialogId != null && AyuGhostPreferences.getGhostModeReadExclusion(dialogId);
-        boolean typingExcluded = dialogId != null && AyuGhostPreferences.getGhostModeTypingExclusion(dialogId);
+        boolean readExcluded = dialogId != null && AyuGhostPreferences.isReadExcluded(dialogId);
+        boolean typingExcluded = dialogId != null && AyuGhostPreferences.isTypingExcluded(dialogId);
 
         // Block typing if disabled
         if (!NekoConfig.sendUploadProgress.Bool() && (object instanceof TLRPC.TL_messages_setTyping || object instanceof TLRPC.TL_messages_setEncryptedTyping)) {
@@ -193,7 +193,7 @@ public class AyuGhostUtils {
 
             if (peer != null) {
                 var dialogId = AyuGhostUtils.getDialogId(peer);
-                if (AyuGhostPreferences.getGhostModeReadExclusion(dialogId)) {
+                if (AyuGhostPreferences.isReadExcluded(dialogId)) {
                     return;
                 }
                 getMessagesStorage().getStorageQueue().postRunnable(() ->
@@ -208,7 +208,7 @@ public class AyuGhostUtils {
     private static RequestDelegate handleOfflineAfterSend(TLObject object, RequestDelegate onCompleteOrig) {
         if (NekoConfig.sendOfflinePacketAfterOnline.Bool() && isMessageSendRequest(object)) {
             TLRPC.InputPeer peer = extractPeerFromSendObject(object);
-            if (peer != null && AyuGhostPreferences.getGhostModeTypingExclusion(getDialogId(peer))) {
+            if (peer != null && AyuGhostPreferences.isTypingExcluded(getDialogId(peer))) {
                 return onCompleteOrig;
             }
             FileLog.d("GhostMode: Wrapping callback for offline-after-send.");
