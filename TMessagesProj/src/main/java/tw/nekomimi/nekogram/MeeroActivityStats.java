@@ -83,9 +83,17 @@ public final class MeeroActivityStats {
                         if (b != null) {
                             String[] f = b.split("\t", -1);
                             try {
-                                midnight = Long.parseLong(f[0]);
-                                weekAgo = Long.parseLong(f[1]);
-                                monthAgo = Long.parseLong(f[2]);
+                                long nm = Long.parseLong(f[0]);
+                                long nw = Long.parseLong(f[1]);
+                                long nmo = Long.parseLong(f[2]);
+                                // sanity gate: values must be unix seconds (not ms),
+                                // ordered oldest -> newest (monthAgo <= weekAgo <= midnight),
+                                // and midnight must fall within the last ~25 hours.
+                                if (nmo > 0 && nmo <= nw && nw <= nm && nm <= nowSec && nowSec - nm <= 90000L) {
+                                    midnight = nm;
+                                    weekAgo = nw;
+                                    monthAgo = nmo;
+                                }
                             } catch (Throwable ignore) {}
                         }
                     }
@@ -117,7 +125,9 @@ public final class MeeroActivityStats {
     private static int countSince(SQLiteDatabase db, long sinceSec) {
         SQLiteCursor c = null;
         try {
-            c = db.queryFinalized("SELECT COUNT(*) FROM messages_v2 WHERE date >= " + sinceSec);
+            // "رسائلك" rows count only OUTGOING messages (out = 1) - matching
+            // the hourly chart and the labels ("your messages today").
+            c = db.queryFinalized("SELECT COUNT(*) FROM messages_v2 WHERE out = 1 AND date >= " + sinceSec);
             return c.next() ? c.intValue(0) : 0;
         } catch (Throwable ignore) {
             return 0;
