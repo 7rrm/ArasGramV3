@@ -22614,14 +22614,17 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 Theme.chat_adminPaint.setColor(color);
 
                 canvas.save();
-                final float lineWidth = adminLayout.getLineWidth(0);
-                final float adminLayoutWidth = lineWidth + (adminLayoutIsAdmin ? dp(6) : 0);
+                final float lineLeft = adminLayout.getLineLeft(0);
+                final float lineRight = adminLayout.getLineRight(0);
+                final float lineWidth = lineRight - lineLeft;
+                final float adminPadding = adminLayoutIsAdmin ? dp(6) : 0;
+                final float adminLayoutWidth = lineWidth + adminPadding * 2;
                 final float adminRight = end - dp(11) - bookmarkShift;
-                float ax = adminRight - adminLayoutWidth;
-                float ax2 = adminRight;
+                // Position using the actual visual line bounds, not the layout's
+                // origin. RTL Arabic lines can have a non-zero lineLeft.
+                float ax = adminRight - lineRight - adminPadding;
                 float ay = nameY + dp(0.5f);
                 ax = lerp(ax, nx, avatarAlpha);
-                ax2 = lerp(ax2, nx + adminLayoutWidth, avatarAlpha);
                 ay += dp(14) * avatarAlpha;
                 if (currentNameBotVerificationId != 0) {
                     ax -= dp(20) * avatarAlpha;
@@ -22658,7 +22661,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     boostCounterLayoutSelector.draw(canvas);
                 }
 
-                adminLayoutRect.set(ax - dp(6), ay - dp(1), ax2, ay + dp(15));
+                adminLayoutRect.set(ax + lineLeft - adminPadding, ay - dp(1), ax + lineRight + adminPadding, ay + dp(15));
                 adminLayoutRect.inset(dp(-4), dp(-4));
                 final float scale = adminLayoutBounce == null ? 1.0f : adminLayoutBounce.getScale(.05f);
                 canvas.scale(scale, scale, adminLayoutRect.centerX(), adminLayoutRect.centerY());
@@ -22667,7 +22670,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     Theme.chat_adminPaint.setAlpha((int) (Color.alpha(color) * transitionParams.animateChangeProgress));
                 }
                 if (adminLayoutIsAdmin) {
-                    AndroidUtilities.rectTmp.set(-dp(6), -dp(1), ax2 - ax, dp(15));
+                    AndroidUtilities.rectTmp.set(lineLeft - dp(6), -dp(1), lineRight + dp(6), dp(15));
                     if (boostCounterSpan != null) {
                         if (boostCounterSpan.isRtl) {
                             AndroidUtilities.rectTmp.left += boostCounterSpan.getWidth();

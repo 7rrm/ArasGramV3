@@ -2718,6 +2718,10 @@ public class EmojiView extends FrameLayout implements
             typeTabs.setTabPaddingLeftRight(AndroidUtilities.dp(11));
             typeTabs.setPadding(dp(4), dp(11), dp(4), dp(11));
             bottomTabContainer.addView(typeTabs, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 48, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM));
+            // Keep the sticker-settings button at the right edge unobstructed.
+            // The tab strip is centered on the whole panel, which otherwise lets
+            // the final tab overlap the settings button on narrow screens.
+            typeTabs.setTranslationX(-AndroidUtilities.dp(20));
             typeTabs.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
