@@ -890,6 +890,10 @@ public class EmojiView extends FrameLayout implements
             searchEditText.setTextColor(glassDesign ? getGlassIconColor(0.8f) : getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
             searchEditText.setBackgroundDrawable(null);
             searchEditText.setPadding(0, 0, 0, 0);
+            // The category strip reserves the hint's width at the left side of
+            // the field. Keep the hint/text there in RTL too, instead of letting
+            // it align to the right underneath the category icons.
+            searchEditText.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
             searchEditText.setMaxLines(1);
             searchEditText.setLines(1);
             searchEditText.setSingleLine(true);
@@ -911,6 +915,9 @@ public class EmojiView extends FrameLayout implements
 
                 @Override
                 public void afterTextChanged(Editable s) {
+                    // Reserve the physical left-side hint slot only while empty;
+                    // entered RTL queries retain their normal start alignment.
+                    searchEditText.setGravity((s.length() == 0 ? Gravity.LEFT : Gravity.START) | Gravity.CENTER_VERTICAL);
                     updateButton();
                     final String query = searchEditText.getText().toString();
                     search(query, true);
