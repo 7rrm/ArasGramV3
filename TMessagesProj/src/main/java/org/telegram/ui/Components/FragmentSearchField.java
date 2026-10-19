@@ -388,14 +388,12 @@ public class FragmentSearchField extends FrameLayout implements FactorAnimator.T
             final float hintW = meeroHintWidth();
             final int textLeft = meeroGroupLeft(iconW, hintW) + iconW + (int) dp(MEERO_ICON_TEXT_GAP);
             final int textRight = (int) Math.ceil(textLeft + hintW);
-            // MeeroX v243 (his report: 'بحث' breaks into 'بح' with the ث
-            // dropped to a second line): the span between the two paddings was
-            // EXACTLY the word's advance width - a single pixel lost to int
-            // rounding is enough for the layout to decide the word no longer
-            // fits, and it wraps the last glyph onto a new line. A few pixels
-            // of slack on both sides give the word room to stay on one line.
-            final int candidateLeft = textLeft - 3;
-            final int candidateRight = getMeasuredWidth() - textRight - 3;
+            // textLeft/textRight are measured in this view's coordinates, but
+            // the padding below is applied to the inset EditText child. Convert
+            // into the child's coordinates and leave a small dp buffer for
+            // Arabic glyph overhang so the last letter cannot wrap to line two.
+            final int candidateLeft = textLeft - getPaddingLeft() - dp(3);
+            final int candidateRight = getMeasuredWidth() - getPaddingRight() - textRight - dp(3);
             // Never let the centring squeeze the text against an edge - if the
             // placeholder is long enough that the group no longer fits, fall
             // back to the stock padding rather than clipping it.
