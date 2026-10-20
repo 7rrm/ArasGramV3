@@ -16390,10 +16390,12 @@ public class ChatActivityEnterView extends FrameLayout implements
                 ((MarginLayoutParams) deleteRichDraftButton.getLayoutParams()).leftMargin = dp(10) + (botCommandsMenuButton == null ? 0 : botCommandsMenuButton.getMeasuredWidth());
             }
             if (messageEditText != null) {
-                ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin = dp(57) + (botCommandsMenuButton == null ? 0 : botCommandsMenuButton.getMeasuredWidth());
+                // In the iOS-style composer the menu chip already occupies
+                // the left slot; keep only the usual 15dp text gap after it.
+                ((MarginLayoutParams) messageEditText.getLayoutParams()).leftMargin = dp(meeroIosComposer() ? 15 : 57) + botCommandsMenuButton.getMeasuredWidth();
             }
             if (richDraftPreview != null) {
-                ((MarginLayoutParams) richDraftPreview.getLayoutParams()).leftMargin = dp(57) + (botCommandsMenuButton == null ? 0 : botCommandsMenuButton.getMeasuredWidth());
+                ((MarginLayoutParams) richDraftPreview.getLayoutParams()).leftMargin = dp(meeroIosComposer() ? 15 : 57) + botCommandsMenuButton.getMeasuredWidth();
             }
         } else if (senderSelectView != null && senderSelectView.getVisibility() == View.VISIBLE) {
             int width = senderSelectView.getLayoutParams().width, height = senderSelectView.getLayoutParams().height;

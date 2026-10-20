@@ -319,7 +319,7 @@ public class FragmentSearchField extends FrameLayout implements FactorAnimator.T
     }
 
     /** MeeroX: gap between the magnifier and the placeholder, measured off iOS. */
-    private static final float MEERO_ICON_TEXT_GAP = 9f;
+    private static final float MEERO_ICON_TEXT_GAP = 4f;
 
     /**
      * MeeroX: whether the idle centred group applies right now.
