@@ -150,10 +150,7 @@ public class BotCommandsMenuView extends View {
             lastSize = size;
             CharSequence c = Emoji.replaceEmoji(menuText, textPaint.getFontMetricsInt(), false);
             int w = (int) (AndroidUtilities.displaySize.x * .6f);
-            // The menu chip is physically anchored on the left of the composer.
-            // ALIGN_NORMAL right-aligns Arabic inside the wide measurement box,
-            // drawing «قائمة» outside the chip and over the emoji button.
-            menuTextLayout = StaticLayoutEx.createStaticLayout(c, textPaint, w, Layout.Alignment.ALIGN_LEFT, 1.0f, 0f, false, TextUtils.TruncateAt.END, w, 1);
+            menuTextLayout = StaticLayoutEx.createStaticLayout(c, textPaint, w, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0f, false, TextUtils.TruncateAt.END, w, 1);
             menuTextWidth = menuTextLayout.getLineCount() > 0 ? menuTextLayout.getLineWidth(0) : 0;
         }
         onTranslationChanged((menuTextWidth + AndroidUtilities.dp(4)) * expandProgress);
@@ -219,7 +216,10 @@ public class BotCommandsMenuView extends View {
 
             if (expandProgress > 0) {
                 canvas.save();
-                canvas.translate(AndroidUtilities.dp(34), (getMeasuredHeight() - menuTextLayout.getHeight()) / 2f);
+                // ALIGN_NORMAL anchors RTL text to the layout's right edge. Offset by
+                // the visual line's left bound so Arabic remains beside the icon
+                // inside the menu chip, not on the far side of the composer.
+                canvas.translate(AndroidUtilities.dp(34) - menuTextLayout.getLineLeft(0), (getMeasuredHeight() - menuTextLayout.getHeight()) / 2f);
                 menuTextLayout.draw(canvas);
                 canvas.restore();
             }
