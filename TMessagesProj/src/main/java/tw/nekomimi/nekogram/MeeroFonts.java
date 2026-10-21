@@ -95,11 +95,23 @@ public class MeeroFonts {
         if (!p.getBoolean("v232_slots_default", false)) {
             p.edit()
                     .putString("slot_" + SLOT_REGULAR, IOS16)
-                    .putString("slot_" + SLOT_BOLD, DEFAULT)
+                    .putString("slot_" + SLOT_BOLD, IOS16)
                     .putString("slot_" + SLOT_ITALIC, DEFAULT)
                     .putString("slot_" + SLOT_MONO, DEFAULT)
                     .putBoolean("v232_slots_default", true)
                     .apply();
+        }
+        // MeeroX v248 (his order): the bold slot starts on the bundled iOS
+        // font too. Fresh installs get it straight from the v232 block above;
+        // this one-time step upgrades installs that already ran v232 with the
+        // bold slot still untouched on the stock face. A bold pick the user
+        // made on purpose is never overwritten - anything other than the
+        // stock default is left exactly as it is.
+        if (!p.getBoolean("v248_bold_ios_default", false)) {
+            if (DEFAULT.equals(p.getString("slot_" + SLOT_BOLD, DEFAULT))) {
+                p.edit().putString("slot_" + SLOT_BOLD, IOS16).apply();
+            }
+            p.edit().putBoolean("v248_bold_ios_default", true).apply();
         }
         loaded = true;
     }
