@@ -1292,4 +1292,19 @@
     <string name="MeeroTopBarPreviewMusic">الموسيقى</string>
     <string name="MeeroTopBarPreviewSongTitle">عنوان الأغنية</string>
     <string name="MeeroTopBarPreviewArtist">اسم الفنان</string>
+
+    <!-- Telegram 13.0.3 -->
+    <string name="BotTypeAgent">وكيل</string>
+    <string name="BotTypeGame">لعبة</string>
+    <string name="BotTypeApp">تطبيق</string>
+    <string name="BotTypeAI">ذكاء اصطناعي</string>
+    <string name="BotTypeNonBinary">غير ثنائي</string>
+    <string name="AudioRecorderSettings">الرسائل الصوتية</string>
+    <string name="AudioRecorderGeneral">المسجّل</string>
+    <string name="AudioRecorderUseNewRecorder">استخدام المسجّل الجديد</string>
+    <string name="AudioRecorderNoiseSuppression">كبت الضجيج</string>
+    <string name="AudioRecorderNoiseSuppressionOff">إيقاف</string>
+    <string name="AudioRecorderNoiseSuppressionRNNoise">RNNoise</string>
+    <string name="AudioRecorderGeneralInfo">يزيل RNNoise ضجيج الخلفية، وقد يؤثر على الموسيقى أو على الكلام الهادئ جداً.</string>
+
 </resources>
