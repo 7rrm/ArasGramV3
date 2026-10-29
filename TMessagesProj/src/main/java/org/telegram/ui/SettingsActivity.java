@@ -241,18 +241,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        Bulletin.Delegate delegate = new Bulletin.Delegate() {
-            @Override
-            public int getBottomOffset(int tag) {
-                return navigationBarHeight + additionNavigationBarHeight;
-            }
-        };
-        Bulletin.addDelegate(this, delegate);
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
         Bulletin.removeDelegate(this);
@@ -670,6 +658,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     @Override
     public void onResume() {
         super.onResume();
+        Bulletin.Delegate delegate = new Bulletin.Delegate() {
+            @Override
+            public int getBottomOffset(int tag) {
+                return navigationBarHeight + additionNavigationBarHeight;
+            }
+        };
+        Bulletin.addDelegate(this, delegate);
         if (listView.adapter != null) {
             listView.adapter.notifyDataSetChanged();
         }
