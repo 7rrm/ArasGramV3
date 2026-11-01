@@ -3938,11 +3938,17 @@ public class ChatActivity extends BaseFragment implements
             if (chatActivity != null && chatActivity.getDialogId() == UserObject.VERIFY) {
                 return true;
             }
-            return chatActivity == null || !(selectedView != null && selectedView.getMessageObject() != null && selectedView.getMessageObject().messageOwner != null);
+            // MeeroX v251: the fork keeps the Copy entry visible for every
+            // selection (onPrepareActionMode uses "true || canCopy()"), and
+            // since 13.1.0 copyText() bails out when canCopy() is false - so
+            // copying has to stay allowed here, otherwise the visible Copy
+            // button silently does nothing. Upstream's rule (blocked only for
+            // no-forwards chats/messages) is kept below for reference:
             /*return chatActivity == null || !(
                 !DialogObject.isEncryptedDialog(chatActivity.getDialogId()) && chatActivity.isPeerNoForwards() ||
                 selectedView != null && selectedView.getMessageObject() != null && (selectedView.getMessageObject().messageOwner != null && selectedView.getMessageObject().messageOwner.noforwards)
             );*/
+            return true;
         }
 
         @Override
