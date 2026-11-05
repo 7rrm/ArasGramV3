@@ -86,6 +86,16 @@ public final class MeeroTopBar {
         listeners.add(new WeakReference<>(l));
     }
 
+    /** Keep add/remove pairs symmetric (weak list self-cleans nulls too). */
+    public static void removeListener(Listener l) {
+        for (WeakReference<Listener> r : listeners) {
+            final Listener cur = r.get();
+            if (cur == null || cur == l) {
+                listeners.remove(r);
+            }
+        }
+    }
+
     /** Fire on toggle: live views re-apply and relayout. */
     public static void notifyChanged() {
         for (WeakReference<Listener> r : listeners) {

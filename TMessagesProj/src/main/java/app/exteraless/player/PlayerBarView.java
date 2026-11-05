@@ -53,16 +53,17 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         LinearLayout texts = new LinearLayout(context);
         texts.setOrientation(LinearLayout.VERTICAL);
         titleView = new TextView(context);
-        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setSingleLine(true);
         titleView.setEllipsize(TextUtils.TruncateAt.END);
         texts.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         artistView = new TextView(context);
-        artistView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         artistView.setSingleLine(true);
         artistView.setEllipsize(TextUtils.TruncateAt.END);
         texts.addView(artistView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 1, 0, 0));
+        // ArasGram: نصّا العنوان/الفنان يتبعان مفتاح «تصغير المقاسات»
+        // (15/13 عادي، 12/10 مصغّر) — ارتفاع الشريط لا يتغيّر.
+        applyTextSizes();
         addView(texts, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 60, 0, 6 + 40 * 3 + 4, 0));
 
         LinearLayout buttons = new LinearLayout(context);
@@ -111,9 +112,18 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         cover.setColors(theme.primaryContainer, theme.onPrimaryContainer);
     }
 
+    /** مفاتيح «تصغير المقاسات»: same sizes as the stock music bar. */
+    private void applyTextSizes() {
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicTitleDp());
+        artistView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tw.nekomimi.nekogram.MeeroTopBar.musicSubDp());
+    }
+
+    private final tw.nekomimi.nekogram.MeeroTopBar.Listener meeroTopBarListener = this::applyTextSizes;
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        tw.nekomimi.nekogram.MeeroTopBar.addListener(meeroTopBarListener);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             NotificationCenter nc = NotificationCenter.getInstance(a);
             nc.addObserver(this, NotificationCenter.messagePlayingDidStart);
@@ -128,6 +138,7 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        tw.nekomimi.nekogram.MeeroTopBar.removeListener(meeroTopBarListener);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             NotificationCenter nc = NotificationCenter.getInstance(a);
             nc.removeObserver(this, NotificationCenter.messagePlayingDidStart);

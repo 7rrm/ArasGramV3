@@ -82,7 +82,9 @@ public class ProfileMusicCard extends FrameLayout {
     public ProfileMusicCard(Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         this.resourcesProvider = resourcesProvider;
-        setPadding(dp(12), 0, dp(12), 0);
+        // ArasGram: صفوف البروفايل مغلّفة أصلاً ببطاقة القسم (listView.setSections)
+        // — بدون هذا الحشو تمتلئ البطاقة الملوّنة بعرض الحاوية كما في الأصل.
+        setPadding(0, 0, 0, 0);
 
         background = new GradientDrawable() {
             @Override

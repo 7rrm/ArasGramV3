@@ -1708,7 +1708,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         if (tw.nekomimi.nekogram.MeeroTopBar.musicTwoLine()) {
             titleTextView.setText(new SpannableStringBuilder(lastMessageObject.getMusicTitle()), false);
             subtitleTextView.setText(lastMessageObject.getMusicAuthor(), false);
-            subtitleTextView.setVisibility(VISIBLE);
+            // ArasGram: مع نشط MD3 الصغير يكون سطر الفنان مكرراً — أخفِه.
+            subtitleTextView.setVisibility(md3Music ? INVISIBLE : VISIBLE);
             titleTextView.setIsCenter(true);
             subtitleTextView.setIsCenter(true);
             meeroApplyAudioTextSizes();
@@ -1769,6 +1770,14 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             closeButton.setVisibility(stock);
             if (playbackSpeedButton != null) {
                 playbackSpeedButton.setVisibility(stock);
+            }
+            if (value) {
+                // ArasGram: شريط MD3 الصغير يعرض الفنان نفسه — نخفي سطر
+                // subtitle حتى لا يتكرّر اسم الفنان مرتين مع «تصغير المقاسات».
+                subtitleTextView.setVisibility(INVISIBLE);
+            } else if (changed && lastMessageObject != null && isMusic) {
+                // العودت إلى المخفي: نعيد ضبط النص حسب وضع سطرين/سطر واحد.
+                meeroFormatMusicText();
             }
         }
         if (changed) {
@@ -2183,7 +2192,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         titleTextView.setIsCenter(true);
                         subtitleTextView.setIsCenter(true);
                         subtitleTextView.setText(messageObject.getMusicAuthor(), false);
-                        subtitleTextView.setVisibility(VISIBLE);
+                        // ArasGram: مع شريط MD3 الصغير يكفي artist داخله —
+                        // أخفِ سطر الفنان في المخفي حتى لا يتكرّر الاسم.
+                        subtitleTextView.setVisibility(md3Music ? INVISIBLE : VISIBLE);
                     } else {
                         // MeeroX v233 original mode: the pre-session single line
                         stringBuilder = new SpannableStringBuilder(String.format("%s - %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
