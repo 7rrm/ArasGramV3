@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.fonts.Font;
+import android.graphics.fonts.SystemFonts;
 import android.os.Build;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -20,7 +22,9 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.TypefaceSpan;
 
+import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 import tw.nekomimi.nekogram.NekoConfig;
 import xyz.nextalone.nagram.NaConfig;
@@ -160,6 +164,79 @@ public class TypefaceHelper {
         Typeface titleTypeface = NekoConfig.typeface.Bool() && NekoConfig.forceFontWeightFallback.Bool() ? createTypeface(700, false) : createTypeface(600, false);
         builder.setSpan(new TypefaceSpan(titleTypeface, 0, Theme.key_telegram_color_dialogsLogo, null), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return builder;
+    }
+
+    // ---- Перенос из exteraless: шрифт текста песен (PlayerSheet/LyricsView) ----
+
+    private static File findGoogleSansFile() {
+        try {
+            for (Font font : SystemFonts.getAvailableFonts()) {
+                final File file = font.getFile();
+                if (file == null) {
+                    continue;
+                }
+                final String name = file.getName().toLowerCase(Locale.US);
+                if ((name.contains("googlesans") || name.contains("google-sans"))
+                        && !name.contains("medium") && !name.contains("bold") && !name.contains("italic") && !name.contains("condensed")) {
+                    return file;
+                }
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return null;
+    }
+
+    private static boolean rendersDifferently(Typeface a, Typeface b) {
+        final Canvas canvas = new Canvas();
+        final Bitmap first = Bitmap.createBitmap(CANVAS_SIZE * 2, CANVAS_SIZE, Bitmap.Config.ARGB_8888);
+        final Bitmap second = Bitmap.createBitmap(CANVAS_SIZE * 2, CANVAS_SIZE, Bitmap.Config.ARGB_8888);
+        synchronized (PAINT) {
+            canvas.setBitmap(first);
+            PAINT.setTypeface(a);
+            canvas.drawText(TEST_TEXT, 0, CANVAS_SIZE, PAINT);
+            canvas.setBitmap(second);
+            PAINT.setTypeface(b);
+            canvas.drawText(TEST_TEXT, 0, CANVAS_SIZE, PAINT);
+            PAINT.setTypeface(null);
+        }
+        final boolean different = !first.sameAs(second);
+        AndroidUtilities.recycleBitmaps(List.of(first, second));
+        return different;
+    }
+
+    private static Typeface lyricsTypeface;
+
+    public static Typeface lyricsTypeface() {
+        if (lyricsTypeface != null) {
+            return lyricsTypeface;
+        }
+        Typeface base = null;
+        for (String family : new String[]{"google-sans-display", "google-sans", "google-sans-text"}) {
+            final Typeface candidate = Typeface.create(family, Typeface.NORMAL);
+            if (rendersDifferently(candidate, Typeface.DEFAULT)) {
+                base = candidate;
+                break;
+            }
+        }
+        if (base == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            final File file = findGoogleSansFile();
+            if (file != null) {
+                try {
+                    base = Typeface.createFromFile(file);
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
+        }
+        if (base == null) {
+            lyricsTypeface = AndroidUtilities.bold();
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            lyricsTypeface = Typeface.create(base, 700, false);
+        } else {
+            lyricsTypeface = Typeface.create(base, Typeface.BOLD);
+        }
+        return lyricsTypeface;
     }
 
 }
