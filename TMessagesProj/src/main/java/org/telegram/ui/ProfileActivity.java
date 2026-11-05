@@ -11107,7 +11107,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (userId != 0) {
             TLRPC.User user = getMessagesController().getUser(userId);
             if (userInfo != null && userInfo.saved_music != null && (imageUpdater == null || myProfile)) {
-                if (AppearanceConfig.profileMusicCard() && imageUpdater == null) {
+                // exteraless-parity (v253.3): no imageUpdater check here —
+                // ImageUpdater is ALWAYS created on the owner's own profile
+                // (onFragmentCreate, isUserSelf), so the old `imageUpdater ==
+                // null` clause silently forced the official pill on self
+                // while other profiles got the card. exteraless gates on
+                // shouldShowCard(saved_music) instead; copy it verbatim.
+                if (AppearanceConfig.profileMusicCard()
+                        && app.exteraless.nowplaying.NowPlayingController.shouldShowCard(userInfo.saved_music)) {
                     hasMusicCard = true;
                 } else {
                     hasMusic = true;
