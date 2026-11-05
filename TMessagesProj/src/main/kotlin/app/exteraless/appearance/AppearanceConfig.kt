@@ -182,6 +182,19 @@ object AppearanceConfig {
         return profileMusicCard.Bool()
     }
 
+    // ---- Список чатов ----
+
+    /** Мини-аватарка отправителя перед именем в превью списка чатов. Дефолт true. */
+    @JvmField
+    val senderMiniAvatars =
+        addConfig("OEAppearanceSenderMiniAvatars", ConfigItem.configTypeBool, true)
+
+    @JvmStatic
+    fun senderMiniAvatars(): Boolean {
+        ensureLoaded()
+        return senderMiniAvatars.Bool()
+    }
+
     // ---- Геттеры для Java ----
 
     /** Радиус скругления карточек-секций, dp. 0 — острые углы (как в стоке). */

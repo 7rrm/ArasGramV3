@@ -55,6 +55,7 @@ import tw.nekomimi.nekogram.config.CellGroup;
 import tw.nekomimi.nekogram.config.cell.AbstractConfigCell;
 import tw.nekomimi.nekogram.config.cell.ConfigCellCheckBox;
 import tw.nekomimi.nekogram.config.cell.ConfigCellCustom;
+import app.exteraless.chats.DoubleTapCell;
 import tw.nekomimi.nekogram.config.cell.ConfigCellDivider;
 import tw.nekomimi.nekogram.config.cell.ConfigCellHeader;
 import tw.nekomimi.nekogram.config.cell.ConfigCellSelectBox;
@@ -304,6 +305,10 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
 
     // Double Tap
     private final AbstractConfigCell headerDoubleTap = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.DoubleTapAction)));
+    // MeeroX v253: live preview bubbles (incoming/outgoing) with the chosen
+    // action icon - ported from exteraless DoubleTapCell.
+    private DoubleTapCell doubleTapCell;
+    private final AbstractConfigCell doubleTapPreviewRow = cellGroup.appendCell(new ConfigCellCustom("DoubleTapPreview", ConfigCellCustom.CUSTOM_ITEM_DoubleTapPreview, true));
     private final AbstractConfigCell doubleTapActionRow = cellGroup.appendCell(new ConfigCellCustom("DoubleTapIncoming", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
     private final AbstractConfigCell doubleTapActionOutRow = cellGroup.appendCell(new ConfigCellCustom("DoubleTapOutgoing", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
     private final AbstractConfigCell dividerDoubleTap = cellGroup.appendCell(new ConfigCellDivider());
@@ -811,6 +816,11 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                 } else {
                     NaConfig.INSTANCE.getDoubleTapActionOut().setConfigInt(types.get(i));
                 }
+                if (doubleTapCell != null) {
+                    // 1 — animate only the incoming bubble, 2 — only the outgoing one.
+                    doubleTapCell.updateIcons(isDoubleTapIn ? 1 : 2, true);
+                    doubleTapCell.invalidate();
+                }
                 listAdapter.notifyItemChanged(position);
                 return Unit.INSTANCE;
             });
@@ -967,6 +977,9 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                 }
             } else if (holder.itemView instanceof EmojiSetCell v1) {
                 v1.setData(EmojiHelper.getInstance().getCurrentEmojiPackInfo(), false, true);
+            } else if (holder.itemView instanceof DoubleTapCell previewCell) {
+                // Re-sync the bubbles with the stored actions (no animation).
+                previewCell.updateIcons(0, false);
             }
         }
 
@@ -977,6 +990,9 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                 // MeeroX v257: live chat-top-strip preview (Cherrygram-exact:
                 // real header widgets over the real wallpaper, his own
                 // name/photo, white-chip back capsule like the reference).
+                case ConfigCellCustom.CUSTOM_ITEM_DoubleTapPreview:
+                    view = doubleTapCell = new DoubleTapCell(mContext);
+                    break;
                 case ConfigCellCustom.CUSTOM_ITEM_MeeroHeaderPreview:
                     view = new MeeroHeaderPreviewView(mContext, NekoChatSettingsActivity.this, getResourceProvider());
                     break;

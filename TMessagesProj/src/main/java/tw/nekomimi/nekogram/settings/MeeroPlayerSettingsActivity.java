@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.R;
 import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Cells.TextSettingsCell;
 
 import app.exteraless.appearance.AppearanceConfig;
 
@@ -28,6 +29,7 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
     private int miniRow = -1;
     private int cardRow = -1;
     private int lrclibRow = -1;
+    private int styleRow = -1;
 
     @Override
     protected void updateRows() {
@@ -38,6 +40,8 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
         miniRow = addRow();
         cardRow = addRow();
         lrclibRow = addRow();
+        // MeeroX v253: «تخصيص المشغّل» → редактор стиля плеера.
+        styleRow = addRow();
     }
 
     @Override
@@ -60,6 +64,11 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
             AppearanceConfig.profileMusicCard.setConfigBool(!AppearanceConfig.profileMusicCard.Bool());
         } else if (position == lrclibRow) {
             AppearanceConfig.lrclibAllowed.setConfigBool(!AppearanceConfig.lrclibAllowed.Bool());
+        } else if (position == styleRow) {
+            // MeeroX v253: открывает редактор стиля плеера (как playerStyle
+            // в exteraless) прямо из настроек музыкального плеера.
+            app.exteraless.player.PlayerSheet.openStyleEditor(this);
+            return;
         } else {
             return;
         }
@@ -82,6 +91,9 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
             if (position == md3Row || position == miniRow || position == cardRow || position == lrclibRow) {
                 return TYPE_CHECK;
             }
+            if (position == styleRow) {
+                return TYPE_SETTINGS;
+            }
             return TYPE_SHADOW;
         }
 
@@ -93,6 +105,10 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position, boolean partial) {
+            if (holder.getItemViewType() == TYPE_SETTINGS) {
+                ((TextSettingsCell) holder.itemView).setText(getString(R.string.MeeroPlayerCustomize), false);
+                return;
+            }
             if (holder.getItemViewType() != TYPE_CHECK) {
                 return;
             }

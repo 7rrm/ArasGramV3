@@ -12,6 +12,10 @@ public class ConfigCellCustom extends AbstractConfigCell implements WithKey {
     // MeeroX v256: live chat-top-strip preview (MeeroSettings screen,
     // collapsible "شريط الدردشة العلوي" section)
     public static final int CUSTOM_ITEM_MeeroHeaderPreview = 993;
+    // MeeroX v253: double-tap action preview bubbles (NekoChatSettings,
+    // "Действие при двойном нажатии" section - two bubbles with the chosen
+    // incoming/outgoing action icon, ported from exteraless DoubleTapCell).
+    public static final int CUSTOM_ITEM_DoubleTapPreview = 992;
 
     public final int type;
     public boolean enabled;

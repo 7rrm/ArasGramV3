@@ -1397,4 +1397,6 @@
     <string name="MeeroPlayerMini">المشغّل المصغّر فوق شريط التبويب</string>
     <string name="MeeroProfileMusicCard">بطاقة الموسيقى في الملف الشخصي</string>
     <string name="MeeroPlayerLrclib">البحث عن الكلمات المتزامنة (LRCLIB)</string>
+    <string name="MeeroPlayerCustomize">تخصيص المشغّل</string>
+    <string name="OEAppearanceSenderMiniAvatars">صور المرسل المصغّرة</string>
 </resources>
