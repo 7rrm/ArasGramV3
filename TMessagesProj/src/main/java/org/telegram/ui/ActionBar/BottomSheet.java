@@ -429,6 +429,20 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
             }
         }
 
+        public void setCurrentAnimation(AnimatorSet set) {
+            currentAnimation = set;
+            if (set != null) {
+                set.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (currentAnimation == set) {
+                            currentAnimation = null;
+                        }
+                    }
+                });
+            }
+        }
+
         private void cancelCurrentAnimation() {
             if (currentAnimation != null) {
                 currentAnimation.cancel();
