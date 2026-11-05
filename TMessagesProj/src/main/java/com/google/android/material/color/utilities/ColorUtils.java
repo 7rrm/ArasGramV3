@@ -1,5 +1,34 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.google.android.material.color.utilities;
 
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+
+import androidx.annotation.RestrictTo;
+
+/**
+ * Color science utilities.
+ *
+ * <p>Utility methods for color science constants and color space conversions that aren't HCT or
+ * CAM16.
+ *
+ * @hide
+ */
+@RestrictTo(LIBRARY_GROUP)
 public class ColorUtils {
   private ColorUtils() {}
 
@@ -8,6 +37,19 @@ public class ColorUtils {
         new double[] {0.41233895, 0.35762064, 0.18051042},
         new double[] {0.2126, 0.7152, 0.0722},
         new double[] {0.01932141, 0.11916382, 0.95034478},
+      };
+
+  static final double[][] XYZ_TO_SRGB =
+      new double[][] {
+        new double[] {
+          3.2413774792388685, -1.5376652402851851, -0.49885366846268053,
+        },
+        new double[] {
+          -0.9691452513005321, 1.8758853451067872, 0.04156585616912061,
+        },
+        new double[] {
+          0.05562093689691305, -0.20395524564742123, 1.0571799111220335,
+        },
       };
 
   static final double[] WHITE_POINT_D65 = new double[] {95.047, 100.0, 108.883};
@@ -25,6 +67,11 @@ public class ColorUtils {
     return argbFromRgb(r, g, b);
   }
 
+  /** Returns the alpha component of a color in ARGB format. */
+  public static int alphaFromArgb(int argb) {
+    return (argb >> 24) & 255;
+  }
+
   /** Returns the red component of a color in ARGB format. */
   public static int redFromArgb(int argb) {
     return (argb >> 16) & 255;
@@ -40,12 +87,71 @@ public class ColorUtils {
     return argb & 255;
   }
 
+  /** Returns whether a color in ARGB format is opaque. */
+  public static boolean isOpaque(int argb) {
+    return alphaFromArgb(argb) >= 255;
+  }
+
+  /** Converts a color from ARGB to XYZ. */
+  public static int argbFromXyz(double x, double y, double z) {
+    double[][] matrix = XYZ_TO_SRGB;
+    double linearR = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2] * z;
+    double linearG = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2] * z;
+    double linearB = matrix[2][0] * x + matrix[2][1] * y + matrix[2][2] * z;
+    int r = delinearized(linearR);
+    int g = delinearized(linearG);
+    int b = delinearized(linearB);
+    return argbFromRgb(r, g, b);
+  }
+
   /** Converts a color from XYZ to ARGB. */
   public static double[] xyzFromArgb(int argb) {
     double r = linearized(redFromArgb(argb));
     double g = linearized(greenFromArgb(argb));
     double b = linearized(blueFromArgb(argb));
     return MathUtils.matrixMultiply(new double[] {r, g, b}, SRGB_TO_XYZ);
+  }
+
+  /** Converts a color represented in Lab color space into an ARGB integer. */
+  public static int argbFromLab(double l, double a, double b) {
+    double[] whitePoint = WHITE_POINT_D65;
+    double fy = (l + 16.0) / 116.0;
+    double fx = a / 500.0 + fy;
+    double fz = fy - b / 200.0;
+    double xNormalized = labInvf(fx);
+    double yNormalized = labInvf(fy);
+    double zNormalized = labInvf(fz);
+    double x = xNormalized * whitePoint[0];
+    double y = yNormalized * whitePoint[1];
+    double z = zNormalized * whitePoint[2];
+    return argbFromXyz(x, y, z);
+  }
+
+  /**
+   * Converts a color from ARGB representation to L*a*b* representation.
+   *
+   * @param argb the ARGB representation of a color
+   * @return a Lab object representing the color
+   */
+  public static double[] labFromArgb(int argb) {
+    double linearR = linearized(redFromArgb(argb));
+    double linearG = linearized(greenFromArgb(argb));
+    double linearB = linearized(blueFromArgb(argb));
+    double[][] matrix = SRGB_TO_XYZ;
+    double x = matrix[0][0] * linearR + matrix[0][1] * linearG + matrix[0][2] * linearB;
+    double y = matrix[1][0] * linearR + matrix[1][1] * linearG + matrix[1][2] * linearB;
+    double z = matrix[2][0] * linearR + matrix[2][1] * linearG + matrix[2][2] * linearB;
+    double[] whitePoint = WHITE_POINT_D65;
+    double xNormalized = x / whitePoint[0];
+    double yNormalized = y / whitePoint[1];
+    double zNormalized = z / whitePoint[2];
+    double fx = labF(xNormalized);
+    double fy = labF(yNormalized);
+    double fz = labF(zNormalized);
+    double l = 116.0 * fy - 16;
+    double a = 500.0 * (fx - fy);
+    double b = 200.0 * (fy - fz);
+    return new double[] {l, a, b};
   }
 
   /**
@@ -84,6 +190,21 @@ public class ColorUtils {
    */
   public static double yFromLstar(double lstar) {
     return 100.0 * labInvf((lstar + 16.0) / 116.0);
+  }
+
+  /**
+   * Converts a Y value to an L* value.
+   *
+   * <p>L* in L*a*b* and Y in XYZ measure the same quantity, luminance.
+   *
+   * <p>L* measures perceptual luminance, a linear scale. Y in XYZ measures relative luminance, a
+   * logarithmic scale.
+   *
+   * @param y Y in XYZ
+   * @return L* in L*a*b*
+   */
+  public static double lstarFromY(double y) {
+    return labF(y / 100.0) * 116.0 - 16.0;
   }
 
   /**
