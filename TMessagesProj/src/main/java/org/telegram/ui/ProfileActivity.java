@@ -10037,6 +10037,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (listAdapter != null) {
             // saveScrollPosition();
             firstLayout = true;
+            // MeeroX: recompute the row ids on resume so the profile music
+            // card / official pill (appearance toggle in the player settings)
+            // applies when returning to an already-open profile instead of
+            // waiting for the fragment to be recreated.
+            updateRowsIds();
             listAdapter.notifyDataSetChanged();
         }
         if (!parentLayout.isInPreviewMode() && blurredView != null && blurredView.getVisibility() == View.VISIBLE) {
