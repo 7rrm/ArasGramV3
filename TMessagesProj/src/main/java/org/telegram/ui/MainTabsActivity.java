@@ -31,6 +31,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -170,6 +171,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     private boolean dropCallsFragmentAfterPageScroll;
 
     private UpdateLayoutWrapper updateLayoutWrapper;
+    private app.exteraless.player.PlayerMiniView miniPlayer;
     private FrameLayout tabsViewWrapper;
     private MainTabsLayout tabsView;
     private BlurredBackgroundDrawable tabsViewBackground;
@@ -253,7 +255,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         Bulletin.Delegate delegate = new Bulletin.Delegate() {
             @Override
             public int getBottomOffset(int tag) {
-                return navigationBarHeight + (NaConfig.INSTANCE.getHideBottomNavigationBar().Bool() ? 0 : dp(MainTabsHelper.getMainTabsHeight() + MainTabsHelper.getMainTabsMargin()));
+                return navigationBarHeight + (NaConfig.INSTANCE.getHideBottomNavigationBar().Bool() ? 0 : dp(MainTabsHelper.getMainTabsHeight() + MainTabsHelper.getMainTabsMargin())) + (miniPlayer != null ? (int) miniPlayer.getVisibleOffset() : 0);
             }
         };
 
@@ -328,6 +330,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     @Override
     public void onResume() {
         super.onResume();
+        if (miniPlayer != null) {
+            miniPlayer.update(true);
+        }
         blur3_updateColors();
         checkContactsTabBadge();
         checkUnreadCount(true);
@@ -518,6 +523,22 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         fadeView.setBackground(fadeDrawable);
 
         contentView.addView(fadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.BOTTOM));
+
+        // ArasGram: мини-плеер из exteraless — плавающая карточка над панелью вкладок.
+        miniPlayer = new app.exteraless.player.PlayerMiniView(context, this, resourceProvider);
+        miniPlayer.setOffsetListener(this::onMiniPlayerOffsetChanged);
+        contentView.addView(miniPlayer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, app.exteraless.player.PlayerMiniView.HEIGHT_DP + 16, Gravity.BOTTOM));
+        contentView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(@NonNull View v) {
+                v.getViewTreeObserver().addOnPreDrawListener(miniPlayerAnchorListener);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(@NonNull View v) {
+                v.getViewTreeObserver().removeOnPreDrawListener(miniPlayerAnchorListener);
+            }
+        });
 
         tabsViewWrapper = new FrameLayout(context);
         tabsViewWrapper.setOnClickListener(v -> {});
@@ -1097,6 +1118,22 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         default BlurredBackgroundSourceRenderNode getGlassSource() {
             return null;
         }
+
+        default void setMiniPlayerInset(float inset, int padding) {
+
+        }
+
+        default void setMiniPlayerTopPadding(int padding) {
+
+        }
+
+        default float getMiniPlayerTopAnchor() {
+            return -1;
+        }
+
+        default float getMiniPlayerTopVisibility() {
+            return 1f;
+        }
     }
 
     @Override
@@ -1301,7 +1338,69 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         fadeView.setVisibility(alpha > 0 ? View.VISIBLE : View.GONE);
     }
 
+    private void checkUi_miniPlayer() {
+        if (miniPlayer == null || updateLayoutWrapper == null) {
+            return;
+        }
+        final boolean hidden = NaConfig.INSTANCE.getHideBottomNavigationBar().Bool();
+        final int updateLayoutHeight = updateLayoutWrapper.isUpdateLayoutVisible() ? dp(UpdateLayoutWrapper.HEIGHT) : 0;
+        final int tabsHeight = hidden ? 0 : dp(MainTabsHelper.getMainTabsHeightWithMargins());
+        final int gap = hidden ? dp(4) : dp(12);
+        final float factor = hidden ? 1f : animatorTabsVisible.getFloatValue();
+        miniPlayer.setHostPosition(-(navigationBarHeight + updateLayoutHeight + tabsHeight + gap - dp(12)), factor);
+        updateMiniPlayerTopAnchor();
+        onMiniPlayerOffsetChanged();
+    }
+
+    private final ViewTreeObserver.OnPreDrawListener miniPlayerAnchorListener = () -> {
+        updateMiniPlayerTopAnchor();
+        return true;
+    };
+
+    private void updateMiniPlayerTopAnchor() {
+        if (miniPlayer == null || viewPager == null) {
+            return;
+        }
+        final BaseFragment chats = dialogsActivity;
+        final View view = chats != null ? chats.getFragmentView() : null;
+        final View page = view != null && view.getParent() instanceof View ? (View) view.getParent() : null;
+        float shift = 0f;
+        float zone = 0f;
+        if (page != null && page.getParent() == viewPager && page.getVisibility() == View.VISIBLE && viewPager.getMeasuredWidth() > 0) {
+            shift = page.getTranslationX();
+            zone = MathUtils.clamp(1f - Math.abs(shift) / viewPager.getMeasuredWidth(), 0f, 1f);
+        }
+        float anchor = -1;
+        float visibility = 1f;
+        if (chats instanceof TabFragmentDelegate) {
+            anchor = ((TabFragmentDelegate) chats).getMiniPlayerTopAnchor();
+            visibility = ((TabFragmentDelegate) chats).getMiniPlayerTopVisibility();
+        }
+        if (anchor < 0) {
+            anchor = AndroidUtilities.statusBarHeight + org.telegram.ui.ActionBar.ActionBar.getCurrentActionBarHeight();
+        }
+        miniPlayer.setTopState(anchor, zone, shift, visibility);
+    }
+
+    private void applyMiniPlayerInsets(TabFragmentDelegate delegate, boolean chats) {
+        delegate.setMiniPlayerInset(miniPlayer.getVisibleOffset(chats), miniPlayer.getTargetOffset(chats));
+        delegate.setMiniPlayerTopPadding(miniPlayer.getTargetTopOffset(chats));
+    }
+
+    private void onMiniPlayerOffsetChanged() {
+        if (miniPlayer == null) {
+            return;
+        }
+        for (int a = 0, N = fragmentsArr.size(); a < N; a++) {
+            final BaseFragment fragment = fragmentsArr.valueAt(a).fragment;
+            if (fragment instanceof TabFragmentDelegate) {
+                applyMiniPlayerInsets((TabFragmentDelegate) fragment, fragment instanceof DialogsActivity);
+            }
+        }
+    }
+
     private void checkUi_tabsPosition() {
+        checkUi_miniPlayer();
         if (tabsView == null) return;
         if (NaConfig.INSTANCE.getHideBottomNavigationBar().Bool()) {
             tabsView.setVisibility(View.GONE);

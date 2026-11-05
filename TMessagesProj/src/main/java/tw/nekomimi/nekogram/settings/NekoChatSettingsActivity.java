@@ -250,6 +250,10 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell meeroTopBarSizesRow = cellGroup.appendCell(new ConfigCellText("MeeroTopBarSizes", () -> {
         presentFragment(new MeeroTopBarSizesActivity());
     }));
+    // ArasGram: плеер и карточка музыки, перенесённые из exteraless
+    private final AbstractConfigCell meeroPlayerRow = cellGroup.appendCell(new ConfigCellText("MeeroPlayer", () -> {
+        presentFragment(new MeeroPlayerSettingsActivity());
+    }));
     private final AbstractConfigCell emojiSetsRow = cellGroup.appendCell(new ConfigCellCustom("EmojiSets", ConfigCellCustom.CUSTOM_ITEM_EmojiSet, true));
     private final AbstractConfigCell premiumElementsToggleRow = cellGroup.appendCell(new ConfigCellTextCheck2("PremiumElements", getString(R.string.PremiumElements), new ArrayList<>() {{
         add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemEmojiStatus()));

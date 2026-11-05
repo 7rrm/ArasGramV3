@@ -119,6 +119,23 @@ public class MonetHelper {
     }};
     private static int lastMonetColor = 0;
 
+    /**
+     * Возвращает токен темы или null, если он не разрешается (в отличие от
+     * {@link #getColor(String)}, который в этом случае даёт 0). Нужен
+     * перенесённому плееру (PlayerColors.noCoverSeed).
+     */
+    public static Integer getColorOrNull(String color) {
+        try {
+            if (color == null || color.trim().isEmpty()) {
+                return null;
+            }
+            int resolved = getColor(color);
+            return resolved == 0 ? null : resolved;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static int getColor(String color) {
         try {
             String rawColor = color == null ? "" : color.trim();

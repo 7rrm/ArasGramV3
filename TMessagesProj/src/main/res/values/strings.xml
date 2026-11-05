@@ -11690,4 +11690,10 @@
     <string name="NoPaidMessagesTokenUsed">un1 used your QR code and can message you for free</string>
     <string name="NoPaidMessagesTokenUsedOut">You used the QR code of un1 and can message them for free</string>
     <string name="NoPaidMessagesTokenImported">You can now message **%1$s** for free.</string>
+    <!-- ArasGram: плеер и карточка музыки, перенесённые из exteraless -->
+    <string name="MeeroPlayer">Music player</string>
+    <string name="MeeroPlayerMd3">Modern player (Material 3)</string>
+    <string name="MeeroPlayerMini">Mini player above tabs</string>
+    <string name="MeeroProfileMusicCard">Music card in profile</string>
+    <string name="MeeroPlayerLrclib">Synced lyrics search (LRCLIB)</string>
 </resources>

@@ -1391,4 +1391,10 @@
     <string name="NoPaidMessagesTokenUsed">un1 استخدم رمز QR الخاص بك ويمكنه مراسلتك مجاناً</string>
     <string name="NoPaidMessagesTokenUsedOut">أنت استخدمت رمز QR الخاص بـ un1 ويمكنك مراسلته مجاناً</string>
     <string name="NoPaidMessagesTokenImported">يمكنك الآن مراسلة **%1$s** مجاناً.</string>
+    <!-- ArasGram: المشغّل وبطاقة الموسيقى المنقولتان من exteraless -->
+    <string name="MeeroPlayer">مشغّل الموسيقى</string>
+    <string name="MeeroPlayerMd3">مشغّل حديث (Material 3)</string>
+    <string name="MeeroPlayerMini">المشغّل المصغّر فوق شريط التبويب</string>
+    <string name="MeeroProfileMusicCard">بطاقة الموسيقى في الملف الشخصي</string>
+    <string name="MeeroPlayerLrclib">البحث عن الكلمات المتزامنة (LRCLIB)</string>
 </resources>

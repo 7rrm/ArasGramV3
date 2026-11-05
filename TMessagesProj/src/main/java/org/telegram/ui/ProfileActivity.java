@@ -273,6 +273,8 @@ import org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet;
 import org.telegram.ui.Components.ProfileGalleryView;
 import org.telegram.ui.Components.ProfileGooeyView;
 import org.telegram.ui.Components.ProfileMusicView;
+import app.exteraless.appearance.AppearanceConfig;
+import app.exteraless.components.ProfileMusicCard;
 import org.telegram.ui.Components.ProfileBalanceView;
 import org.telegram.ui.Wallet.ProfileWalletCardDialog;
 import org.telegram.ui.Components.RLottieDrawable;
@@ -779,10 +781,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int channelBalanceRow;
     private int channelBalanceSectionRow;
     private int balanceDividerRow;
+    private int musicCardRow;
+    private int musicCardSectionRow;
     private int blockedUsersRow;
     private int membersSectionRow;
     private boolean hasMusic;
     private boolean hasBalance;
+    private boolean hasMusicCard;
 
     private int sharedMediaRow;
 
@@ -4068,36 +4073,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (userInfo != null && userInfo.saved_music != null) {
                 musicView.setMusicDocument(userInfo.saved_music);
             }
-            musicView.setOnClickListener(v -> {
-                if (savedMusicList == null) {
-                    if (
-                        MediaController.getInstance().currentSavedMusicList != null &&
-                        MediaController.getInstance().currentSavedMusicList.currentAccount == currentAccount &&
-                        MediaController.getInstance().currentSavedMusicList.dialogId == getDialogId()) {
-                        savedMusicList = MediaController.getInstance().currentSavedMusicList;
-                    } else {
-                        savedMusicList = new MessagesController.SavedMusicList(currentAccount, getDialogId());
-                        if (userInfo != null && userInfo.saved_music != null) {
-                            savedMusicList.setup(userInfo.saved_music);
-                        }
-                    }
-                }
-                if (!savedMusicList.list.isEmpty()) {
-                    boolean sameList = false;
-                    if (
-                        MediaController.getInstance().currentSavedMusicList != savedMusicList ||
-                        !MediaController.getInstance().isPlayingMessage(savedMusicList.list.get(0))
-                    ) {
-                        MediaController.getInstance().cleanup();
-                    } else {
-                        sameList = true;
-                    }
-                    MediaController.getInstance().currentSavedMusicList = savedMusicList;
-                    MediaController.getInstance().getPlaylist().clear();
-                    MediaController.getInstance().getPlaylist().addAll(savedMusicList.list);
-                    if (!sameList) MediaController.getInstance().playMessage(savedMusicList.list.get(0));
-                    showDialog(new AudioPlayerAlert(getContext(), getResourceProvider()));
-                }
+            musicView.setOnClickListener(v -> openSavedMusic());
+            musicView.setOnLongClickListener(v -> {
+                showProfileMusicDesignDialog();
+                return true;
             });
 
             actionsView = new ProfileActionsView(context, dp(74));
@@ -11072,6 +11051,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         channelBalanceRow = -1;
         balanceDividerRow = -1;
         hasMusic = false;
+        musicCardRow = -1;
+        musicCardSectionRow = -1;
+        hasMusicCard = false;
         hasBalance = userId != 0 && userInfo != null && userInfo.wallet_card != null
                 && (imageUpdater == null || myProfile);
 
@@ -11120,7 +11102,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (userId != 0) {
             TLRPC.User user = getMessagesController().getUser(userId);
             if (userInfo != null && userInfo.saved_music != null && (imageUpdater == null || myProfile)) {
-                hasMusic = true;
+                if (AppearanceConfig.profileMusicCard() && imageUpdater == null) {
+                    hasMusicCard = true;
+                } else {
+                    hasMusic = true;
+                }
             }
 
             if (emptyRow < 0 && emptyRow2 < 0) {
@@ -11129,6 +11115,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 } else {
                     emptyRow = rowCount++;
                 }
+            }
+
+            if (hasMusicCard) {
+                musicCardRow = rowCount++;
+                musicCardSectionRow = rowCount++;
             }
 
             if (UserObject.isUserSelf(user) && !myProfile) {
@@ -11612,6 +11603,55 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             balanceView.setVisibility(hasBalance ? View.VISIBLE : View.GONE);
             musicView.invalidate();
             balanceView.invalidate();
+        }
+    }
+
+    private void showProfileMusicDesignDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final boolean card = AppearanceConfig.profileMusicCard();
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), resourcesProvider);
+        builder.setTitle(getString(R.string.OEProfileMusicDesign));
+        builder.setMessage(getString(card ? R.string.OEProfileMusicUseOfficialInfo : R.string.OEProfileMusicUseCardInfo));
+        builder.setPositiveButton(getString(card ? R.string.OEProfileMusicUseOfficial : R.string.OEProfileMusicUseCard), (dialog, which) -> {
+            AppearanceConfig.profileMusicCard.setConfigBool(!card);
+            updateListAnimated(false);
+            needLayout(true);
+        });
+        builder.setNegativeButton(getString(R.string.Cancel), null);
+        showDialog(builder.create());
+    }
+
+    private void openSavedMusic() {
+        if (savedMusicList == null) {
+            if (
+                MediaController.getInstance().currentSavedMusicList != null &&
+                MediaController.getInstance().currentSavedMusicList.currentAccount == currentAccount &&
+                MediaController.getInstance().currentSavedMusicList.dialogId == getDialogId()) {
+                savedMusicList = MediaController.getInstance().currentSavedMusicList;
+            } else {
+                savedMusicList = new MessagesController.SavedMusicList(currentAccount, getDialogId());
+                if (userInfo != null && userInfo.saved_music != null) {
+                    savedMusicList.setup(userInfo.saved_music);
+                }
+            }
+        }
+        if (!savedMusicList.list.isEmpty()) {
+            boolean sameList = false;
+            if (
+                MediaController.getInstance().currentSavedMusicList != savedMusicList ||
+                !MediaController.getInstance().isPlayingMessage(savedMusicList.list.get(0))
+            ) {
+                MediaController.getInstance().cleanup();
+            } else {
+                sameList = true;
+            }
+            MediaController.getInstance().currentSavedMusicList = savedMusicList;
+            MediaController.getInstance().getPlaylist().clear();
+            MediaController.getInstance().getPlaylist().addAll(savedMusicList.list);
+            if (!sameList) MediaController.getInstance().playMessage(savedMusicList.list.get(0));
+            showDialog(app.exteraless.player.Md3Player.create(getContext(), getResourceProvider()));
         }
     }
 
@@ -14064,6 +14104,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     };
                     view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     break;
+                case VIEW_TYPE_MUSIC: {
+                    ProfileMusicCard card = new ProfileMusicCard(mContext, resourcesProvider);
+                    card.setOnCardClickListener(ProfileActivity.this::openSavedMusic);
+                    card.setOnCardLongClickListener(ProfileActivity.this::showProfileMusicDesignDialog);
+                    view = card;
+                    break;
+                }
                 case VIEW_TYPE_VERSION:
                 default: {
                     TextInfoPrivacyCell cell = new TextInfoPrivacyCell(mContext, 10, resourcesProvider);
@@ -14982,6 +15029,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 case VIEW_TYPE_BOT_APP:
                     break;
                 case VIEW_TYPE_MUSIC:
+                    if (userInfo != null && userInfo.saved_music != null) {
+                        TLRPC.User musicUser = getMessagesController().getUser(userId);
+                        long emojiId = musicUser != null && musicUser.profile_color != null ? musicUser.profile_color.background_emoji_id : 0;
+                        ((ProfileMusicCard) holder.itemView).set(userInfo.saved_music, emojiId);
+                    }
                     break;
                 case VIEW_TYPE_VERSION:
                     ((TextInfoPrivacyCell) holder.itemView).setText(AndroidUtil.getVersionText());
@@ -15227,7 +15279,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     position == helpSectionCell || position == setAvatarSectionRow || position == passwordSuggestionSectionRow ||
                     position == phoneSuggestionSectionRow || position == premiumSectionsRow || position == reportDividerRow ||
                     position == channelDividerRow || position == graceSuggestionSectionRow || position == balanceDividerRow ||
-                    position == botPermissionsDivider || position == channelBalanceSectionRow || position == unofficialSecurityRiskDividerRow
+                    position == botPermissionsDivider || position == channelBalanceSectionRow || position == unofficialSecurityRiskDividerRow ||
+                    position == musicCardSectionRow
             ) {
                 return VIEW_TYPE_SHADOW;
             } else if (position >= membersStartRow && position < membersEndRow) {
@@ -15268,6 +15321,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 return VIEW_TYPE_COLORFUL_TEXT;
             } else if (position == infoHeaderRowEmpty || position == infoEndRowEmpty) {
                 return VIEW_TYPE_HEADER_EMPTY;
+            } else if (position == musicCardRow) {
+                return VIEW_TYPE_MUSIC;
             }
             return 4;
         }
@@ -16680,6 +16735,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, unofficialSecurityRiskDividerRow, sparseIntArray);
             put(++pointer, linkedCommunityRow, sparseIntArray);
             put(++pointer, linkedCommunityDividerRow, sparseIntArray);
+            put(++pointer, musicCardRow, sparseIntArray);
+            put(++pointer, musicCardSectionRow, sparseIntArray);
         }
 
         private void put(int id, int position, SparseIntArray sparseIntArray) {
@@ -17791,6 +17848,22 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int additionNavigationBarHeight;
     private int additionFloatingButtonOffset;
     private int navigationBarHeight;
+    private int miniPlayerPadding;
+
+    /**
+     * ArasGram: мини-плеер, перенесённый из exteraless, двигает контент
+     * списка вверх, чтобы страницы SharedMedia не уезжали под него.
+     */
+    @Override
+    public void setMiniPlayerInset(float inset, int padding) {
+        if (miniPlayerPadding == padding) {
+            return;
+        }
+        miniPlayerPadding = padding;
+        if (sharedMediaLayout != null) {
+            sharedMediaLayout.setPagesPaddingBottom(navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
+        }
+    }
 
     @NonNull
     private WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
@@ -17809,7 +17882,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
 
         if (sharedMediaLayout != null) {
-            sharedMediaLayout.setPagesPaddingBottom(navigationBarHeight + additionNavigationBarHeight);
+            sharedMediaLayout.setPagesPaddingBottom(navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
 
             if (sharedMediaLayout.giftsContainer != null) {
                 sharedMediaLayout.giftsContainer.setButtonOffset(navigationBarHeight + additionFloatingButtonOffset);

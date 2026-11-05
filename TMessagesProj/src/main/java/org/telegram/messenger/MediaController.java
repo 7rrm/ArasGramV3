@@ -1100,6 +1100,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
     private HashMap<Integer, MessageObject> playlistMap = new HashMap<>();
     private ArrayList<MessageObject> shuffledPlaylist = new ArrayList<>();
     private int currentPlaylistNum;
+    private boolean playlistReordered;
     private boolean forceLoopCurrentPlaylist;
     private boolean[] playlistEndReached = new boolean[]{false, false};
     private boolean loadingPlaylist;
@@ -2968,7 +2969,31 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         return playMessage(current);
     }
 
+    /**
+     * ArasGram: перенос из exteraless — ручной пересортированный порядок
+     * очереди (перетаскивание в PlayerQueueSheet) не должен ломаться
+     * повторным вызовом {@link #sortPlaylist()}.
+     */
+    public boolean movePlaylistItem(int from, int to) {
+        if (SharedConfig.shuffleMusic || from == to || from < 0 || to < 0 || from >= playlist.size() || to >= playlist.size()) {
+            return false;
+        }
+        MessageObject current = currentPlaylistNum >= 0 && currentPlaylistNum < playlist.size() ? playlist.get(currentPlaylistNum) : null;
+        playlist.add(to, playlist.remove(from));
+        playlistReordered = true;
+        if (current != null) {
+            int index = playlist.indexOf(current);
+            if (index >= 0) {
+                currentPlaylistNum = index;
+            }
+        }
+        return true;
+    }
+
     private void sortPlaylist() {
+        if (playlistReordered) {
+            return;
+        }
         Collections.sort(playlist, (o1, o2) -> {
             int mid1 = o1.getId();
             int mid2 = o2.getId();
@@ -7502,7 +7527,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         }
     }
 
-    private void clearMusicPlaylistState() {
+    public void clearMusicPlaylistState() {
         savedMusicPlaylistState = null;
     }
 
