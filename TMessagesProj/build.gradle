@@ -279,12 +279,10 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.14.0'
     // MeeroX v254f: مكتبة Material الرسمية — نستعمل منها LoadingIndicator
     // (نفس ما تستعمله النسخة الثانية حرفياً) بدل أي رسم يدوي.
-    // استثناء color-utilities: المشروع يستورد نسخته الخاصة من هذه الفئات
-    // داخل src/main/java/com/google/android/material/color (v252)، ووجودها
-    // مرتين يمنع R8 من الإكمال (Type is defined multiple times).
-    implementation('com.google.android.material:material:1.14.0') {
-        exclude group: 'com.google.android.material', module: 'material-color-utilities'
-    }
+    // ملاحظة: المشروع كان يستورد نسخته الخاصة من material-color-utilities
+    // (v252). الآن صارت تأتي من هذه المكتبة نفسها، ولم يبقَ مستورداً سوى
+    // Cam16 (لتفادي تعارض الاسم في R8). لا تكرار ⇒ لا حاجة لأي استثناء.
+    implementation 'com.google.android.material:material:1.14.0'
 
     // official
     implementation 'androidx.core:core-ktx:1.19.0'
