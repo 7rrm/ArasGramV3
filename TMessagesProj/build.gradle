@@ -279,7 +279,12 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.14.0'
     // MeeroX v254f: مكتبة Material الرسمية — نستعمل منها LoadingIndicator
     // (نفس ما تستعمله النسخة الثانية حرفياً) بدل أي رسم يدوي.
-    implementation 'com.google.android.material:material:1.14.0'
+    // استثناء color-utilities: المشروع يستورد نسخته الخاصة من هذه الفئات
+    // داخل src/main/java/com/google/android/material/color (v252)، ووجودها
+    // مرتين يمنع R8 من الإكمال (Type is defined multiple times).
+    implementation('com.google.android.material:material:1.14.0') {
+        exclude group: 'com.google.android.material', module: 'material-color-utilities'
+    }
 
     // official
     implementation 'androidx.core:core-ktx:1.19.0'
