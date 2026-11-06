@@ -411,6 +411,20 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     private CommunityArrowDrawable communityArrowDrawable;
 
+    /**
+     * ArasGram v254h: نوع خاص لفراغ الصورة المصغّرة، منقول من النسخة الثانية
+     * (DialogCell.ThumbnailSpan). قبل هذا كان فراغ الصورة المصغّرة وفراغ
+     * الأفاتار الصغيرة كلاهما FixedWidthSpan، فكان updateThumbsPosition يجد
+     * span الأفاتار أولاً ويرسم الصورة المصغّرة فوق اسم المرسل — وكان هذا
+     * يظهر فقط مع الصور المتحركة (الفيديو) لأنها المسار الوحيد الذي يصل
+     * فيه الأمر إلى applyThumbs.
+     */
+    public static class ThumbnailSpan extends FixedWidthSpan {
+        public ThumbnailSpan(int w) {
+            super(w);
+        }
+    }
+
     public static class FixedWidthSpan extends ReplacementSpan {
 
         private int width;
@@ -1967,10 +1981,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                     SpannableStringBuilder builder = (SpannableStringBuilder) messageString;
                                     if (thumbInsertIndex >= builder.length()) {
                                         builder.append(" ");
-                                        builder.setSpan(new FixedWidthSpan(dp(thumbsCount * (thumbSize + 2) - 2 + 5)), builder.length() - 1, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                        builder.setSpan(new ThumbnailSpan(dp(thumbsCount * (thumbSize + 2) - 2 + 5)), builder.length() - 1, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                     } else {
                                         builder.insert(thumbInsertIndex, " ");
-                                        builder.setSpan(new FixedWidthSpan(dp(thumbsCount * (thumbSize + 2) - 2 + 5)), thumbInsertIndex, thumbInsertIndex + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                        builder.setSpan(new ThumbnailSpan(dp(thumbsCount * (thumbSize + 2) - 2 + 5)), thumbInsertIndex, thumbInsertIndex + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                     }
                                 }
                             } else {
@@ -2165,7 +2179,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                     checkMessage = false;
                                     SpannableStringBuilder builder = (SpannableStringBuilder) messageString;
                                     builder.insert(0, " ");
-                                    builder.setSpan(new FixedWidthSpan(dp((thumbSize + 2) * thumbsCount - 2 + 5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                    builder.setSpan(new ThumbnailSpan(dp((thumbSize + 2) * thumbsCount - 2 + 5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                     Emoji.replaceEmoji(builder, Theme.dialogs_messagePaint[paintIndex].getFontMetricsInt(), false);
                                     if (message.hasHighlightedWords()) {
                                         CharSequence s = AndroidUtilities.highlightText(builder, message.highlightedWords, resourcesProvider);
@@ -2911,7 +2925,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 messageNameString = null;
                 currentMessagePaint = Theme.dialogs_messagePaint[paintIndex];
             } else if (!useForceThreeLines && !SharedConfig.useThreeLinesLayout || hasTags() || messageNameString != null || ChatObject.isMonoForum(chat) && ChatObject.canManageMonoForum(currentAccount, chat)) {
-                if (!isForumCell() && messageString instanceof Spanned && ((Spanned) messageString).getSpans(0, messageString.length(), FixedWidthSpan.class).length <= 0) {
+                if (!isForumCell() && messageString instanceof Spanned && ((Spanned) messageString).getSpans(0, messageString.length(), ThumbnailSpan.class).length <= 0) {
                     messageStringFinal = TextUtils.ellipsize(messageString, currentMessagePaint, messageWidth - dp(12 + (thumbsCount * (thumbSize + 2) - 2) + 5), TextUtils.TruncateAt.END);
                 } else {
                     messageStringFinal = TextUtils.ellipsize(messageString, currentMessagePaint, messageWidth - dp(12), TextUtils.TruncateAt.END);
@@ -3156,7 +3170,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             try {
                 CharSequence text = layout.getText();
                 if (text instanceof Spanned) {
-                    FixedWidthSpan[] spans = ((Spanned) text).getSpans(0, text.length(), FixedWidthSpan.class);
+                    ThumbnailSpan[] spans = ((Spanned) text).getSpans(0, text.length(), ThumbnailSpan.class);
                     if (spans != null && spans.length > 0) {
                         int spanOffset = ((Spanned) text).getSpanStart(spans[0]);
                         if (spanOffset < 0) {
@@ -3189,7 +3203,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         if (thumbsCount > 0) {
             SpannableStringBuilder builder = SpannableStringBuilder.valueOf(string);
             builder.insert(0, " ");
-            builder.setSpan(new FixedWidthSpan(dp((thumbSize + 2) * thumbsCount - 2 + 5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            builder.setSpan(new ThumbnailSpan(dp((thumbSize + 2) * thumbsCount - 2 + 5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             return builder;
         }
         return string;
