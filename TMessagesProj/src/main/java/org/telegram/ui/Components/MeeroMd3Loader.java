@@ -36,11 +36,6 @@ public class MeeroMd3Loader {
     private static final float DURATION_PER_SHAPE_MS = 650f;
     private static final float CONSTANT_ROTATION_PER_SHAPE = 50f;
     private static final float EXTRA_ROTATION_PER_SHAPE = 90f;
-    // SpringForce من نفس الملف: stiffness = 200، dampingRatio = 0.6 — هو سبب
-    // الإحساس "النابض" الذي يجعل التحوّل يسبق الزمن الخطي قليلاً ثم يستقر.
-    private static final float SPRING_STIFFNESS = 200f;
-    private static final float SPRING_DAMPING_RATIO = 0.6f;
-    private static final float SPRING_MASS = 1f;
 
     // ==================== الأشكال ====================
 
@@ -66,9 +61,6 @@ public class MeeroMd3Loader {
     private boolean started;
     private float rotation;
     private float morph;
-    /** محاكاة SpringAnimation: القيمة الحقيقية وسرعتها. */
-    private float springValue;
-    private float springVelocity;
 
     private static Boolean enabledOverride;
 
@@ -133,32 +125,15 @@ public class MeeroMd3Loader {
         final int i1 = (i0 + 1) % SHAPE_COUNT;
         final float linearT = morph - (float) Math.floor(morph);
 
-        // ---- محاكاة SpringForce(stiffness 200, damping 0.6) كما في المكتبة ----
-        // كل شكل: الهدف التالي = i0 + 1، والقيمة تبدأ من الموضع الحقيقي.
-        final float target = i0 + 1f;
-        if (springValue < i0 - 0.5f || springValue > target + 1.5f) {
-            // قفزة (أول إطار أو التفاف الدورة): أعد الضبط
-            springValue = linearT;
-            springVelocity = 0f;
-        }
-        final float dtSec = Math.max(0.001f, dt / 1000f);
-        // k = stiffness / mass ، c = 2 * damping * sqrt(k * mass)
-        final float springK = SPRING_STIFFNESS / SPRING_MASS;
-        final float springC = 2f * SPRING_DAMPING_RATIO * (float) Math.sqrt(springK * SPRING_MASS);
-        final float displacement = springValue - target;
-        final float accel = -springK * displacement - springC * springVelocity;
-        springVelocity += accel * dtSec;
-        springValue += springVelocity * dtSec;
-        // لا يتجاوز القيمة المستهدفة كثيراً
-        if (springValue > target) {
-            springValue = target;
-            springVelocity = 0f;
-        }
-
-        // نسبة التحوّل النهائية = نابض مقصوص بين 0 و1
-        float t = springValue - i0;
-        if (t < 0f) t = 0f;
-        if (t > 1f) t = 1f;
+        // ---- تحوّل مستمر بلا أي تجمّد ----
+        // سابقاً كان النابض يصل للهدف في 183ms ثم يقف 467ms من أصل 650ms،
+        // وهذا هو "البطء بين الشكل والشكل". الآن النسبة تتقدّم على مدى
+        // النافذة كلها (650ms) بسرعة ثابتة، فلا لحظة توقّف إطلاقاً.
+        // نضيف تسارعاً بسيطاً في المنتصف عبر خلط خطي 85% + smoothstep 15%
+        // ليبقى الإحساس طبيعياً دون أن يصل المشتق إلى صفر عند الحدود.
+        float t = linearT;
+        final float easy = t * t * (3f - 2f * t);
+        t = t * 0.85f + easy * 0.15f;
 
         rotation = ((CONSTANT_ROTATION_PER_SHAPE + EXTRA_ROTATION_PER_SHAPE) * i0
                 + CONSTANT_ROTATION_PER_SHAPE * t
