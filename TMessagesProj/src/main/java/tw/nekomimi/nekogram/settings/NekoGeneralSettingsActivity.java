@@ -197,8 +197,11 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     // MeeroX v254f: «مؤشرات التحميل» — نفس مفتاح النسخة الثانية. مفعّل ⇒ كل
     // مؤشرات التحميل ترسم بـ LoadingIndicator من مكتبة Material الرسمية بنفس
     // أشكالها وسرعتها وأماكن استخدامها. مطفأ ⇒ لا شيء يتغيّر عن الأصل.
-    private final AbstractConfigCell md3LoadingRow =
-            cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.meeroMd3Loading));
+    // العنوان يُمرَّر صراحةً من R.string (مثل ForceFontWeightFallback وShowTranslate):
+    // MeeroStrings.title() تعيد المفتاح الخام إن لم يكن في جدولها المشفّر،
+    // وهذا سبب ظهور "meeroMd3Loading" إنجليزياً في القائمة.
+    private final AbstractConfigCell md3LoadingRow = cellGroup.appendCell(
+            new ConfigCellTextCheck(NekoConfig.meeroMd3Loading, null, getString(R.string.MeeroMd3Loading)));
     private final AbstractConfigCell iconReplacements = cellGroup.appendCell(new ConfigCellSelectBox("IconReplacements", NaConfig.INSTANCE.getIconReplacements(), new String[]{
             getString(R.string.Default),
             getString(R.string.IconReplacementSolar),
