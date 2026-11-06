@@ -551,18 +551,19 @@ public class RadialProgressView extends View {
      * @return true إذا رُسم المؤشّر الجديد فلا حاجة للرسم القديم
      */
     private boolean drawMeeroMd3(Canvas canvas, float cx, float cy) {
-        if (useCustomSpinner || !noProgress || toCircleProgress != 0) {
+        // المفتاح أولاً: عند إطفائه يرجع كل شيء لسلوكه الأصلي بلا أي أثر
+        if (!MeeroMd3Loader.isEnabled()) {
             return false;
         }
-        if (!MeeroMd3Loader.isEnabled()) {
+        // الحوار الأوسط (القوسان) ووضع التقدّم لا يُلمسان
+        if (useCustomSpinner || !noProgress || toCircleProgress != 0) {
             return false;
         }
         float diameter = size > 0 ? size : AndroidUtilities.dp(40);
         if (diameter < AndroidUtilities.dp(24)) {
-            // المؤشرات الصغيرة جداً (14-18dp) تبقى على الشكل القديم لأنها أوضح
+            // المؤشرات الصغيرة جداً (14-18dp) تبقى على الشكل الأصلي لأنها أوضح
             return false;
         }
-        meeroMd3Loader.setStyle(MeeroMd3Loader.getDefaultStyle());
         meeroMd3Loader.draw(canvas, cx, cy, diameter, progressColor,
                 Math.round(getAlpha() * 255f));
         return true;

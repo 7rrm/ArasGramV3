@@ -1,74 +1,73 @@
 /*
- * MeeroMd3Loader — مؤشر تحميل Material 3 (نسخة exteraless) لجميع مواضع التحميل
+ * MeeroMd3Loader — أشكال التحميل الهندسية المتحوّلة (نسخة exteraless / Material 3)
  * =============================================================================
- * يُرسم داخل RadialProgressView نفسها، فلا يحتاج أي تعديل في المواضع الخمسة
- * والأربعين التي تستخدمها (الإعدادات، الملف الشخصي، إرسال الملفات، الصور،
- * جهات الاتصال، المجموعات، البوتات، واجهة الويب، القصص ... إلخ).
+ * يحاكي LoadingIndicator في Material 3 Expressive: شكل مصمت يدور ويتحوّل بين
+ * سبعة أشكال هندسية بنفس ترتيب المكتبة الرسمية:
  *
- * المبدأ المطبَّق من exteraless (M3CircularProgress):
- *   • قوس واحد متحرّك (يمتد ويقصر) — CircularProgressIndicator
- *   • فوقه مسار خلفي (track) بشفافية 20%، بينه وبين القوس فجوة 2dp
- *   • أطراف مستديرة، سماكة تُشتق من حجم المؤشر
- *   • اللون يأتي من الثيم (key_progressCircle) — أي «بلون الأصل»
- *   • الدوران متصل بلا إعادة ضبط (لا نفضة)
+ *   SOFT_BURST → COOKIE_9 → PENTAGON → PILL → SUNNY → COOKIE_4 → OVAL
  *
- * ما لا يلمسه هذا الملف إطلاقاً:
- *   • الحوار الأوسط في المحادثة (AlertDialog.ALERT_TYPE_SPINNER): يبقى على
- *     القوسين البنفسجي/السماوي القديمين عبر setUseCustomSpinner(true)
- *   • الدوائر المرسومة يدوياً في ChatActivity / ChatMessageCell / SharedMedia
- *   • مؤشر iOS في MediaActionDrawable (مفتاح meeroIosLoading)
- *   • وضع التقدّم (progress) — يبقى كما هو تماماً
+ * القيم مأخوذة من MaterialShapes.java:
+ *   SOFT_BURST 10 رؤوس ناعمة، COOKIE_9 نجمة 9 رؤوس (inner 0.8)،
+ *   PENTAGON 5 رؤوس باستدارة 0.172، PILL كبسولة، SUNNY نجمة 8 رؤوس (0.8)،
+ *   COOKIE_4 4 رؤوس، OVAL بيضاوي.
+ *
+ * • اللون: لون الأصل من الثيم (progressColor) — كما في exteraless.
+ * • كل أشكال الرسوم محسوبة مرة واحدة في blocs ثابت (لا تخصيص في حلقة الرسم).
+ * • لا يُستخدم إطلاقاً في الحوار الأوسط بالمحادثة (ذاك يبقى على القوسين).
  */
 package org.telegram.ui.Components;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.RectF;
+import android.graphics.Path;
 
 import org.telegram.messenger.AndroidUtilities;
 
 public class MeeroMd3Loader {
 
-    /** القوس المتحرّك الدائري. */
-    public static final int STYLE_CIRCULAR = 0;
-    /** نفس القوس لكن بحافة موجية (M3 Expressive) — اختياري. */
-    public static final int STYLE_WAVY = 1;
+    /** عدد عيّنات نصف القطر لكل شكل (2 درجة لكل خانة). */
+    private static final int BINS = 180;
+    private static final int SHAPE_COUNT = 7;
+    private static final float TAU = (float) (Math.PI * 2);
 
-    private static final float ROTATION_PERIOD_MS = 1333f;   // دورة كاملة ~1.3s (M3)
-    private static final float HEAD_GROW_MS = 900f;          // امتداد القوس
-    private static final float HEAD_SHRINK_MS = 900f;        // تقلّص القوس
-    private static final float MIN_SWEEP = 12f;              // أقصر قوس
-    private static final float MAX_SWEEP = 290f;             // أطول قوس
+    /** زمن التحوّل بين شكلين. */
+    private static final float MORPH_MS = 850f;
+    /** زمن دورة دوران كاملة حول المركز. */
+    private static final float ROTATION_PERIOD_MS = 2600f;
 
-    private static Boolean enabledOverride;
-    private static int defaultStyle = STYLE_CIRCULAR;
+    // ==================== الأشكال ====================
 
-    private final Paint arcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final RectF oval = new RectF();
+    private static final float[][] PROFILES = new float[SHAPE_COUNT][BINS];
 
-    private int style = STYLE_CIRCULAR;
-    private boolean wavy;
-    private float waveAmplitude, waveLength, waveSpeed;
+    static {
+        PROFILES[0] = normalize(profileFromPolygon(roundedShape(starPoints(10, 0.758f), 0.30f, 10, 10)));
+        PROFILES[1] = normalize(profileFromPolygon(roundedShape(starPoints(9, 0.80f), 0.62f, 10, 10)));
+        PROFILES[2] = normalize(profileFromPolygon(roundedShape(polyPoints(5), 0.172f, 10, 12)));
+        PROFILES[3] = normalize(profileFromPolygon(pillPoints(1.0f, 0.62f)));
+        PROFILES[4] = normalize(profileFromPolygon(roundedShape(starPoints(8, 0.80f), 0.20f, 10, 10)));
+        PROFILES[5] = normalize(profileFromPolygon(roundedShape(starPoints(4, 0.70f), 0.70f, 10, 10)));
+        PROFILES[6] = normalize(ellipseProfile(1.0f, 0.78f));
+    }
+
+    // ==================== الحالة ====================
+
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path path = new Path();
+    private final float[] radii = new float[BINS];
 
     private long lastFrame;
     private boolean started;
     private float rotation;
-    private float sweep = MIN_SWEEP;
-    private float phase;
+    private float morph;
+
+    private static Boolean enabledOverride;
 
     public MeeroMd3Loader() {
-        arcPaint.setStyle(Paint.Style.STROKE);
-        arcPaint.setStrokeCap(Paint.Cap.ROUND);
-        arcPaint.setStrokeJoin(Paint.Join.ROUND);
-        trackPaint.setStyle(Paint.Style.STROKE);
-        trackPaint.setStrokeCap(Paint.Cap.ROUND);
-        trackPaint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStyle(Paint.Style.FILL);
     }
 
-    // ==================== الإعدادات العامة ====================
+    // ==================== مفتاح التشغيل ====================
 
-    /** مفتاح التشغيل العام (يُقرأ من NekoConfig.meeroMd3Loading). */
     public static void setEnabled(Boolean value) {
         enabledOverride = value;
     }
@@ -80,48 +79,26 @@ public class MeeroMd3Loader {
         try {
             return tw.nekomimi.nekogram.NekoConfig.meeroMd3Loading.Bool();
         } catch (Throwable ignore) {
-            return true;
+            return false;   // IMPORTANT: عند أي شك نرجع للشكل الأصلي
         }
     }
 
-    public static void setDefaultStyle(int value) {
-        defaultStyle = value;
-    }
+    /** متوافق مع الاستدعاءات السابقة — لم يعد مستخدماً. */
+    public void setStyle(int style) { }
 
-    public static int getDefaultStyle() {
-        return defaultStyle;
-    }
+    public static void setDefaultStyle(int style) { }
 
-    // ==================== حالة الكائن ====================
-
-    public void setStyle(int value) {
-        style = value == STYLE_WAVY ? STYLE_WAVY : STYLE_CIRCULAR;
-        wavy = style == STYLE_WAVY;
-    }
-
-    public void setWavy(boolean value) {
-        wavy = value;
-    }
-
-    /** سماكة القلم تُشتق من قطر المؤشر: 11% بحدود 2..5dp. */
-    public static float strokeWidthFor(float diameterPx) {
-        float w = diameterPx * 0.11f;
-        float min = AndroidUtilities.dpf2(2f);
-        float max = AndroidUtilities.dpf2(5f);
-        if (w < min) w = min;
-        if (w > max) w = max;
-        return w;
-    }
+    public static int getDefaultStyle() { return 0; }
 
     // ==================== الرسم ====================
 
     /**
-     * @param canvas    لوحة الرسم
-     * @param cx        مركز أفقي
-     * @param cy        مركز رأسي
-     * @param diameter  قطر المؤشر بالبكسل (يشمل سماكة الحد)
-     * @param color     لون الأصل (progressColor)
-     * @param alpha     شفافية 0..255
+     * @param canvas   لوحة الرسم
+     * @param cx       المركز الأفقي
+     * @param cy       المركز الرأسي
+     * @param diameter قطر الشكل بالبكسل
+     * @param color    لون الأصل من الثيم
+     * @param alpha    شفافية 0..255
      */
     public void draw(Canvas canvas, float cx, float cy, float diameter, int color, int alpha) {
         final long now = System.currentTimeMillis();
@@ -129,81 +106,201 @@ public class MeeroMd3Loader {
         lastFrame = now;
         started = true;
 
-        final float stroke = strokeWidthFor(diameter);
-        final float radius = Math.max(0f, diameter / 2f - stroke / 2f);
+        final float radius = diameter / 2f;
         if (radius <= 0f) {
             return;
         }
 
-        // ------ الحركة ------
+        // ------ الحركة: دوران مستمر + تحوّل بين الأشكال ------
         rotation += 360f * dt / ROTATION_PERIOD_MS;
         if (rotation > 100000f) {
             rotation -= 100000f;
         }
-        phase += dt;
-        if (phase > HEAD_GROW_MS + HEAD_SHRINK_MS) {
-            phase -= HEAD_GROW_MS + HEAD_SHRINK_MS;
-        }
-        final float t = phase <= HEAD_GROW_MS
-                ? phase / HEAD_GROW_MS
-                : 1f - (phase - HEAD_GROW_MS) / HEAD_SHRINK_MS;
-        final float eased = t * t * (3f - 2f * t);                      // smoothstep
-        sweep = MIN_SWEEP + (MAX_SWEEP - MIN_SWEEP) * Math.max(0f, Math.min(1f, eased));
-
-        // المقطع: نترك فجوة 2dp بين طرفي القوس والمسار
-        final float gapDeg = (float) Math.toDegrees(AndroidUtilities.dpf2(2f) / radius);
-        final float start = rotation;
-        final float rest = 360f - sweep - gapDeg * 2f;
-
-        oval.set(cx - radius, cy - radius, cx + radius, cy + radius);
-
-        final int alphaClamped = Math.max(0, Math.min(255, alpha));
-
-        // ------ المسار الخلفي (20% من لون الأصل) ------
-        if (rest > 0.5f) {
-            trackPaint.setStrokeWidth(stroke);
-            trackPaint.setColor(color);
-            trackPaint.setAlpha((int) (alphaClamped * 0.20f));
-            canvas.drawArc(oval, start + sweep + gapDeg, rest, false, trackPaint);
+        morph += dt / MORPH_MS;
+        if (morph > SHAPE_COUNT) {
+            morph -= SHAPE_COUNT;
         }
 
-        // ------ القوس ------
-        arcPaint.setStrokeWidth(stroke);
-        arcPaint.setColor(color);
-        arcPaint.setAlpha(alphaClamped);
-        if (wavy && waveAmplitude > 0f && waveLength > 0f) {
-            drawWavyArc(canvas, cx, cy, radius, start, sweep);
-        } else {
-            canvas.drawArc(oval, start, sweep, false, arcPaint);
+        final int i0 = ((int) Math.floor(morph) % SHAPE_COUNT + SHAPE_COUNT) % SHAPE_COUNT;
+        final int i1 = (i0 + 1) % SHAPE_COUNT;
+        float t = morph - (float) Math.floor(morph);
+        t = t * t * (3f - 2f * t);            // smoothstep — تحوّل ناعم
+
+        final float[] a = PROFILES[i0];
+        final float[] b = PROFILES[i1];
+        for (int k = 0; k < BINS; k++) {
+            radii[k] = a[k] + (b[k] - a[k]) * t;
         }
-    }
 
-    /** حافة موجية (M3 Expressive): انحراف جيبي على طول القوس. */
-    private void drawWavyArc(Canvas canvas, float cx, float cy, float radius,
-                             float startAngle, float sweepAngle) {
-        final int steps = Math.max(24, Math.min(160, (int) (Math.abs(sweepAngle))));
-        final double lengthPx = Math.abs(sweepAngle) / 180.0 * Math.PI * radius;
-        final float timePhase = waveSpeed <= 0f
-                ? 0f
-                : (System.currentTimeMillis() % 100000L) / 1000f * waveSpeed;
-
-        final android.graphics.Path path = new android.graphics.Path();
-        for (int i = 0; i <= steps; i++) {
-            final float k = i / (float) steps;
-            final float angle = startAngle + sweepAngle * k;
-            final float along = (float) (lengthPx * k) + timePhase;
-            final float offset = (float) (waveAmplitude *
-                    Math.sin(2.0 * Math.PI * along / waveLength));
-            final double rad = Math.toRadians(angle);
-            final float r = radius + offset;
-            final float x = cx + (float) (r * Math.cos(rad));
-            final float y = cy + (float) (r * Math.sin(rad));
-            if (i == 0) {
+        // ------ بناء المسار ------
+        path.rewind();
+        final float rad = (float) Math.toRadians(rotation);
+        for (int k = 0; k < BINS; k++) {
+            final float th = k * TAU / BINS + rad;
+            final float r = radii[k] * radius;
+            final float x = cx + (float) Math.cos(th) * r;
+            final float y = cy + (float) Math.sin(th) * r;
+            if (k == 0) {
                 path.moveTo(x, y);
             } else {
                 path.lineTo(x, y);
             }
         }
-        canvas.drawPath(path, arcPaint);
+        path.close();
+
+        paint.setColor(color);
+        paint.setAlpha(Math.max(0, Math.min(255, alpha)));
+        canvas.drawPath(path, paint);
+    }
+
+    // ==================== هندسة الأشكال (نفس خوارزمية المكتبة) ====================
+
+    /** رؤوس نجمة/قرص بعدد رؤوس n ونسبة نصف قطر داخلي. */
+    private static float[][] starPoints(int n, float inner) {
+        float[][] pts = new float[n * 2][2];
+        for (int i = 0; i < n * 2; i++) {
+            double ang = -Math.PI / 2 + i * Math.PI / n;
+            float r = (i % 2 == 0) ? 1f : inner;
+            pts[i][0] = (float) Math.cos(ang) * r;
+            pts[i][1] = (float) Math.sin(ang) * r;
+        }
+        return pts;
+    }
+
+    /** مضلّع منتظم بعدد أضلاع n. */
+    private static float[][] polyPoints(int n) {
+        float[][] pts = new float[n][2];
+        for (int i = 0; i < n; i++) {
+            double ang = -Math.PI / 2 + i * TAU / n;
+            pts[i][0] = (float) Math.cos(ang);
+            pts[i][1] = (float) Math.sin(ang);
+        }
+        return pts;
+    }
+
+    /** كبسولة: مستطيل بنصف ارتفاع h/2 ونصف قطر زاوية = h/2. */
+    private static float[][] pillPoints(float w, float h) {
+        final int steps = 40;
+        final float r = h / 2f, half = w / 2f;
+        final float c0 = half - r, c1 = -half + r;
+        float[][] pts = new float[(steps + 1) * 2][2];
+        int idx = 0;
+        for (int i = 0; i <= steps; i++) {
+            double a = -Math.PI / 2 + i * Math.PI / steps;
+            pts[idx][0] = c0 + r * (float) Math.cos(a);
+            pts[idx][1] = r * (float) Math.sin(a);
+            idx++;
+        }
+        for (int i = 0; i <= steps; i++) {
+            double a = Math.PI / 2 + i * Math.PI / steps;
+            pts[idx][0] = c1 + r * (float) Math.cos(a);
+            pts[idx][1] = r * (float) Math.sin(a);
+            idx++;
+        }
+        return pts;
+    }
+
+    /**
+     * يستدير زوايا المضلّع: قوس عند كل رأس + نقاط على الحواف المستقيمة.
+     * الخطوط المستقيمة ضرورية، بدونها تُسقَط الحواف ويبدو الشكل دائرة.
+     */
+    private static float[][] roundedShape(float[][] pts, float cornerFrac, int arcSteps, int lineSteps) {
+        final int n = pts.length;
+        float[][] a = new float[n][2];
+        float[][] b = new float[n][2];
+        for (int i = 0; i < n; i++) {
+            float vx = pts[i][0], vy = pts[i][1];
+            int pi = (i - 1 + n) % n, ni = (i + 1) % n;
+            float px = pts[pi][0], py = pts[pi][1];
+            float nx = pts[ni][0], ny = pts[ni][1];
+            float lp = (float) Math.hypot(px - vx, py - vy);
+            float ln = (float) Math.hypot(nx - vx, ny - vy);
+            float cut = Math.min(cornerFrac * Math.min(lp, ln), Math.min(lp, ln) * 0.49f);
+            a[i][0] = vx + (px - vx) / lp * cut;
+            a[i][1] = vy + (py - vy) / lp * cut;
+            b[i][0] = vx + (nx - vx) / ln * cut;
+            b[i][1] = vy + (ny - vy) / ln * cut;
+        }
+        final int perCorner = (arcSteps + 1) + (lineSteps - 1);
+        float[][] out = new float[n * perCorner][2];
+        int idx = 0;
+        for (int i = 0; i < n; i++) {
+            float vx = pts[i][0], vy = pts[i][1];
+            int next = (i + 1) % n;
+            // قوس الزاوية: a → v → b (منحنى تربيعي)
+            for (int s = 0; s <= arcSteps; s++) {
+                float t = s / (float) arcSteps, it = 1f - t;
+                out[idx][0] = it * it * a[i][0] + 2 * it * t * vx + t * t * b[i][0];
+                out[idx][1] = it * it * a[i][1] + 2 * it * t * vy + t * t * b[i][1];
+                idx++;
+            }
+            // الحافة المستقيمة: b[i] → a[next]
+            for (int s = 1; s < lineSteps; s++) {
+                float t = s / (float) lineSteps;
+                out[idx][0] = b[i][0] + (a[next][0] - b[i][0]) * t;
+                out[idx][1] = b[i][1] + (a[next][1] - b[i][1]) * t;
+                idx++;
+            }
+        }
+        return out;
+    }
+
+    /** يحوّل نقاط الشكل إلى دالة نصف قطر r(θ). */
+    private static float[] profileFromPolygon(float[][] poly) {
+        float[] prof = new float[BINS];
+        for (int i = 0; i < BINS; i++) {
+            prof[i] = -1f;
+        }
+        for (float[] p : poly) {
+            float r = (float) Math.hypot(p[0], p[1]);
+            if (r <= 0f) {
+                continue;
+            }
+            float th = (float) Math.atan2(p[1], p[0]);
+            if (th < 0) {
+                th += TAU;
+            }
+            float f = th / TAU * BINS;
+            int b0 = ((int) Math.floor(f)) % BINS;
+            int b1 = (b0 + 1) % BINS;
+            if (r > prof[b0]) prof[b0] = r;
+            if (r > prof[b1]) prof[b1] = r;
+        }
+        // سدّ الخانات الفارغة بالتدرّج بين الجارتين
+        for (int i = 0; i < BINS; i++) {
+            if (prof[i] >= 0f) {
+                continue;
+            }
+            int l = i - 1, r = i + 1, guard = 0;
+            while (prof[(l + BINS) % BINS] < 0f && guard++ < BINS) l--;
+            guard = 0;
+            while (prof[(r + BINS) % BINS] < 0f && guard++ < BINS) r++;
+            float av = prof[(l + BINS) % BINS], bv = prof[(r + BINS) % BINS];
+            prof[i] = av + (bv - av) * ((i - l) / (float) Math.max(1, r - l));
+        }
+        return prof;
+    }
+
+    private static float[] ellipseProfile(float ax, float ay) {
+        float[] prof = new float[BINS];
+        for (int i = 0; i < BINS; i++) {
+            float th = i * TAU / BINS;
+            prof[i] = 1f / (float) Math.hypot(Math.cos(th) / ax, Math.sin(th) / ay);
+        }
+        return prof;
+    }
+
+    /** توحيد المقياس: كل شكل يلمس نصف قطر 1 عند أوسع نقطة. */
+    private static float[] normalize(float[] prof) {
+        float max = 0f;
+        for (int i = 0; i < BINS; i++) {
+            if (prof[i] > max) max = prof[i];
+        }
+        if (max > 0f) {
+            for (int i = 0; i < BINS; i++) {
+                prof[i] /= max;
+            }
+        }
+        return prof;
     }
 }

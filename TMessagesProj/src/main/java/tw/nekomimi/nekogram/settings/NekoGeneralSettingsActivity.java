@@ -194,6 +194,9 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     // ArasGram v253 (ported from exteraless appearance): mini sender avatar
     // in front of the sender name in the chat-list message preview.
     private final AbstractConfigCell senderMiniAvatarsRow = cellGroup.appendCell(new ConfigCellTextCheck(app.exteraless.appearance.AppearanceConfig.senderMiniAvatars));
+    // MeeroX v254: أشكال التحميل الهندسية (Material 3 من exteraless) في كل
+    // مواضع التحميل. افتراضي OFF — إطفاؤه يعني أن كل شيء يعمل كما قبل التعديل.
+    private final AbstractConfigCell md3LoadingShapesRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.meeroMd3Loading));
     private final AbstractConfigCell iconReplacements = cellGroup.appendCell(new ConfigCellSelectBox("IconReplacements", NaConfig.INSTANCE.getIconReplacements(), new String[]{
             getString(R.string.Default),
             getString(R.string.IconReplacementSolar),
