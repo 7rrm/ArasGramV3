@@ -60,6 +60,13 @@ public class CircularProgressDrawable extends Drawable {
 
     @Override
     public void draw(@NonNull Canvas canvas) {
+        // MeeroX v254: أشكال Material 3 عند تفعيل الخيار — وإلا الأصل كما هو
+        if (MeeroMd3Loader.drawInto(canvas, getBounds().centerX(), getBounds().centerY(),
+                Math.min(getBounds().width(), getBounds().height()) - thickness,
+                paint.getColor(), paint.getAlpha())) {
+            invalidateSelf();
+            return;
+        }
         if (start < 0) {
             start = SystemClock.elapsedRealtime();
         }

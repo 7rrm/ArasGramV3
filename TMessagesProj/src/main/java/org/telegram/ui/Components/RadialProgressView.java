@@ -495,10 +495,10 @@ public class RadialProgressView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (useCustomSpinner && noProgress && toCircleProgress == 0) {
+        if (drawMeeroMd3(canvas, getMeasuredWidth() / 2f, getMeasuredHeight() / 2f)) {
+            // MeeroX v254: أشكال Material 3 — تشمل الحوار الأوسط (القوسان)
+        } else if (useCustomSpinner && noProgress && toCircleProgress == 0) {
             drawDualRing(canvas, getMeasuredWidth() / 2f, getMeasuredHeight() / 2f);
-        } else if (drawMeeroMd3(canvas, getMeasuredWidth() / 2f, getMeasuredHeight() / 2f)) {
-            // MeeroX v254: مؤشر M3 (نسخة exteraless) — نفس اللون من الثيم
         } else if (!useCustomSpinner && noProgress && toCircleProgress == 0) {
             // Original Telegram spinner (for calls, downloads, etc.)
             int x = (getMeasuredWidth() - size) / 2;
@@ -523,10 +523,10 @@ public class RadialProgressView extends View {
     }
 
     public void draw(Canvas canvas, float cx, float cy) {
-        if (useCustomSpinner && noProgress && toCircleProgress == 0) {
+        if (drawMeeroMd3(canvas, cx, cy)) {
+            // MeeroX v254: أشكال Material 3 (تشمل الحوار الأوسط)
+        } else if (useCustomSpinner && noProgress && toCircleProgress == 0) {
             drawDualRing(canvas, cx, cy);
-        } else if (drawMeeroMd3(canvas, cx, cy)) {
-            // MeeroX v254: مؤشر M3 (نسخة exteraless)
         } else if (!useCustomSpinner && noProgress && toCircleProgress == 0) {
             // Original Telegram spinner
             cicleRect.set(cx - size / 2f, cy - size / 2f, cx + size / 2f, cy + size / 2f);
@@ -551,19 +551,13 @@ public class RadialProgressView extends View {
      * @return true إذا رُسم المؤشّر الجديد فلا حاجة للرسم القديم
      */
     private boolean drawMeeroMd3(Canvas canvas, float cx, float cy) {
-        // المفتاح أولاً: عند إطفائه يرجع كل شيء لسلوكه الأصلي بلا أي أثر
+        // المفتاح وحده يقرّر: مطفأ = لا يتغيّر أي شيء إطلاقاً
         if (!MeeroMd3Loader.isEnabled()) {
             return false;
         }
-        // الحوار الأوسط (القوسان) ووضع التقدّم لا يُلمسان
-        if (useCustomSpinner || !noProgress || toCircleProgress != 0) {
-            return false;
-        }
+        // بلا استثناء: كل مؤشرات RadialProgressView في التطبيق — بما فيها
+        // الحوار الأوسط (القوسان) ووضع التقدّم — تتحوّل إلى أشكال Material 3
         float diameter = size > 0 ? size : AndroidUtilities.dp(40);
-        if (diameter < AndroidUtilities.dp(24)) {
-            // المؤشرات الصغيرة جداً (14-18dp) تبقى على الشكل الأصلي لأنها أوضح
-            return false;
-        }
         meeroMd3Loader.draw(canvas, cx, cy, diameter, progressColor,
                 Math.round(getAlpha() * 255f));
         return true;

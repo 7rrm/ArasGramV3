@@ -30,10 +30,12 @@ public class MeeroMd3Loader {
     private static final int SHAPE_COUNT = 7;
     private static final float TAU = (float) (Math.PI * 2);
 
-    /** زمن التحوّل بين شكلين. */
-    private static final float MORPH_MS = 850f;
-    /** زمن دورة دوران كاملة حول المركز. */
-    private static final float ROTATION_PERIOD_MS = 2600f;
+    // ===== توقيت مطابق حرفياً لمكتبة Material 3 =====
+    // LoadingIndicatorAnimatorDelegate: DURATION_PER_SHAPE_IN_MS = 650
+    // CONSTANT_ROTATION_PER_SHAPE_DEGREES = 50، EXTRA_ROTATION_PER_SHAPE_DEGREES = 90
+    private static final float DURATION_PER_SHAPE_MS = 650f;
+    private static final float CONSTANT_ROTATION_PER_SHAPE = 50f;
+    private static final float EXTRA_ROTATION_PER_SHAPE = 90f;
 
     // ==================== الأشكال ====================
 
@@ -111,12 +113,10 @@ public class MeeroMd3Loader {
             return;
         }
 
-        // ------ الحركة: دوران مستمر + تحوّل بين الأشكال ------
-        rotation += 360f * dt / ROTATION_PERIOD_MS;
-        if (rotation > 100000f) {
-            rotation -= 100000f;
-        }
-        morph += dt / MORPH_MS;
+        // ------ الحركة: نفس معادلة الدوران في المكتبة ------
+        // الأساس = (50 + 90) × رقم الشكل، + 50 × نسبة الزمن داخل الشكل،
+        // + 90 × تقدّم التحوّل. ثم % 360.
+        morph += dt / DURATION_PER_SHAPE_MS;
         if (morph > SHAPE_COUNT) {
             morph -= SHAPE_COUNT;
         }
@@ -125,6 +125,10 @@ public class MeeroMd3Loader {
         final int i1 = (i0 + 1) % SHAPE_COUNT;
         float t = morph - (float) Math.floor(morph);
         t = t * t * (3f - 2f * t);            // smoothstep — تحوّل ناعم
+
+        rotation = ((CONSTANT_ROTATION_PER_SHAPE + EXTRA_ROTATION_PER_SHAPE) * i0
+                + CONSTANT_ROTATION_PER_SHAPE * t
+                + EXTRA_ROTATION_PER_SHAPE * t) % 360f;
 
         final float[] a = PROFILES[i0];
         final float[] b = PROFILES[i1];
@@ -302,5 +306,26 @@ public class MeeroMd3Loader {
             }
         }
         return prof;
+    }
+
+    // ==================== استدعاء عام لأي محرّك آخر ====================
+
+    /** نسخة مشتركة للرسم في المحرّكات الأخرى (Drawable/View مخصّص). */
+    private static MeeroMd3Loader shared;
+
+    /**
+     * يرسم أشكال Material 3 في أي مكان آخر غير RadialProgressView.
+     * @return false إذا كان المفتاح مطفأً (فلا يُرسم شيء ويبقى الأصل)
+     */
+    public static boolean drawInto(Canvas canvas, float cx, float cy,
+                                   float diameter, int color, int alpha) {
+        if (!isEnabled() || diameter <= 0f) {
+            return false;
+        }
+        if (shared == null) {
+            shared = new MeeroMd3Loader();
+        }
+        shared.draw(canvas, cx, cy, diameter, color, alpha);
+        return true;
     }
 }
