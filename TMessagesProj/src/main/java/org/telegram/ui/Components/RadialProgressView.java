@@ -20,11 +20,17 @@ package org.telegram.ui.Components;
 import android.content.Context;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
+import android.view.ContextThemeWrapper;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.SweepGradient;
 import android.graphics.drawable.Drawable;
 import android.view.View;
+
+import com.google.android.material.loadingindicator.LoadingIndicator;
+
+import tw.nekomimi.nekogram.NekoConfig;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
@@ -33,7 +39,7 @@ import androidx.annotation.Keep;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 
-public class RadialProgressView extends View {
+public class RadialProgressView extends View implements Drawable.Callback {
 
     // ==================== Constants ====================
     private static final float rotationTime = 700; // ms for a full 360° rotation
@@ -55,6 +61,14 @@ public class RadialProgressView extends View {
     private float drawingCircleLenght;
 
     private int progressColor;
+
+    // ===== MeeroX v254f — نفس كود النسخة الثانية =====
+    // المرجع: exteraless/RadialProgressView.setStyleInternal(STYLE_LOADING_INDICATOR)
+    // نستعمل مكتبة Material نفسها بدل تقليد الأشكال يدوياً.
+    private LoadingIndicator m3IndicatorView;
+    private Drawable m3Drawable;
+    private int configuredStyle = -1;
+    private boolean manualStyle;
 
     private DecelerateInterpolator decelerateInterpolator;
     private AccelerateInterpolator accelerateInterpolator;
@@ -84,9 +98,6 @@ public class RadialProgressView extends View {
 
     private boolean noProgress = true;
     private boolean useCustomSpinner = false; // FIX: only true for AlertDialog spinner
-    // MeeroX v254: مؤشر Material 3 (نسخة exteraless) لكل مواضع التحميل ما عدا
-    // الحوار الأوسط الذي يبقى على القوسين عبر useCustomSpinner.
-    private final MeeroMd3Loader meeroMd3Loader = new MeeroMd3Loader();
     private final Theme.ResourcesProvider resourcesProvider;
 
     // Gradient for the inner ring
@@ -286,6 +297,10 @@ public class RadialProgressView extends View {
 
     public void setSize(int value) {
         size = value;
+        // MeeroX v254f: يبقى المؤشر بنفس الحجم عند تغيّره
+        if (m3IndicatorView != null) {
+            m3IndicatorView.setIndicatorSize(size);
+        }
         cachedCx = -1f;
         cachedCy = -1f;
         invalidate();
@@ -306,6 +321,10 @@ public class RadialProgressView extends View {
 
     public void setProgressColor(int color) {
         progressColor = color;
+        // MeeroX v254f: يبقى المؤشر بلون الثيم عند تغيّر اللون
+        if (m3IndicatorView != null) {
+            m3IndicatorView.setIndicatorColor(progressColor);
+        }
         progressPaint.setColor(progressColor);
         innerPaint.setColor(progressColor);
         glowPaint.setColor(progressColor);
@@ -320,6 +339,39 @@ public class RadialProgressView extends View {
             toCircleProgress = toCircle ? 1f : 0f;
         }
         invalidate();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (m3Drawable != null) {
+            m3Drawable.setVisible(true, true);
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (m3Drawable != null) {
+            m3Drawable.setVisible(false, false);
+        }
+    }
+
+    @Override
+    public void invalidateDrawable(@androidx.annotation.NonNull Drawable who) {
+        invalidate();
+    }
+
+    @Override
+    public void scheduleDrawable(@androidx.annotation.NonNull Drawable who,
+                                 @androidx.annotation.NonNull Runnable what, long when) {
+        postDelayed(what, when - android.os.SystemClock.uptimeMillis());
+    }
+
+    @Override
+    public void unscheduleDrawable(@androidx.annotation.NonNull Drawable who,
+                                   @androidx.annotation.NonNull Runnable what) {
+        removeCallbacks(what);
     }
 
     public boolean isCircle() {
@@ -493,11 +545,34 @@ public class RadialProgressView extends View {
         innerGlowPaint.setShader(cachedInnerGradient);
     }
 
+    /**
+     * نسخة حرفية من exteraless/RadialProgressView.drawArc():
+     * المفتاح مفعّل ⇒ يرسم LoadingIndicator من مكتبة Material نفسها.
+     * المفتاح مطفأ ⇒ لا يتغيّر سطر واحد من الرسم الأصلي.
+     */
+    private boolean drawM3(Canvas canvas, float left, float top, float right, float bottom) {
+        applyConfiguredStyle();
+        if (m3Drawable == null) {
+            return false;
+        }
+        m3Drawable.setBounds((int) left, (int) top, (int) right, (int) bottom);
+        m3Drawable.draw(canvas);
+        updateAnimation();
+        return true;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
-        if (drawMeeroMd3(canvas, getMeasuredWidth() / 2f, getMeasuredHeight() / 2f)) {
-            // MeeroX v254: أشكال Material 3 — تشمل الحوار الأوسط (القوسان)
-        } else if (useCustomSpinner && noProgress && toCircleProgress == 0) {
+        // ★ المفتاح أولاً — قبل أي فرع، وحتى قبل فحص useCustomSpinner
+        {
+            final int w = getMeasuredWidth(), h = getMeasuredHeight();
+            final float half = size / 2f;
+            final float cx = w / 2f, cy = h / 2f;
+            if (drawM3(canvas, cx - half, cy - half, cx + half, cy + half)) {
+                return;
+            }
+        }
+        if (useCustomSpinner && noProgress && toCircleProgress == 0) {
             drawDualRing(canvas, getMeasuredWidth() / 2f, getMeasuredHeight() / 2f);
         } else if (!useCustomSpinner && noProgress && toCircleProgress == 0) {
             // Original Telegram spinner (for calls, downloads, etc.)
@@ -523,9 +598,14 @@ public class RadialProgressView extends View {
     }
 
     public void draw(Canvas canvas, float cx, float cy) {
-        if (drawMeeroMd3(canvas, cx, cy)) {
-            // MeeroX v254: أشكال Material 3 (تشمل الحوار الأوسط)
-        } else if (useCustomSpinner && noProgress && toCircleProgress == 0) {
+        // ★ المفتاح أولاً (نفس ترتيب النسخة الثانية)
+        {
+            final float half = size / 2f;
+            if (drawM3(canvas, cx - half, cy - half, cx + half, cy + half)) {
+                return;
+            }
+        }
+        if (useCustomSpinner && noProgress && toCircleProgress == 0) {
             drawDualRing(canvas, cx, cy);
         } else if (!useCustomSpinner && noProgress && toCircleProgress == 0) {
             // Original Telegram spinner
@@ -541,31 +621,6 @@ public class RadialProgressView extends View {
             canvas.drawArc(cicleRect, radOffset, drawingCircleLenght = currentCircleLength, false, progressPaint);
         }
         updateAnimation();
-    }
-
-    /**
-     * MeeroX v254 — مؤشر Material 3 من exteraless.
-     * يعمل فقط في وضع "بلا تقدّم" (سبينر)، ويترك:
-     *   • وضع التقدّم (progress) كما هو
-     *   • الحوار الأوسط (useCustomSpinner) على القوسين القديمين
-     * @return true إذا رُسم المؤشّر الجديد فلا حاجة للرسم القديم
-     */
-    private boolean drawMeeroMd3(Canvas canvas, float cx, float cy) {
-        // المفتاح وحده يقرّر: مطفأ = لا يتغيّر أي شيء إطلاقاً
-        if (!MeeroMd3Loader.isEnabled()) {
-            return false;
-        }
-        // بلا استثناء: كل مؤشرات RadialProgressView في التطبيق — بما فيها
-        // الحوار الأوسط (القوسان) ووضع التقدّم — تتحوّل إلى أشكال Material 3
-        float diameter = size > 0 ? size : AndroidUtilities.dp(40);
-        meeroMd3Loader.draw(canvas, cx, cy, diameter, progressColor,
-                Math.round(getAlpha() * 255f));
-        return true;
-    }
-
-    /** MeeroX v254: مفتاح عام لمؤشر M3 في كل مواضع التحميل. */
-    public static void setMeeroMd3Enabled(Boolean enabled) {
-        MeeroMd3Loader.setEnabled(enabled);
     }
 
     private void drawDualRing(Canvas canvas, float cx, float cy) {
@@ -706,5 +761,49 @@ public class RadialProgressView extends View {
 
     private int getThemedColor(int key) {
         return Theme.getColor(key, resourcesProvider);
+    }
+
+    // ==================== MeeroX v254f: مؤشر Material 3 ====================
+
+    /**
+     * نسخة حرفية من exteraless:
+     * {@code AppearanceConfig.newLoadingStyle() ? STYLE_LOADING_INDICATOR : STYLE_LEGACY}
+     */
+    private void applyConfiguredStyle() {
+        if (manualStyle) {
+            return;
+        }
+        // المفتاح عندنا افتراضي OFF ⇒ الأصل هو الافتراضي، وتفعيله = النسخة الثانية
+        final int desired = NekoConfig.meeroMd3Loading.Bool() ? 1 : 0;
+        if (desired == configuredStyle) {
+            return;
+        }
+        configuredStyle = desired;
+        setStyleInternal(desired);
+    }
+
+    /** نسخة حرفية من exteraless/RadialProgressView.setStyleInternal(). */
+    private void setStyleInternal(int style) {
+        final Drawable previous = m3Drawable;
+        if (style == 1) {
+            if (m3IndicatorView == null) {
+                m3IndicatorView = new LoadingIndicator(new ContextThemeWrapper(getContext(),
+                        com.google.android.material.R.style.Theme_Material3_DayNight_NoActionBar));
+            }
+            m3IndicatorView.setIndicatorSize(size);
+            m3IndicatorView.setIndicatorColor(progressColor);
+            m3Drawable = m3IndicatorView.getDrawable();
+        } else {
+            m3Drawable = null;
+        }
+        if (previous != null && previous != m3Drawable) {
+            previous.setVisible(false, false);
+            previous.setCallback(null);
+        }
+        if (m3Drawable != null) {
+            m3Drawable.setCallback(this);
+            m3Drawable.setVisible(isAttachedToWindow(), true);
+        }
+        invalidate();
     }
 }

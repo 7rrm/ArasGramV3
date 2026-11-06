@@ -76,7 +76,12 @@ public class NekoConfig {
     public static final ArrayList<DatacenterInfo> datacenterInfos = new ArrayList<>(5);
 
     // Configs
-    public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackButton", configTypeBool, true); // MeeroX v254: ON by default (unread counter on the back button, normal style)
+        // MeeroX v254f: مؤشرات التحميل (Material 3) — نفس مفتاح «Loading Indicators»
+    // في النسخة الثانية (OEAppearanceNewLoadingStyle)، افتراضي OFF هنا حتى يكون
+    // الأصل هو الوضع الافتراضي، وتفعيله يعطي النسخة الثانية حرفياً.
+    public static ConfigItem meeroMd3Loading = addConfig("meeroMd3Loading", configTypeBool, false);
+
+public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackButton", configTypeBool, true); // MeeroX v254: ON by default (unread counter on the back button, normal style)
     public static ConfigItem useCustomEmoji = addConfig("useCustomEmoji", configTypeBool, false);
     public static ConfigItem repeatConfirm = addConfig("repeatConfirm", configTypeBool, true);
     public static ConfigItem disableInstantCamera = addConfig("DisableInstantCamera", configTypeBool, true);
@@ -109,9 +114,6 @@ public class NekoConfig {
     public static ConfigItem meeroIosSounds = addConfig("meeroIosSounds", configTypeBool, true);
     public static ConfigItem meeroGlassBorders = addConfig("meeroGlassBorders", configTypeBool, true);
     public static ConfigItem meeroIosLoading = addConfig("meeroIosLoading", configTypeBool, true);
-    // MeeroX v254: أشكال التحميل الهندسية (M3 من exteraless) في كل مواضع التحميل.
-    // افتراضي OFF: إطفاؤه = كل شيء كما قبل التعديل. الحوار الأوسط يبقى على القوسين دائماً.
-    public static ConfigItem meeroMd3Loading = addConfig("meeroMd3Loading", configTypeBool, false);
     public static ConfigItem meeroIosCode = addConfig("meeroIosCode", configTypeBool, true);
     public static ConfigItem meeroIosIntro = addConfig("meeroIosIntro", configTypeBool, true);
     // v207 (owner order: "زيله منحتاجه اصلا"): the v205 meeroChatHeaderAvatar

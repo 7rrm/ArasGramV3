@@ -224,16 +224,6 @@ public class LoadingDrawable extends Drawable {
             return;
         }
 
-        // MeeroX v254: أشكال Material 3 عند تفعيل الخيار (وإلا الأصل كما هو تماماً)
-        {
-            final Rect mb = getBounds();
-            final float side = Math.min(mb.width(), mb.height());
-            if (side > 0 && MeeroMd3Loader.drawInto(canvas, mb.centerX(), mb.centerY(),
-                    side * 0.45f, Theme.getColor(Theme.key_progressCircle), getPaintAlpha())) {
-                return;
-            }
-        }
-
         Rect bounds = getBounds();
         if (getPaintAlpha() <= 0) {
             return;

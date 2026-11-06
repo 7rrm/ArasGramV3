@@ -11697,5 +11697,5 @@
     <string name="MeeroProfileMusicCard">Music card in profile</string>
     <string name="MeeroPlayerLrclib">Synced lyrics search (LRCLIB)</string>
     <string name="MeeroPlayerCustomize">Customize player</string>
-    <string name="MeeroMd3Loading">Loading shapes (Material 3)</string>
+    <string name="MeeroMd3Loading">Loading Indicators</string>
 </resources>

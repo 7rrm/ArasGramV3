@@ -1398,5 +1398,5 @@
     <string name="MeeroProfileMusicCard">بطاقة الموسيقى في الملف الشخصي</string>
     <string name="MeeroPlayerLrclib">البحث عن الكلمات المتزامنة (LRCLIB)</string>
     <string name="MeeroPlayerCustomize">تخصيص المشغّل</string>
-    <string name="MeeroMd3Loading">أشكال التحميل (Material 3)</string>
+    <string name="MeeroMd3Loading">مؤشرات التحميل</string>
 </resources>
