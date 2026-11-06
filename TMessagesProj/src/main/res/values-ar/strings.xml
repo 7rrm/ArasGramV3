@@ -1399,4 +1399,5 @@
     <string name="MeeroPlayerLrclib">البحث عن الكلمات المتزامنة (LRCLIB)</string>
     <string name="MeeroPlayerCustomize">تخصيص المشغّل</string>
     <string name="MeeroMd3Loading">مؤشرات التحميل</string>
+    <string name="MeeroMusicBubble">مشغّل موسيقى دائري في المحادثات</string>
 </resources>

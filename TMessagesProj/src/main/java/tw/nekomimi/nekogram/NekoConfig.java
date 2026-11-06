@@ -80,6 +80,9 @@ public class NekoConfig {
     // في النسخة الثانية (OEAppearanceNewLoadingStyle)، افتراضي OFF هنا حتى يكون
     // الأصل هو الوضع الافتراضي، وتفعيله يعطي النسخة الثانية حرفياً.
     public static ConfigItem meeroMd3Loading = addConfig("meeroMd3Loading", configTypeBool, false);
+    // MeeroX v255: فقاعة المشغّل الدائرية في قائمة المحادثات بدل الشريط السفلي.
+    // افتراضي ON — أطفئها ليعود السلوك القديم (بلا مشغّل في القائمة).
+    public static ConfigItem meeroMusicBubble = addConfig("meeroMusicBubble", configTypeBool, true);
 
 public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackButton", configTypeBool, true); // MeeroX v254: ON by default (unread counter on the back button, normal style)
     public static ConfigItem useCustomEmoji = addConfig("useCustomEmoji", configTypeBool, false);

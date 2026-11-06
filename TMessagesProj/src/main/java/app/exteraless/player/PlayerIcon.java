@@ -44,8 +44,8 @@ public class PlayerIcon extends Drawable {
 
     private static final HashMap<String, Path> cache = new HashMap<>();
 
-    private final Path strokePath;
-    private final Path fillPath;
+    private Path strokePath;
+    private Path fillPath;
     private final Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final int size;
@@ -96,6 +96,15 @@ public class PlayerIcon extends Drawable {
             fillPaint.setColor(color);
             invalidateSelf();
         }
+    }
+
+    /**
+     * MeeroX v255: تبديل شكل الأيقونة في نفس الكائن — تحتاجه فقاعة المشغّل
+     * لتنتقل بين ▶ و⏸ داخل القائمة دون إعادة إنشاء Drawable.
+     */
+    public void setIcon(String d) {
+        strokePath = d == null ? null : path(d);
+        invalidateSelf();
     }
 
     public void setFillStroke(boolean fill) {

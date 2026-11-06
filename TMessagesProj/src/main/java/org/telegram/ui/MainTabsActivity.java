@@ -172,6 +172,8 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
     private UpdateLayoutWrapper updateLayoutWrapper;
     private app.exteraless.player.PlayerMiniView miniPlayer;
+    // MeeroX v255: فقاعة المشغّل الدائرية
+    private tw.nekomimi.nekogram.music.MeeroMusicBubble musicBubble;
     private FrameLayout tabsViewWrapper;
     private MainTabsLayout tabsView;
     private BlurredBackgroundDrawable tabsViewBackground;
@@ -524,10 +526,16 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
         contentView.addView(fadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.BOTTOM));
 
-        // ArasGram: мини-плеер из exteraless — плавающая карточка над панелью вкладок.
-        miniPlayer = new app.exteraless.player.PlayerMiniView(context, this, resourceProvider);
-        miniPlayer.setOffsetListener(this::onMiniPlayerOffsetChanged);
-        contentView.addView(miniPlayer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, app.exteraless.player.PlayerMiniView.HEIGHT_DP + 16, Gravity.BOTTOM));
+        // MeeroX v255: الشريط السفلي القديم أُزيل بناءً على طلب المالك — يغطي
+        // إعدادات القائمة. البديل: فقاعة دائرية عائمة صغيرة قابلة للسحب.
+        if (tw.nekomimi.nekogram.NekoConfig.meeroMusicBubble.Bool()) {
+            musicBubble = new tw.nekomimi.nekogram.music.MeeroMusicBubble(context, currentAccount);
+            musicBubble.setOnLayoutChanged(this::placeMusicBubble);
+            contentView.addView(musicBubble, LayoutHelper.createFrame(
+                    tw.nekomimi.nekogram.music.MeeroMusicBubble.SIZE_DP,
+                    tw.nekomimi.nekogram.music.MeeroMusicBubble.SIZE_DP));
+            musicBubble.attach();
+        }
         contentView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(@NonNull View v) {
@@ -1338,6 +1346,24 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         fadeView.setVisibility(alpha > 0 ? View.VISIBLE : View.GONE);
     }
 
+    /**
+     * MeeroX v255: تثبيت الفقاعة فوق شريط التبويبات. تُستدعى عند بدء التشغيل،
+     * وعند تغيّر المقاس، وبعد كل سحب — حتى لا تخرج عن الشاشة أو تدخل تحت التبويبات.
+     */
+    private void placeMusicBubble() {
+        if (musicBubble == null || contentView == null) {
+            return;
+        }
+        final int w = contentView.getWidth();
+        final int h = contentView.getHeight();
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+        final boolean hidden = NaConfig.INSTANCE.getHideBottomNavigationBar().Bool();
+        final int tabs = hidden ? 0 : dp(MainTabsHelper.getMainTabsHeightWithMargins());
+        musicBubble.place(w, h, navigationBarHeight + tabs + dp(14));
+    }
+
     private void checkUi_miniPlayer() {
         if (miniPlayer == null || updateLayoutWrapper == null) {
             return;
@@ -1347,9 +1373,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         final int tabsHeight = hidden ? 0 : dp(MainTabsHelper.getMainTabsHeightWithMargins());
         final int gap = hidden ? dp(4) : dp(12);
         final float factor = hidden ? 1f : animatorTabsVisible.getFloatValue();
-        miniPlayer.setHostPosition(-(navigationBarHeight + updateLayoutHeight + tabsHeight + gap - dp(12)), factor);
-        updateMiniPlayerTopAnchor();
-        onMiniPlayerOffsetChanged();
+        if (miniPlayer != null) {
+            miniPlayer.setHostPosition(-(navigationBarHeight + updateLayoutHeight + tabsHeight + gap - dp(12)), factor);
+            updateMiniPlayerTopAnchor();
+            onMiniPlayerOffsetChanged();
+        }
+        placeMusicBubble();
     }
 
     private final ViewTreeObserver.OnPreDrawListener miniPlayerAnchorListener = () -> {
@@ -1383,6 +1412,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     }
 
     private void applyMiniPlayerInsets(TabFragmentDelegate delegate, boolean chats) {
+        if (miniPlayer == null) {
+            return;
+        }
         delegate.setMiniPlayerInset(miniPlayer.getVisibleOffset(chats), miniPlayer.getTargetOffset(chats));
         delegate.setMiniPlayerTopPadding(miniPlayer.getTargetTopOffset(chats));
     }

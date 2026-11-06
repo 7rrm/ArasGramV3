@@ -202,6 +202,9 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     // وهذا سبب ظهور "meeroMd3Loading" إنجليزياً في القائمة.
     private final AbstractConfigCell md3LoadingRow = cellGroup.appendCell(
             new ConfigCellTextCheck(NekoConfig.meeroMd3Loading, null, getString(R.string.MeeroMd3Loading)));
+    // MeeroX v255: فقاعة المشغّل الدائرية في قائمة المحادثات (بدل الشريط السفلي).
+    private final AbstractConfigCell musicBubbleRow = cellGroup.appendCell(
+            new ConfigCellTextCheck(NekoConfig.meeroMusicBubble, null, getString(R.string.MeeroMusicBubble)));
     private final AbstractConfigCell iconReplacements = cellGroup.appendCell(new ConfigCellSelectBox("IconReplacements", NaConfig.INSTANCE.getIconReplacements(), new String[]{
             getString(R.string.Default),
             getString(R.string.IconReplacementSolar),
