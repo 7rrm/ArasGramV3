@@ -20,12 +20,11 @@ package org.telegram.ui.Components;
 import android.content.Context;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
-import android.view.ContextThemeWrapper;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.SweepGradient;
 import android.graphics.drawable.Drawable;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 
 import com.google.android.material.loadingindicator.LoadingIndicator;
@@ -237,6 +236,10 @@ public class RadialProgressView extends View implements Drawable.Callback {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         lastUpdateTime = System.currentTimeMillis();
+        // MeeroX v254f: نفس سطر النسخة الثانية
+        if (m3Drawable != null) {
+            m3Drawable.setVisible(true, true);
+        }
     }
 
     public void setNoProgress(boolean value) {
@@ -339,14 +342,6 @@ public class RadialProgressView extends View implements Drawable.Callback {
             toCircleProgress = toCircle ? 1f : 0f;
         }
         invalidate();
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        if (m3Drawable != null) {
-            m3Drawable.setVisible(true, true);
-        }
     }
 
     @Override
