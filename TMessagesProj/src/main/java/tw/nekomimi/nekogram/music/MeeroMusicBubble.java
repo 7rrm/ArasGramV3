@@ -124,6 +124,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
      */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        // لا نسحب اللمس من الأبناء أبداً — الدائرة والقائمة تحتاجهما
         return false;
     }
 
@@ -134,6 +135,37 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             closePanel(true);
         }
         return false;
+    }
+
+    /**
+     * v255 fix4: بما أن الطبقة تغطي الشاشة، نحسب أين وقع اللمس بأنفسنا
+     * ونوجّهه للدائرة أو للقائمة. هذا يضمن السحب حتى لو تعامل Android
+     * مع الطبقة كحاجز لمس.
+     */
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (bubble == null) {
+            return super.dispatchTouchEvent(ev);
+        }
+        final float x = ev.getX();
+        final float y = ev.getY();
+        final float bx = bubble.getX();
+        final float by = bubble.getY();
+        final int bs = bubble.getWidth() > 0 ? bubble.getWidth() : dp(SIZE_DP);
+        final float touch = dp(16); // منطقة لمس أوسع قليلاً من الدائرة
+        final boolean inBubble = x >= bx - touch && x <= bx + bs + touch
+                && y >= by - touch && y <= by + bs + touch;
+
+        if (!inBubble && !panelOpen) {
+            // لا شيء تحت الإصبع: لا تعترض، مرّر للقائمة تحتها
+            return false;
+        }
+        // وجّه الحدث للدائرة نفسها
+        final MotionEvent local = MotionEvent.obtain(ev);
+        local.offsetLocation(-bx, -by);
+        boolean handled = bubble.dispatchTouchEvent(local);
+        local.recycle();
+        return handled || super.dispatchTouchEvent(ev);
     }
 
     public void setOnLayoutChanged(Runnable runnable) {
@@ -257,6 +289,9 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     private void applyAppear() {
         setVisibility(appearProgress > 0f ? VISIBLE : GONE);
+        // v255 fix4: ثبّت الموضع فور الظهور — قبل هذا كانت الدائرة تظهر
+        // في الزاوية العليا حتى يصل أول استدعاء من المضيف.
+        layoutBubble();
         bubble.setAlpha(appearProgress);
         float s = 0.7f + 0.3f * appearProgress;
         bubble.setScaleX(s);
@@ -293,6 +328,16 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         return dp(SIZE_DP);
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        // أول مقاس حقيقي للطبقة ⇒ احسب الموضع الافتراضي فوراً
+        if (w > 0 && h > 0) {
+            layoutBubble();
+            layoutPanel(w, h);
+        }
+    }
+
     private void layoutBubble() {
         if (!(bubble.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) {
             return;
@@ -321,6 +366,11 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         lp.leftMargin = Math.round(posX);
         lp.topMargin = Math.round(posY);
         bubble.setLayoutParams(lp);
+        // v255 fix4: setLayoutParams لا يُنفَّذ إلا بعد دورة تخطيط كاملة،
+        // وكانت الدائرة تبقى في (0,0) — أعلى الشاشة كما في الصورة.
+        // setX/setY تحدّد الموضع فعلياً في أي وقت، فتُستعمل مع المارجن.
+        bubble.setX(posX);
+        bubble.setY(posY);
     }
 
     /**
@@ -375,6 +425,11 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             ringPaint.setStrokeCap(Paint.Cap.ROUND);
             wavePaint.setStyle(Paint.Style.STROKE);
             setClickable(true);
+            setFocusable(true);
+            // v255 fix4: الطبقة الأم صارت MATCH_PARENT، والدائرة عنصر داخلها.
+            // بدون هذا تصبح ضغطات الدائرة من نصيب الطبقة الأم (التي لا تعالج
+            // اللمس) ⇒ القائمة تُفتح ثم تُغلق فوراً ولا يمكن السحب.
+            requestDisallowInterceptTouchEvent(true);
         }
 
         @Override
@@ -439,11 +494,13 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             // ✕ عندما تكون القائمة مفتوحة، وموسيقى عندما تُغلق
             final PlayerIcon icon = panelOpen ? closeIcon : noteIcon;
             icon.setColor(colors.onPrimary);
-            final int half = icon.getIntrinsicWidth() / 2;
-            canvas.save();
-            canvas.translate(cx - half, cy - half);
+            // v255 fix4: PlayerIcon.draw() يتمركز حول getBounds()، وكانت
+            // الحدود (0,0,0,0) فلا تُرسم الأيقونة إلا في الزاوية العليا
+            // (لهذا ظهرت ✕ وحدها مقطوعة). نضبط الحدود حول المركز أولاً.
+            final int s = dp(24);
+            icon.setBounds(Math.round(cx - s / 2f), Math.round(cy - s / 2f),
+                    Math.round(cx + s / 2f), Math.round(cy + s / 2f));
             icon.draw(canvas);
-            canvas.restore();
         }
 
         @Override
