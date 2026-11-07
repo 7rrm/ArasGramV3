@@ -91,7 +91,7 @@
     <string name="OEPlayerMiniProgressBorder">Border</string>
     <string name="OEPlayerMiniProgressNone">None</string>
     <string name="OEPlayerMiniColors">Colors</string>
-    <string name="OEPlayerMiniMoveHint">On the Chats tab, long-press the mini player and drag it up under the search or back down</string>
+    <string name="OEPlayerMiniMoveHint">In Chats, drag the circle to move it and tap it to open the player menu.</string>
     <string name="OEPlayerMiniCompact">Compact</string>
     <string name="OEPlayerMiniArtist">Show artist</string>
     <string name="OEPlayerMiniPrevious">Previous track button</string>

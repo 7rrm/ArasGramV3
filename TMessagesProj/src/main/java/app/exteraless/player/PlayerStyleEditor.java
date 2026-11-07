@@ -68,7 +68,7 @@ public class PlayerStyleEditor extends LinearLayout {
     private ElementCard titleCard;
     private final ElementCard[] blockCard = new ElementCard[3];
     private LinearLayout blockCards;
-    private PlayerMiniView miniPreview;
+    private tw.nekomimi.nekogram.music.MeeroMusicBubble bubblePreview;
     private View extendRow;
     private ChipGroup coverChips;
     private final LinearLayout[] sections = new LinearLayout[3];
@@ -160,17 +160,16 @@ public class PlayerStyleEditor extends LinearLayout {
         addInfo(R.string.OEPlayerLayoutInfo);
 
         section = sections[2];
-        // v255 fix6: قسم «المشغّل المصغّر» صار يعاين الدائرة الجديدة بدل
-        // الشريط القديم (الذي أُزيل من قائمة المحادثات).
-        section.addView(buildBubblePreview(context), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, dp(120)));
+        FrameLayout previewContainer = new FrameLayout(context);
+        bubblePreview = new tw.nekomimi.nekogram.music.MeeroMusicBubble(context, org.telegram.messenger.UserConfig.selectedAccount);
+        previewContainer.addView(bubblePreview.createPanelPreview(), LayoutHelper.createFrame(224, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
+        section.addView(previewContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 150));
         addInfo(R.string.OEPlayerMiniMoveHint);
-        // v255 fix6: الغلاف والشكل أصبحا خصائص الدائرة نفسها:
-        // إظهار/إخفاء الغلاف في القائمة، وحجم الدائرة.
         addInfo(R.string.OEPlayerStyleCover);
         addSegmented(new String[]{
-                getString(R.string.OEPlayerMiniCoverRounded), getString(R.string.OEPlayerMiniCoverHidden)
-        }, () -> PlayerStyle.bubblePanelCover() ? 0 : 1,
-                value -> AppearanceConfig.playerMiniCover.setConfigInt(value));
+                getString(R.string.OEPlayerMiniCoverRounded), getString(R.string.OEPlayerMiniCoverRound),
+                getString(R.string.OEPlayerMiniCoverHidden)
+        }, PlayerStyle::miniCover, value -> AppearanceConfig.playerMiniCover.setConfigInt(value));
         addInfo(R.string.OEPlayerMiniShape);
         addSegmented(new String[]{
                 getString(R.string.OEPlayerMiniShapeRounded), getString(R.string.OEPlayerMiniShapePill)
@@ -296,6 +295,7 @@ public class PlayerStyleEditor extends LinearLayout {
         for (Part part : parts) {
             part.bind(colors);
         }
+        if (bubblePreview != null) bubblePreview.refreshPanelPreview();
     }
 
     public void refresh() {
@@ -308,8 +308,8 @@ public class PlayerStyleEditor extends LinearLayout {
     }
 
     private void refreshMini() {
-        if (miniPreview != null) {
-            miniPreview.applyStyle(true);
+        if (bubblePreview != null) {
+            bubblePreview.refreshPanelPreview();
         }
         PlayerMiniView.styleChanged();
     }
@@ -844,8 +844,4 @@ public class PlayerStyleEditor extends LinearLayout {
         }
     }
 
-    /** معاينة حيّة للدائرة الجديدة داخل قسم التخصيص. */
-    private View buildBubblePreview(Context context) {
-        return new tw.nekomimi.nekogram.music.MeeroMusicBubble(context, org.telegram.messenger.UserConfig.selectedAccount);
-    }
 }

@@ -11,6 +11,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
@@ -30,6 +32,7 @@ import androidx.annotation.NonNull;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MediaController;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.R;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
@@ -81,6 +84,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     private int state = STATE_HIDDEN;
     private boolean panelOpen;
+    private boolean previewMode;
     private float appearProgress;
 
     private float panelProgress;
@@ -217,6 +221,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.messagePlayingProgressDidChanged) {
             bubble.invalidate();
+            panel.invalidateProgress();
             return;
         }
         refresh(true);
@@ -243,6 +248,10 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         }
         colors = resolveColors(mo);
         panel.bind(mo, colors);
+        ViewGroup.LayoutParams panelParams = panel.getLayoutParams();
+        panelParams.width = dp(PlayerStyle.miniCompact() ? 200 : PANEL_WIDTH_DP);
+        panel.setLayoutParams(panelParams);
+        if (getWidth() > 0 && getHeight() > 0) layoutPanel(getWidth(), getHeight());
         bubble.invalidate();
         setState(STATE_VISIBLE, animated);
     }
@@ -259,7 +268,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         }
         final int argb = Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
         int chosenSeed;
-        if (PlayerStyle.themeColors()) {
+        if (PlayerStyle.miniThemeColors()) {
             // «لون الثيم» مختار ⇒ لون الثيم
             chosenSeed = argb;
         } else {
@@ -393,7 +402,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
      */
     private void layoutPanel(int hostWidth, int hostHeight) {
         ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) panel.getLayoutParams();
-        int pw = dp(PANEL_WIDTH_DP);
+        int pw = dp(PlayerStyle.miniCompact() ? 200 : PANEL_WIDTH_DP);
         int ph = panel.getMeasuredHeight() > 0 ? panel.getMeasuredHeight() : dp(148);
         float centerX = posX + dp(SIZE_DP) / 2f;
         float third = hostWidth / 3f;
@@ -582,7 +591,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     private float currentProgress() {
         if (current == null) {
-            return 0f;
+            return previewMode ? 0.38f : 0f;
         }
         float d = (float) current.getDuration();
         if (d <= 0) {
@@ -612,6 +621,11 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         if (panelOpen || current == null) {
             return;
         }
+        colors = resolveColors(current);
+        panel.bind(current, colors);
+        ViewGroup.LayoutParams panelParams = panel.getLayoutParams();
+        panelParams.width = dp(PlayerStyle.miniCompact() ? 200 : PANEL_WIDTH_DP);
+        panel.setLayoutParams(panelParams);
         panelOpen = true;
         bubble.invalidate();
         ViewGroup parent = (ViewGroup) getParent();
@@ -620,7 +634,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         }
         panel.setVisibility(VISIBLE);
         panel.measure(
-                MeasureSpec.makeMeasureSpec(dp(PANEL_WIDTH_DP), MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(dp(PlayerStyle.miniCompact() ? 200 : PANEL_WIDTH_DP), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
         if (parent != null) {
             layoutPanel(parent.getWidth(), parent.getHeight());
@@ -684,6 +698,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         private final ImageView play;
         private final ImageView next;
         private final ImageView close;
+        private final View progressLine;
+        private final Paint progressPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
         PanelView(Context context) {
             super(context);
@@ -691,7 +707,25 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             setPadding(dp(10), dp(10), dp(10), dp(8));
 
             // ---- الرأس: غلاف + اسم الأغنية + الفنان (ينقل للمشغل الكبير) ----
-            header = new LinearLayout(context);
+            header = new LinearLayout(context) {
+                @Override protected void dispatchDraw(Canvas canvas) {
+                    super.dispatchDraw(canvas);
+                    if (PlayerStyle.miniProgress() != PlayerStyle.MINI_PROGRESS_BORDER || colors == null) return;
+                    float inset = dp(1.5f);
+                    RectF rect = new RectF(inset, inset, getWidth() - inset, getHeight() - inset);
+                    Path path = new Path();
+                    float radius = PlayerStyle.bubbleShape() == 1 ? getHeight() / 2f : dp(10);
+                    path.addRoundRect(rect, radius, radius, Path.Direction.CW);
+                    PathMeasure measure = new PathMeasure(path, false);
+                    Path segment = new Path();
+                    measure.getSegment(0, measure.getLength() * currentProgress(), segment, true);
+                    progressPaint.setStyle(Paint.Style.STROKE);
+                    progressPaint.setStrokeWidth(dp(2));
+                    progressPaint.setStrokeCap(Paint.Cap.ROUND);
+                    progressPaint.setColor(colors.primary);
+                    canvas.drawPath(segment, progressPaint);
+                }
+            };
             header.setOrientation(HORIZONTAL);
             header.setClickable(true);
             header.setOnClickListener(v -> openFullPlayer());
@@ -712,6 +746,22 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             header.addView(texts, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, 8, 0, 0, 0));
             addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
+            progressLine = new View(context) {
+                @Override protected void onDraw(Canvas canvas) {
+                    super.onDraw(canvas);
+                    if (colors == null) return;
+                    float y = getHeight() / 2f;
+                    progressPaint.setStyle(Paint.Style.STROKE);
+                    progressPaint.setStrokeWidth(dp(3));
+                    progressPaint.setStrokeCap(Paint.Cap.ROUND);
+                    progressPaint.setColor(colors.outlineVariant);
+                    canvas.drawLine(dp(2), y, getWidth() - dp(2), y, progressPaint);
+                    progressPaint.setColor(colors.primary);
+                    canvas.drawLine(dp(2), y, dp(2) + (getWidth() - dp(4)) * currentProgress(), y, progressPaint);
+                }
+            };
+            addView(progressLine, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 10, Gravity.CENTER, 2, 4, 2, 0));
+
             // ---- الأزرار: السابق · إيقاف/تشغيل · التالي · إغلاق المشغل ----
             LinearLayout buttons = new LinearLayout(context);
             buttons.setOrientation(HORIZONTAL);
@@ -719,12 +769,31 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
             prev = makeButton(context, prevIcon);
             prev.setOnClickListener(v -> {
+                if (previewMode) return;
                 MediaController.getInstance().playPreviousMessage();
                 refreshPanelOnly();
             });
 
-            play = makeButton(context, playIcon);
+            play = new ImageView(context) {
+                @Override protected void onDraw(Canvas canvas) {
+                    super.onDraw(canvas);
+                    if (PlayerStyle.miniProgress() != PlayerStyle.MINI_PROGRESS_RING || colors == null) return;
+                    float inset = dp(2);
+                    RectF rect = new RectF(inset, inset, getWidth() - inset, getHeight() - inset);
+                    progressPaint.setStyle(Paint.Style.STROKE);
+                    progressPaint.setStrokeWidth(dp(2));
+                    progressPaint.setStrokeCap(Paint.Cap.ROUND);
+                    progressPaint.setColor(colors.outlineVariant);
+                    canvas.drawArc(rect, -90, 360, false, progressPaint);
+                    progressPaint.setColor(colors.primary);
+                    canvas.drawArc(rect, -90, 360 * currentProgress(), false, progressPaint);
+                }
+            };
+            play.setImageDrawable(playIcon);
+            play.setClickable(true);
+            play.setFocusable(true);
             play.setOnClickListener(v -> {
+                if (previewMode) return;
                 MediaController mc = MediaController.getInstance();
                 MessageObject mo = mc.getPlayingMessageObject();
                 if (mo == null || mc.isDownloadingCurrentMessage()) {
@@ -740,6 +809,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
             next = makeButton(context, nextIcon);
             next.setOnClickListener(v -> {
+                if (previewMode) return;
                 MediaController.getInstance().playNextMessage();
                 refreshPanelOnly();
             });
@@ -747,6 +817,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             // v255 fix6: ✕ يطفئ الموسيقى وتختفي الدائرة (كما في المشغل القديم)
             close = makeButton(context, closeIcon);
             close.setOnClickListener(v -> {
+                if (previewMode) return;
                 MediaController.getInstance().cleanupPlayer(true, true);
                 closePanel(false);
                 refresh(false);
@@ -769,14 +840,22 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         }
 
         void bind(MessageObject mo, PlayerColors c) {
-            if (mo == null || c == null) {
-                return;
-            }
-            setBackground(Theme.createRoundRectDrawable(dp(18), c.surfaceContainer));
+            if (c == null) return;
+            boolean compact = PlayerStyle.miniCompact();
+            setPadding(dp(compact ? 7 : 10), dp(compact ? 7 : 10), dp(compact ? 7 : 10), dp(compact ? 5 : 8));
+            setBackground(Theme.createRoundRectDrawable(dp(PlayerStyle.bubbleShape() == 1 ? 80 : 18), c.surfaceContainer));
+            cover.setVisibility(PlayerStyle.miniCover() == PlayerStyle.MINI_COVER_HIDDEN ? GONE : VISIBLE);
+            cover.setRadius(dp(PlayerStyle.miniCover() == PlayerStyle.MINI_COVER_ROUND ? 22 : 10));
+            artistView.setVisibility(PlayerStyle.miniArtist() ? VISIBLE : GONE);
+            prev.setVisibility(PlayerStyle.miniPrevious() ? VISIBLE : GONE);
+            next.setVisibility(PlayerStyle.miniNext() ? VISIBLE : GONE);
+            close.setVisibility(PlayerStyle.miniClose() ? VISIBLE : GONE);
+            progressLine.setVisibility(PlayerStyle.miniProgress() == PlayerStyle.MINI_PROGRESS_LINE ? VISIBLE : GONE);
+            titleView.setTextSize(compact ? 12 : 13);
             titleView.setTextColor(c.onSurface);
             artistView.setTextColor(c.onSurfaceVariant);
-            titleView.setText(mo.getMusicTitle(false));
-            artistView.setText(mo.getMusicAuthor(false));
+            titleView.setText(mo == null ? getString(R.string.OEPlayerPreviewTitle) : mo.getMusicTitle(false));
+            artistView.setText(mo == null ? getString(R.string.OEPlayerPreviewArtist) : mo.getMusicAuthor(false));
             cover.setMessage(mo);
             header.setBackground(Theme.createSelectorDrawable(0x15000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
             final int tint = c.onPrimaryContainer;
@@ -790,6 +869,37 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             close.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
             boolean paused = MediaController.getInstance().isMessagePaused();
             playIcon.setIcon(paused ? PlayerIcon.PLAY : PlayerIcon.PAUSE);
+            invalidateProgress();
+        }
+
+        void invalidateProgress() {
+            header.invalidate();
+            progressLine.invalidate();
+            play.invalidate();
+        }
+    }
+
+    /** The editor uses the actual panel view, without activating playback controls. */
+    public View createPanelPreview() {
+        previewMode = true;
+        removeView(panel);
+        panel.setVisibility(VISIBLE);
+        panel.setAlpha(1f);
+        refreshPanelPreview();
+        return panel;
+    }
+
+    public void refreshPanelPreview() {
+        if (!previewMode) return;
+        MessageObject playing = MediaController.getInstance().getPlayingMessageObject();
+        current = playing != null && playing.isMusic() ? playing : null;
+        dark = PlayerColors.isDark(null);
+        colors = current == null ? PlayerColors.fromSeed(PlayerColors.fallbackSeed(null), dark) : resolveColors(current);
+        panel.bind(current, colors);
+        ViewGroup.LayoutParams lp = panel.getLayoutParams();
+        if (lp != null) {
+            lp.width = dp(PlayerStyle.miniCompact() ? 200 : PANEL_WIDTH_DP);
+            panel.setLayoutParams(lp);
         }
     }
 
