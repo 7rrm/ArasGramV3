@@ -240,4 +240,16 @@ public final class PlayerStyle {
             }
         }
     }
+
+    // ===== v255 fix6: خصائص الدائرة الجديدة (تستعمل نفس إعدادات المصغّر) =====
+
+    /** إظهار غلاف الأغنية داخل قائمة الدائرة. */
+    public static boolean bubblePanelCover() {
+        return miniCover() != MINI_COVER_HIDDEN;
+    }
+
+    /** شكل الدائرة: 0 = مستدير، 1 = بيضاوي ناعم (يتبع إعداد المصغّر). */
+    public static int bubbleShape() {
+        return Math.min(1, Math.max(0, miniShape()));
+    }
 }

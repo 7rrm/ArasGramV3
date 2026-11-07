@@ -7,6 +7,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -37,6 +38,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import app.exteraless.player.CoverImage;
 import app.exteraless.player.PlayerArt;
 import app.exteraless.player.PlayerColors;
+import app.exteraless.player.PlayerSheet;
 import app.exteraless.player.PlayerIcon;
 import app.exteraless.player.PlayerStyle;
 
@@ -60,7 +62,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     /** قطر الدائرة — أصغر من زر المكالمة (56dp). */
     public static final int SIZE_DP = 48;
-    private static final int PANEL_WIDTH_DP = 168;
+    private static final int PANEL_WIDTH_DP = 224;   // v255 fix6: أوسع قليلاً كما طُلب
 
     private static final int STATE_HIDDEN = 0;
     private static final int STATE_VISIBLE = 1;
@@ -133,10 +135,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // اللمس خارج الدائرة/القائمة: أغلق القائمة ومرّر الحدث للأب
-        if (panelOpen) {
-            closePanel(true);
-        }
+        // الطبقة نفسها لا تستهلك اللمس أبداً — الأبناء (الدائرة/القائمة)
+        // يستقبلونه أولاً، وما يصل هنا يعني أنه خارجها.
         return false;
     }
 
@@ -147,6 +147,10 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
      */
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        // v255 fix6: سابقاً كنت أُعيد false للحدث خارج الدائرة، وهذا كان يقطع
+        // سلسلة اللمس فلا تصل للأزرار داخل القائمة أبداً (كل زر يغلق القائمة).
+        // الآن: التوجيه يقتصر على الدائرة، وكل ما سواها يمرّ للمسار الطبيعي
+        // (القائمة ثم الأبناء ثم الأب).
         if (bubble == null) {
             return super.dispatchTouchEvent(ev);
         }
@@ -155,20 +159,20 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         final float bx = bubble.getX();
         final float by = bubble.getY();
         final int bs = bubble.getWidth() > 0 ? bubble.getWidth() : dp(SIZE_DP);
-        final float touch = dp(16); // منطقة لمس أوسع قليلاً من الدائرة
+        final float touch = dp(18);
         final boolean inBubble = x >= bx - touch && x <= bx + bs + touch
                 && y >= by - touch && y <= by + bs + touch;
 
-        if (!inBubble && !panelOpen) {
-            // لا شيء تحت الإصبع: لا تعترض، مرّر للقائمة تحتها
-            return false;
+        if (inBubble) {
+            final MotionEvent local = MotionEvent.obtain(ev);
+            local.offsetLocation(-bx, -by);
+            boolean handled = bubble.dispatchTouchEvent(local);
+            local.recycle();
+            if (handled) {
+                return true;
+            }
         }
-        // وجّه الحدث للدائرة نفسها
-        final MotionEvent local = MotionEvent.obtain(ev);
-        local.offsetLocation(-bx, -by);
-        boolean handled = bubble.dispatchTouchEvent(local);
-        local.recycle();
-        return handled || super.dispatchTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
     }
 
     public void setOnLayoutChanged(Runnable runnable) {
@@ -245,8 +249,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     private PlayerColors resolveColors(MessageObject mo) {
         boolean paused = MediaController.getInstance().isMessagePaused();
         if (paused) {
-            final int blue = 0xff3390EC;
-            return PlayerColors.fromSeed(blue, dark);
+            // v255 fix6: أزرق واضح عند التوقّف — لا يتأثر بلون الثيم أو الغلاف
+            return PlayerColors.fromSeed(0xff3390EC, false);
         }
         final int argb = Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
         int chosenSeed;
@@ -666,23 +670,28 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         private final CoverImage cover;
         private final TextView titleView;
         private final TextView artistView;
-        private final PlayerIcon prevIcon = PlayerIcon.stroke(PlayerIcon.PREV, 20);
-        private final PlayerIcon nextIcon = PlayerIcon.stroke(PlayerIcon.NEXT, 20);
-        private final PlayerIcon playIcon = PlayerIcon.stroke(PlayerIcon.PAUSE, 20);
+        private final LinearLayout header;
+        private final PlayerIcon prevIcon = PlayerIcon.stroke(PlayerIcon.PREV, 22);
+        private final PlayerIcon nextIcon = PlayerIcon.stroke(PlayerIcon.NEXT, 22);
+        private final PlayerIcon playIcon = PlayerIcon.stroke(PlayerIcon.PAUSE, 22);
+        private final PlayerIcon closeIcon = PlayerIcon.stroke(PlayerIcon.CLOSE, 22);
         private final ImageView prev;
         private final ImageView play;
         private final ImageView next;
+        private final ImageView close;
 
         PanelView(Context context) {
             super(context);
             setOrientation(VERTICAL);
             setPadding(dp(10), dp(10), dp(10), dp(8));
-            setBackground(Theme.createRoundRectDrawable(dp(18), 0xFFFFFFFF));
 
-            LinearLayout header = new LinearLayout(context);
+            // ---- الرأس: غلاف + اسم الأغنية + الفنان (ينقل للمشغل الكبير) ----
+            header = new LinearLayout(context);
             header.setOrientation(HORIZONTAL);
-            cover = new CoverImage(context, 16);
-            header.addView(cover, LayoutHelper.createLinear(40, 40));
+            header.setClickable(true);
+            header.setOnClickListener(v -> openFullPlayer());
+            cover = new CoverImage(context, 14);
+            header.addView(cover, LayoutHelper.createLinear(44, 44));
             LinearLayout texts = new LinearLayout(context);
             texts.setOrientation(VERTICAL);
             titleView = new TextView(context);
@@ -698,11 +707,17 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             header.addView(texts, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, 8, 0, 0, 0));
             addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
+            // ---- الأزرار: السابق · إيقاف/تشغيل · التالي · إغلاق المشغل ----
             LinearLayout buttons = new LinearLayout(context);
             buttons.setOrientation(HORIZONTAL);
             buttons.setGravity(Gravity.CENTER);
+
             prev = makeButton(context, prevIcon);
-            prev.setOnClickListener(v -> MediaController.getInstance().playPreviousMessage());
+            prev.setOnClickListener(v -> {
+                MediaController.getInstance().playPreviousMessage();
+                refreshPanelOnly();
+            });
+
             play = makeButton(context, playIcon);
             play.setOnClickListener(v -> {
                 MediaController mc = MediaController.getInstance();
@@ -715,12 +730,27 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                 } else {
                     mc.pauseMessage(mo);
                 }
+                refreshPanelOnly();
             });
+
             next = makeButton(context, nextIcon);
-            next.setOnClickListener(v -> MediaController.getInstance().playNextMessage());
-            buttons.addView(prev, LayoutHelper.createLinear(38, 38));
-            buttons.addView(play, LayoutHelper.createLinear(44, 44, Gravity.CENTER, 6, 0, 6, 0));
-            buttons.addView(next, LayoutHelper.createLinear(38, 38));
+            next.setOnClickListener(v -> {
+                MediaController.getInstance().playNextMessage();
+                refreshPanelOnly();
+            });
+
+            // v255 fix6: ✕ يطفئ الموسيقى وتختفي الدائرة (كما في المشغل القديم)
+            close = makeButton(context, closeIcon);
+            close.setOnClickListener(v -> {
+                MediaController.getInstance().cleanupPlayer(true, true);
+                closePanel(false);
+                refresh(false);
+            });
+
+            buttons.addView(prev, LayoutHelper.createLinear(40, 40));
+            buttons.addView(play, LayoutHelper.createLinear(46, 46, Gravity.CENTER, 4, 0, 4, 0));
+            buttons.addView(next, LayoutHelper.createLinear(40, 40, Gravity.CENTER, 4, 0, 0, 0));
+            buttons.addView(close, LayoutHelper.createLinear(36, 36, Gravity.CENTER, 4, 0, 0, 0));
             addView(buttons, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 0, 6, 0, 0));
         }
 
@@ -728,7 +758,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             ImageView v = new ImageView(context);
             v.setImageDrawable(icon);
             v.setClickable(true);
-            v.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
+            v.setFocusable(true);
+            v.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
             return v;
         }
 
@@ -742,14 +773,43 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             titleView.setText(mo.getMusicTitle(false));
             artistView.setText(mo.getMusicAuthor(false));
             cover.setMessage(mo);
-            prevIcon.setColor(c.onPrimaryContainer);
-            nextIcon.setColor(c.onPrimaryContainer);
-            playIcon.setColor(c.onPrimaryContainer);
-            prev.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
-            play.setBackground(Theme.createRoundRectDrawable(dp(22), c.primaryContainer));
-            next.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
+            header.setBackground(Theme.createSelectorDrawable(0x15000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
+            final int tint = c.onPrimaryContainer;
+            prevIcon.setColor(tint);
+            nextIcon.setColor(tint);
+            playIcon.setColor(tint);
+            closeIcon.setColor(tint);
+            prev.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
+            play.setBackground(Theme.createRoundRectDrawable(dp(23), c.primaryContainer));
+            next.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
+            close.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
             boolean paused = MediaController.getInstance().isMessagePaused();
             playIcon.setIcon(paused ? PlayerIcon.PLAY : PlayerIcon.PAUSE);
+        }
+    }
+
+    /** إعادة ربط القائمة فقط بعد كل ضغطة زر. */
+    private void refreshPanelOnly() {
+        if (current != null && colors != null) {
+            panel.bind(current, colors);
+        }
+        bubble.invalidate();
+    }
+
+    /** v255 fix6: النقر على الغلاف/الاسم يفتح المشغل الكبير. */
+    private void openFullPlayer() {
+        try {
+            Activity activity = org.telegram.messenger.AndroidUtilities.findActivity(getContext());
+            if (activity == null) {
+                return;
+            }
+            PlayerSheet sheet = new PlayerSheet(activity, null);
+            closePanel(false);
+            if (activity instanceof org.telegram.ui.LaunchActivity) {
+                ((org.telegram.ui.LaunchActivity) activity).showDialog(sheet);
+            }
+        } catch (Throwable t) {
+            org.telegram.messenger.FileLog.e(t);
         }
     }
 

@@ -160,17 +160,21 @@ public class PlayerStyleEditor extends LinearLayout {
         addInfo(R.string.OEPlayerLayoutInfo);
 
         section = sections[2];
-        miniPreview = PlayerMiniView.preview(context);
-        section.addView(miniPreview, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, PlayerMiniView.HEIGHT_DP + 16));
+        // v255 fix6: قسم «المشغّل المصغّر» صار يعاين الدائرة الجديدة بدل
+        // الشريط القديم (الذي أُزيل من قائمة المحادثات).
+        section.addView(buildBubblePreview(context), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, dp(120)));
         addInfo(R.string.OEPlayerMiniMoveHint);
+        // v255 fix6: الغلاف والشكل أصبحا خصائص الدائرة نفسها:
+        // إظهار/إخفاء الغلاف في القائمة، وحجم الدائرة.
         addInfo(R.string.OEPlayerStyleCover);
         addSegmented(new String[]{
-                getString(R.string.OEPlayerMiniCoverRounded), getString(R.string.OEPlayerMiniCoverRound), getString(R.string.OEPlayerMiniCoverHidden)
-        }, PlayerStyle::miniCover, value -> AppearanceConfig.playerMiniCover.setConfigInt(value));
+                getString(R.string.OEPlayerMiniCoverRounded), getString(R.string.OEPlayerMiniCoverHidden)
+        }, () -> PlayerStyle.bubblePanelCover() ? 0 : 1,
+                value -> AppearanceConfig.playerMiniCover.setConfigInt(value));
         addInfo(R.string.OEPlayerMiniShape);
         addSegmented(new String[]{
-                getString(R.string.OEPlayerMiniShapeRounded), getString(R.string.OEPlayerMiniShapePill), getString(R.string.OEPlayerMiniShapeSquare)
-        }, PlayerStyle::miniShape, value -> AppearanceConfig.playerMiniShape.setConfigInt(value));
+                getString(R.string.OEPlayerMiniShapeRounded), getString(R.string.OEPlayerMiniShapePill)
+        }, () -> PlayerStyle.bubbleShape(), value -> AppearanceConfig.playerMiniShape.setConfigInt(value));
         addInfo(R.string.OEPlayerMiniProgress);
         addSegmented(new String[]{
                 getString(R.string.OEPlayerMiniProgressRing), getString(R.string.OEPlayerMiniProgressLine),
@@ -838,5 +842,10 @@ public class PlayerStyleEditor extends LinearLayout {
             setExpanded(expanded);
             bindShape();
         }
+    }
+
+    /** معاينة حيّة للدائرة الجديدة داخل قسم التخصيص. */
+    private View buildBubblePreview(Context context) {
+        return new tw.nekomimi.nekogram.music.MeeroMusicBubble(context, org.telegram.messenger.UserConfig.selectedAccount);
     }
 }
