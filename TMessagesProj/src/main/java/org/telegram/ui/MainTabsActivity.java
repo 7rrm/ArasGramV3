@@ -273,6 +273,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
                 super.onLayout(changed, left, top, right, bottom);
                 checkUi_tabsPosition();
                 checkUi_fadeView();
+                // v255 fix: تأكيد تثبيت الدائرة بعد كل تخطيط — قبل هذا كانت
+                // تبقى بإحداثيات غير مهيّأة فتظهر في أعلى الشاشة بلا سحب.
+                placeMusicBubble();
             }
 
             @Override

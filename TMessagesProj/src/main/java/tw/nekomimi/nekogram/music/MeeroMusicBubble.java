@@ -88,6 +88,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     private boolean dragArmed;
     private boolean dragging;
+    /** الهامش السفلي المحسوب (تبويبات + شريط تنقّل) — يُستعمل في الموضع الافتراضي. */
+    private int bottomInsetDp;
     private float downRawX, downRawY, downX, downY;
     private int touchSlop;
 
@@ -247,6 +249,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     /** يُستدعى من المضيف بعد حساب حدود المنطقة المتاحة (فوق شريط التبويبات). */
     public void place(int hostWidth, int hostHeight, int bottomInset) {
         final int size = dp(SIZE_DP);
+        bottomInsetDp = (int) (bottomInset / getResources().getDisplayMetrics().density);
         if (Float.isNaN(posX) || Float.isNaN(posY)) {
             posX = hostWidth - size - dp(16);
             posY = hostHeight - size - bottomInset - dp(78);
@@ -269,12 +272,33 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     }
 
     private void layoutBubble() {
-        if (bubble.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) bubble.getLayoutParams();
-            lp.leftMargin = Math.round(posX);
-            lp.topMargin = Math.round(posY);
-            bubble.setLayoutParams(lp);
+        if (!(bubble.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) {
+            return;
         }
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) bubble.getLayoutParams();
+
+        // v255 fix: كانت posX/posY تبقى NaN إذا لم تُستدعَ place() بأبعاد
+        // صحيحة، وMath.round(NaN) = 0 ⇒ الدائرة في الزاوية العليا، و
+        // NaN + dx = NaN ⇒ السحب لا يعمل أبداً. الآن نحسب موضعاً افتراضياً
+        // من مقاس الأب مباشرة (أسفل يمين، فوق شريط التبويبات).
+        if (Float.isNaN(posX) || Float.isNaN(posY) || Float.isInfinite(posX) || Float.isInfinite(posY)) {
+            View parent = (View) getParent();
+            final int pw = parent != null && parent.getWidth() > 0 ? parent.getWidth() : getResources().getDisplayMetrics().widthPixels;
+            final int ph = parent != null && parent.getHeight() > 0 ? parent.getHeight() : getResources().getDisplayMetrics().heightPixels;
+            final int size = dp(SIZE_DP);
+            posX = pw - size - dp(16);
+            posY = ph - size - dp(bottomInsetDp) - dp(78);
+        }
+
+        View parent = (View) getParent();
+        if (parent != null && parent.getWidth() > 0 && parent.getHeight() > 0) {
+            posX = clamp(posX, 0, Math.max(0, parent.getWidth() - getWidth()));
+            posY = clamp(posY, 0, Math.max(0, parent.getHeight() - getHeight()));
+        }
+
+        lp.leftMargin = Math.round(posX);
+        lp.topMargin = Math.round(posY);
+        bubble.setLayoutParams(lp);
     }
 
     /**
