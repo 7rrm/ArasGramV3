@@ -103,7 +103,10 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         setClipToPadding(false);
 
         bubble = new BubbleView(context);
-        addView(bubble, LayoutHelper.createFrame(SIZE_DP, SIZE_DP));
+        // v255 fix5: الموضع صار بـ (gravity + translationX/Y) بدل leftMargin/topMargin.
+        // الترجمة تُطبَّق دائماً بعد التخطيط ولا تعتمد على توقيت setLayoutParams،
+        // فلا يمكن أن تبقى الدائرة في الأعلى بعد اليوم.
+        addView(bubble, LayoutHelper.createFrame(SIZE_DP, SIZE_DP, Gravity.TOP | Gravity.LEFT));
 
         panel = new PanelView(context);
         panel.setVisibility(GONE);
@@ -308,8 +311,9 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         final int size = dp(SIZE_DP);
         bottomInsetDp = (int) (bottomInset / getResources().getDisplayMetrics().density);
         if (Float.isNaN(posX) || Float.isNaN(posY)) {
-            posX = hostWidth - size - dp(16);
-            posY = hostHeight - size - bottomInset - dp(78);
+            // المطلوب: منتصف الشاشة عمودياً، على اليسار أفقياً
+            posX = dp(16);
+            posY = (hostHeight - size) / 2f;
         }
         posX = clamp(posX, 0, Math.max(0, hostWidth - size));
         posY = clamp(posY, 0, Math.max(0, hostHeight - size));
@@ -353,24 +357,24 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             final int pw = parent != null && parent.getWidth() > 0 ? parent.getWidth() : getResources().getDisplayMetrics().widthPixels;
             final int ph = parent != null && parent.getHeight() > 0 ? parent.getHeight() : getResources().getDisplayMetrics().heightPixels;
             final int size = dp(SIZE_DP);
-            posX = pw - size - dp(16);
-            posY = ph - size - dp(bottomInsetDp) - dp(78);
+            // المطلوب: منتصف الشاشة عمودياً، على اليسار أفقياً
+            posX = dp(16);
+            posY = (ph - size) / 2f;
         }
 
         View parent = (View) getParent();
         if (parent != null && parent.getWidth() > 0 && parent.getHeight() > 0) {
-            posX = clamp(posX, 0, Math.max(0, parent.getWidth() - getWidth()));
-            posY = clamp(posY, 0, Math.max(0, parent.getHeight() - getHeight()));
+            final int bs = dp(SIZE_DP);
+            posX = clamp(posX, 0, Math.max(0, parent.getWidth() - bs));
+            posY = clamp(posY, 0, Math.max(0, parent.getHeight() - bs));
         }
 
-        lp.leftMargin = Math.round(posX);
-        lp.topMargin = Math.round(posY);
-        bubble.setLayoutParams(lp);
-        // v255 fix4: setLayoutParams لا يُنفَّذ إلا بعد دورة تخطيط كاملة،
-        // وكانت الدائرة تبقى في (0,0) — أعلى الشاشة كما في الصورة.
-        // setX/setY تحدّد الموضع فعلياً في أي وقت، فتُستعمل مع المارجن.
-        bubble.setX(posX);
-        bubble.setY(posY);
+        // المارجن ليس ضرورياً بعد الآن، لكن نُبقيه صفراً لتفادي أي إزاحة مزدوجة
+        lp.leftMargin = 0;
+        lp.topMargin = 0;
+        // الترجمة هي مصدر الحقيقة الوحيد للموضع — تُطبَّق دائماً بعد التخطيط
+        bubble.setTranslationX(posX);
+        bubble.setTranslationY(posY);
     }
 
     /**
@@ -528,8 +532,9 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                         if (parent != null) {
                             float nx = posX + dx;
                             float ny = posY + dy;
-                            nx = clamp(nx, 0, parent.getWidth() - getWidth());
-                            ny = clamp(ny, 0, parent.getHeight() - getHeight());
+                            final int bs = dp(SIZE_DP);
+                            nx = MeeroMusicBubble.clamp(nx, 0, Math.max(0, parent.getWidth() - bs));
+                            ny = MeeroMusicBubble.clamp(ny, 0, Math.max(0, parent.getHeight() - bs));
                             posX = nx;
                             posY = ny;
                             downRawX = event.getRawX();
