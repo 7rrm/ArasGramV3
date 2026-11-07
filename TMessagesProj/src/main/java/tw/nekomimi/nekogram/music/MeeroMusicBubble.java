@@ -7,7 +7,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -97,6 +96,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     /** يستدعى عند تغيّر حجم/موضع الفقاعة حتى يعيد المضيف تثبيتها. */
     private Runnable onLayoutChanged;
+    /** v255 fix6: المضيف لفتح المشغل الكبير (PlayerSheet) بضغطة على الغلاف. */
+    private org.telegram.ui.ActionBar.BaseFragment hostFragment;
 
     public MeeroMusicBubble(Context context, int currentAccount) {
         super(context);
@@ -177,6 +178,10 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     public void setOnLayoutChanged(Runnable runnable) {
         onLayoutChanged = runnable;
+    }
+
+    public void setHostFragment(org.telegram.ui.ActionBar.BaseFragment fragment) {
+        hostFragment = fragment;
     }
 
     // ======================= دورة الحياة =======================
@@ -796,18 +801,16 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         bubble.invalidate();
     }
 
-    /** v255 fix6: النقر على الغلاف/الاسم يفتح المشغل الكبير. */
+    /** v255 fix6: النقر على الغلاف/الاسم يفتح المشغل الكبير (PlayerSheet). */
     private void openFullPlayer() {
         try {
-            Activity activity = org.telegram.messenger.AndroidUtilities.findActivity(getContext());
-            if (activity == null) {
+            if (hostFragment == null || hostFragment.getParentActivity() == null) {
                 return;
             }
-            PlayerSheet sheet = new PlayerSheet(activity, null);
             closePanel(false);
-            if (activity instanceof org.telegram.ui.LaunchActivity) {
-                ((org.telegram.ui.LaunchActivity) activity).showDialog(sheet);
-            }
+            final PlayerSheet sheet = new PlayerSheet(hostFragment.getParentActivity(),
+                    hostFragment.getResourceProvider());
+            hostFragment.showDialog(sheet);
         } catch (Throwable t) {
             org.telegram.messenger.FileLog.e(t);
         }
