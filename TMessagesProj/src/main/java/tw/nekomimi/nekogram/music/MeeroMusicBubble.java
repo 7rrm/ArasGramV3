@@ -15,7 +15,6 @@ import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -36,6 +35,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.BlobDrawable;
 
 import app.exteraless.player.CoverImage;
 import app.exteraless.player.PlayerArt;
@@ -72,6 +72,10 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     private final int currentAccount;
     private final BubbleView bubble;
     private final PanelView panel;
+    // The same two animated blobs used by the floating group-call button.
+    private final BlobDrawable callWave = new BlobDrawable(8);
+    private final BlobDrawable callWave2 = new BlobDrawable(9);
+    private final Paint callWavePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     /** إزاحة الدائرة عن الزاوية اليمنى السفلية — يُحفظ بين الجلسات. */
     private float posX = Float.NaN;
@@ -108,6 +112,13 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         this.currentAccount = currentAccount;
         setClipChildren(false);
         setClipToPadding(false);
+        // Scale the call button's radii to the 48dp music bubble.
+        callWave.minRadius = dp(23);
+        callWave.maxRadius = dp(30);
+        callWave2.minRadius = dp(24);
+        callWave2.maxRadius = dp(28.5f);
+        callWave.generateBlob();
+        callWave2.generateBlob();
 
         bubble = new BubbleView(context);
         // v255 fix5: الموضع صار بـ (gravity + translationX/Y) بدل leftMargin/topMargin.
@@ -178,6 +189,30 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             }
         }
         return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        // Draw in the full-screen host, not the 48dp child: otherwise the
+        // animated lobes are clipped at the bubble's rectangular bounds.
+        if (!previewMode && colors != null && appearProgress > 0f && bubble.getWidth() > 0) {
+            float cx = bubble.getX() + bubble.getWidth() / 2f;
+            float cy = bubble.getY() + bubble.getHeight() / 2f;
+            float amplitude = MediaController.getInstance().isMessagePaused() ? 0f : 0.18f;
+            callWave.update(amplitude, 0.8f);
+            callWave2.update(amplitude, 0.8f);
+            callWavePaint.setStyle(Paint.Style.FILL);
+            callWavePaint.setColor(colors.primary);
+            callWavePaint.setAlpha((int) (76 * appearProgress));
+            canvas.save();
+            float scale = 0.7f + 0.3f * appearProgress;
+            canvas.scale(scale, scale, cx, cy);
+            callWave.draw(cx, cy, canvas, callWavePaint);
+            callWave2.draw(cx, cy, canvas, callWavePaint);
+            canvas.restore();
+            postInvalidateOnAnimation();
+        }
+        super.dispatchDraw(canvas);
     }
 
     public void setOnLayoutChanged(Runnable runnable) {
@@ -433,9 +468,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     @SuppressLint("ClickableViewAccessibility")
     private final class BubbleView extends View {
         private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint wavePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF ringRect = new RectF();
-        private final long startTime = SystemClock.elapsedRealtime();
         private final PlayerIcon noteIcon = PlayerIcon.stroke(PlayerIcon.NOTE, 22);
         private final PlayerIcon closeIcon = PlayerIcon.stroke(PlayerIcon.CLOSE, 22);
 
@@ -445,7 +478,6 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             super(context);
             ringPaint.setStyle(Paint.Style.STROKE);
             ringPaint.setStrokeCap(Paint.Cap.ROUND);
-            wavePaint.setStyle(Paint.Style.STROKE);
             setClickable(true);
             setFocusable(true);
             // v255 fix4: الطبقة الأم صارت MATCH_PARENT، والدائرة عنصر داخلها.
@@ -463,35 +495,9 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             final float cy = getHeight() / 2f;
             final float radius = Math.min(getWidth(), getHeight()) / 2f - dp(2);
 
-            drawWaves(canvas, cx, cy, radius);
             drawDiscAndRing(canvas, cx, cy, radius);
             drawIcon(canvas, cx, cy);
             invalidate();
-        }
-
-        /** أمواج متحركة تنتشر خلف الدائرة — نفس إحساس زر المكالمة. */
-        private void drawWaves(Canvas canvas, float cx, float cy, float radius) {
-            final long t = SystemClock.elapsedRealtime();
-            final float period = 2200f;
-            for (int i = 0; i < 2; i++) {
-                float phase = ((t - startTime) % period) / period + i * 0.5f;
-                phase = phase % 1f;
-                float grow = phase * dp(16);
-                float alpha = (1f - phase) * 0.38f;
-                if (alpha <= 0.01f) {
-                    continue;
-                }
-                int c = colors.primary;
-                wavePaint.setColor(Color.argb((int) (alpha * 255),
-                        Color.red(c), Color.green(c), Color.blue(c)));
-                wavePaint.setStrokeWidth(dp(2));
-                canvas.drawCircle(cx, cy, radius + grow, wavePaint);
-            }
-            // هالة ناعمة ثابتة
-            int c = colors.primary;
-            wavePaint.setColor(Color.argb(26, Color.red(c), Color.green(c), Color.blue(c)));
-            wavePaint.setStrokeWidth(dp(6));
-            canvas.drawCircle(cx, cy, radius + dp(1), wavePaint);
         }
 
         private void drawDiscAndRing(Canvas canvas, float cx, float cy, float radius) {
@@ -690,10 +696,10 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         private final TextView titleView;
         private final TextView artistView;
         private final LinearLayout header;
-        private final PlayerIcon prevIcon = PlayerIcon.stroke(PlayerIcon.PREV, 22);
-        private final PlayerIcon nextIcon = PlayerIcon.stroke(PlayerIcon.NEXT, 22);
-        private final PlayerIcon playIcon = PlayerIcon.stroke(PlayerIcon.PAUSE, 22);
-        private final PlayerIcon closeIcon = PlayerIcon.stroke(PlayerIcon.CLOSE, 22);
+        private final PlayerIcon prevIcon = PlayerIcon.stroke(PlayerIcon.PREV, 18);
+        private final PlayerIcon nextIcon = PlayerIcon.stroke(PlayerIcon.NEXT, 18);
+        private final PlayerIcon playIcon = PlayerIcon.stroke(PlayerIcon.PAUSE, 18);
+        private final PlayerIcon closeIcon = PlayerIcon.stroke(PlayerIcon.CLOSE, 18);
         private final ImageView prev;
         private final ImageView play;
         private final ImageView next;
@@ -730,6 +736,21 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             header.setClickable(true);
             header.setOnClickListener(v -> openFullPlayer());
             cover = new CoverImage(context, 14);
+            cover.setListener(PlayerColors.fallbackSeed(null), (message, extractedSeed) -> {
+                // Extraction is asynchronous. Recheck the song when the result
+                // arrives, so a late result cannot recolor the next track.
+                post(() -> {
+                    if (current == null || !android.text.TextUtils.equals(PlayerArt.key(current), PlayerArt.key(message))) return;
+                    if (previewMode) {
+                        refreshPanelPreview();
+                    } else {
+                        colors = resolveColors(current);
+                        bind(current, colors);
+                        bubble.invalidate();
+                        MeeroMusicBubble.this.invalidate();
+                    }
+                });
+            });
             header.addView(cover, LayoutHelper.createLinear(44, 44));
             LinearLayout texts = new LinearLayout(context);
             texts.setOrientation(VERTICAL);
@@ -790,6 +811,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                 }
             };
             play.setImageDrawable(playIcon);
+            play.setScaleType(ImageView.ScaleType.CENTER);
             play.setClickable(true);
             play.setFocusable(true);
             play.setOnClickListener(v -> {
@@ -833,6 +855,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         private ImageView makeButton(Context context, PlayerIcon icon) {
             ImageView v = new ImageView(context);
             v.setImageDrawable(icon);
+            v.setScaleType(ImageView.ScaleType.CENTER);
             v.setClickable(true);
             v.setFocusable(true);
             v.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
