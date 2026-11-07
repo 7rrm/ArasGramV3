@@ -97,6 +97,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     private boolean dragArmed;
     private boolean dragging;
+    private boolean bubbleTouchSequence;
     /** الهامش السفلي المحسوب (تبويبات + شريط تنقّل) — يُستعمل في الموضع الافتراضي. */
     private int bottomInsetDp;
     private float downRawX, downRawY, downX, downY;
@@ -170,23 +171,33 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         if (bubble == null) {
             return super.dispatchTouchEvent(ev);
         }
-        final float x = ev.getX();
-        final float y = ev.getY();
-        final float bx = bubble.getX();
-        final float by = bubble.getY();
-        final int bs = bubble.getWidth() > 0 ? bubble.getWidth() : dp(SIZE_DP);
-        final float touch = dp(18);
-        final boolean inBubble = x >= bx - touch && x <= bx + bs + touch
-                && y >= by - touch && y <= by + bs + touch;
-
-        if (inBubble) {
-            final MotionEvent local = MotionEvent.obtain(ev);
-            local.offsetLocation(-bx, -by);
-            boolean handled = bubble.dispatchTouchEvent(local);
-            local.recycle();
-            if (handled) {
-                return true;
+        final int action = ev.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) {
+            bubbleTouchSequence = false;
+            final float x = ev.getX();
+            final float y = ev.getY();
+            // The panel has priority in the overlap with the enlarged bubble hit area.
+            boolean inPanel = panel.getVisibility() == VISIBLE && panel.getAlpha() > 0f
+                    && x >= panel.getX() && x <= panel.getX() + panel.getWidth()
+                    && y >= panel.getY() && y <= panel.getY() + panel.getHeight();
+            final float bx = bubble.getX(), by = bubble.getY();
+            final int bs = bubble.getWidth() > 0 ? bubble.getWidth() : dp(SIZE_DP);
+            final float touch = dp(18);
+            if (!inPanel && x >= bx - touch && x <= bx + bs + touch
+                    && y >= by - touch && y <= by + bs + touch) {
+                MotionEvent local = MotionEvent.obtain(ev);
+                local.offsetLocation(-bx, -by);
+                bubbleTouchSequence = bubble.dispatchTouchEvent(local);
+                local.recycle();
+                if (bubbleTouchSequence) return true;
             }
+        } else if (bubbleTouchSequence) {
+            MotionEvent local = MotionEvent.obtain(ev);
+            local.offsetLocation(-bubble.getX(), -bubble.getY());
+            bubble.dispatchTouchEvent(local);
+            local.recycle();
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) bubbleTouchSequence = false;
+            return true;
         }
         return super.dispatchTouchEvent(ev);
     }
@@ -710,6 +721,9 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         private final ImageView close;
         private final View progressLine;
         private final Paint progressPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private boolean seeking;
+        private float seekProgress;
+        private MessageObject seekMessage;
 
         PanelView(Context context) {
             super(context);
@@ -782,10 +796,49 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                     progressPaint.setColor(colors.outlineVariant);
                     canvas.drawLine(dp(2), y, getWidth() - dp(2), y, progressPaint);
                     progressPaint.setColor(colors.primary);
-                    canvas.drawLine(dp(2), y, dp(2) + (getWidth() - dp(4)) * currentProgress(), y, progressPaint);
+                    float progress = seeking ? seekProgress : currentProgress();
+                    canvas.drawLine(dp(2), y, dp(2) + (getWidth() - dp(4)) * progress, y, progressPaint);
+                }
+
+                @Override public boolean onTouchEvent(MotionEvent event) {
+                    int action = event.getActionMasked();
+                    if (action == MotionEvent.ACTION_DOWN) {
+                        if (previewMode || current == null || MediaController.getInstance().isDownloadingCurrentMessage()) return false;
+                        seeking = true;
+                        seekMessage = current;
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                    } else if (!seeking) {
+                        return false;
+                    }
+                    if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_UP) {
+                        seekProgress = MeeroMusicBubble.clamp((event.getX() - dp(2)) / Math.max(1f, getWidth() - dp(4)), 0f, 1f);
+                        invalidate();
+                    }
+                    if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                        if (action == MotionEvent.ACTION_UP && seekMessage != null && current != null
+                                && android.text.TextUtils.equals(PlayerArt.key(seekMessage), PlayerArt.key(current))) {
+                            if (MediaController.getInstance().seekToProgress(seekMessage, seekProgress)) {
+                                seekMessage.audioProgress = seekProgress;
+                                seekMessage.audioProgressSec = (int) (seekMessage.getDuration() * seekProgress);
+                            }
+                            performClick();
+                        }
+                        seeking = false;
+                        seekMessage = null;
+                        getParent().requestDisallowInterceptTouchEvent(false);
+                        invalidateProgress();
+                        bubble.invalidate();
+                    }
+                    return true;
+                }
+
+                @Override public boolean performClick() {
+                    super.performClick();
+                    return true;
                 }
             };
-            addView(progressLine, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 10, Gravity.CENTER, 2, 4, 2, 0));
+            progressLine.setContentDescription(getString(R.string.OEPlayerSeek));
+            addView(progressLine, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 28, Gravity.CENTER, 2, 0, 2, 0));
 
             // ---- الأزرار: السابق · إيقاف/تشغيل · التالي · إغلاق المشغل ----
             LinearLayout buttons = new LinearLayout(context);
