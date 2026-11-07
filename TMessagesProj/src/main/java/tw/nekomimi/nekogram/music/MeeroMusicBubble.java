@@ -198,9 +198,13 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         if (!previewMode && colors != null && appearProgress > 0f && bubble.getWidth() > 0) {
             float cx = bubble.getX() + bubble.getWidth() / 2f;
             float cy = bubble.getY() + bubble.getHeight() / 2f;
-            float amplitude = MediaController.getInstance().isMessagePaused() ? 0f : 0.18f;
-            callWave.update(amplitude, 0.8f);
-            callWave2.update(amplitude, 0.8f);
+            boolean paused = MediaController.getInstance().isMessagePaused();
+            // Keep the current blob paths unchanged during pause; update resumes
+            // from these same animation positions when playback continues.
+            if (!paused) {
+                callWave.update(0.18f, 0.8f);
+                callWave2.update(0.18f, 0.8f);
+            }
             callWavePaint.setStyle(Paint.Style.FILL);
             callWavePaint.setColor(colors.primary);
             callWavePaint.setAlpha((int) (76 * appearProgress));
@@ -210,7 +214,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             callWave.draw(cx, cy, canvas, callWavePaint);
             callWave2.draw(cx, cy, canvas, callWavePaint);
             canvas.restore();
-            postInvalidateOnAnimation();
+            if (!paused) postInvalidateOnAnimation();
         }
         super.dispatchDraw(canvas);
     }
