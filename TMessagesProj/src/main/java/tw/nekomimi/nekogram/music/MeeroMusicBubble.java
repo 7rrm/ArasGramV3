@@ -189,7 +189,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             final int blue = 0xff3390EC;
             return PlayerColors.fromSeed(blue, dark);
         }
-        final int argb = Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader, null);
+        final int argb = Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
         int chosenSeed;
         if (PlayerStyle.themeColors()) {
             // «لون الثيم» مختار ⇒ لون الثيم
@@ -467,7 +467,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         if (current == null) {
             return 0f;
         }
-        float d = current.getDuration();
+        float d = (float) current.getDuration();
         if (d <= 0) {
             return 0f;
         }
@@ -620,7 +620,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             ImageView v = new ImageView(context);
             v.setImageDrawable(icon);
             v.setClickable(true);
-            v.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE));
+            v.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
             return v;
         }
 
@@ -637,9 +637,9 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             prevIcon.setColor(c.onPrimaryContainer);
             nextIcon.setColor(c.onPrimaryContainer);
             playIcon.setColor(c.onPrimaryContainer);
-            prev.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE));
+            prev.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
             play.setBackground(Theme.createRoundRectDrawable(dp(22), c.primaryContainer));
-            next.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE));
+            next.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
             boolean paused = MediaController.getInstance().isMessagePaused();
             playIcon.setIcon(paused ? PlayerIcon.PLAY : PlayerIcon.PAUSE);
         }
