@@ -735,7 +735,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             header.setOrientation(HORIZONTAL);
             header.setClickable(true);
             header.setOnClickListener(v -> openFullPlayer());
-            cover = new CoverImage(context, 14);
+            cover = new CoverImage(context, 22);
             cover.setListener(PlayerColors.fallbackSeed(null), (message, extractedSeed) -> {
                 // Extraction is asynchronous. Recheck the song when the result
                 // arrives, so a late result cannot recolor the next track.
@@ -869,6 +869,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             setBackground(Theme.createRoundRectDrawable(dp(PlayerStyle.bubbleShape() == 1 ? 80 : 18), c.surfaceContainer));
             cover.setVisibility(PlayerStyle.miniCover() == PlayerStyle.MINI_COVER_HIDDEN ? GONE : VISIBLE);
             cover.setRadius(dp(PlayerStyle.miniCover() == PlayerStyle.MINI_COVER_ROUND ? 22 : 10));
+            // Same fallback artwork colors as the original mini player.
+            cover.setColors(c.secondaryContainer, c.onSecondaryContainer);
             artistView.setVisibility(PlayerStyle.miniArtist() ? VISIBLE : GONE);
             prev.setVisibility(PlayerStyle.miniPrevious() ? VISIBLE : GONE);
             next.setVisibility(PlayerStyle.miniNext() ? VISIBLE : GONE);
