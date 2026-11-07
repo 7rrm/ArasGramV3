@@ -111,7 +111,29 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         addView(panel, LayoutHelper.createFrame(PANEL_WIDTH_DP, LayoutHelper.WRAP_CONTENT));
 
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        // v255 fix3: الحاوية صارت بحجم الشاشة، فيجب ألا تعترض أي لمس —
+        // اللمس يصل للدائرة والقائمة فقط، وما عداهما يمرّ للقائمة تحتهما.
+        setClickable(false);
+        setFocusable(false);
         setVisibility(GONE);
+    }
+
+    /**
+     * v255 fix3: الطبقة السفلية الشفافة لا تستهلك اللمس. بدون هذا تصبح
+     * طبقة بحجم الشاشة حاجزاً يمنع كل قوائم المحادثات من الاستجابة.
+     */
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return false;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // اللمس خارج الدائرة/القائمة: أغلق القائمة ومرّر الحدث للأب
+        if (panelOpen) {
+            closePanel(true);
+        }
+        return false;
     }
 
     public void setOnLayoutChanged(Runnable runnable) {

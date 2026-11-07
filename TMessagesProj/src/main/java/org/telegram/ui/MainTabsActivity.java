@@ -534,9 +534,11 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         if (tw.nekomimi.nekogram.NekoConfig.meeroMusicBubble.Bool()) {
             musicBubble = new tw.nekomimi.nekogram.music.MeeroMusicBubble(context, currentAccount);
             musicBubble.setOnLayoutChanged(this::placeMusicBubble);
+            // v255 fix3: كانت تُضاف بـ 48dp فقط بينما تُرسم الدائرة على
+            // إحداثيات الشاشة الكاملة ⇒ تُقصّ خارج الحاوية ولا تظهر إطلاقاً.
+            // مثل زر المكالمة: طبقة تغطي الشاشة، والدائرة تُوضع داخلها بحرّية.
             contentView.addView(musicBubble, LayoutHelper.createFrame(
-                    tw.nekomimi.nekogram.music.MeeroMusicBubble.SIZE_DP,
-                    tw.nekomimi.nekogram.music.MeeroMusicBubble.SIZE_DP));
+                    LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
             musicBubble.attach();
         }
         contentView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
