@@ -51682,4 +51682,8 @@ public class ChatActivity extends BaseFragment implements
     public ReplyQuote getReplyingQuote() {
         return replyingQuote;
     }
+
+    protected void setKeepVoiceRecordingOnPause(boolean value) {
+        keepVoiceRecordingOnPause = value;
+    }
 }
