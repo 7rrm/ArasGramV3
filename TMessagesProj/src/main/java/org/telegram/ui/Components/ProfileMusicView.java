@@ -391,4 +391,28 @@ public class ProfileMusicView extends View {
 
         canvas.restore();
     }
+
+    private ProfileActivity.AvatarImageView avatarView;
+    private RenderNode renderNode;
+    private float renderNodeScale;
+    private float renderNodeTranslateY;
+    private boolean ignoreRect = false;
+    public void drawingBlur(boolean drawing) {
+        if (trailingView != null) trailingView.drawingBlur(drawing);
+        if (ignoreRect != drawing || renderNode != null) {
+            ignoreRect = drawing;
+            renderNode = null;
+            avatarView = null;
+            invalidate();
+        }
+    }
+    public void drawingBlur(RenderNode renderNode, ProfileActivity.AvatarImageView avatarView, float scale, float dy) {
+        if (trailingView != null) trailingView.drawingBlur(renderNode, avatarView, scale, dy);
+        this.ignoreRect = false;
+        this.renderNode = renderNode;
+        this.avatarView = avatarView;
+        this.renderNodeScale = scale;
+        this.renderNodeTranslateY = dy;
+        invalidate();
+    }
 }

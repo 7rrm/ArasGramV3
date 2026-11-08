@@ -1336,4 +1336,26 @@ public class ProfileActionsView extends View {
         }
         return accessibilityNodeProvider;
     }
+
+    private ProfileActivity.AvatarImageView avatarView;
+    private RenderNode renderNode;
+    private float renderNodeScale;
+    private float renderNodeTranslateY;
+    private boolean ignoreRect = false;
+    public void drawingBlur(boolean drawing) {
+        if (ignoreRect != drawing || renderNode != null) {
+            ignoreRect = drawing;
+            renderNode = null;
+            avatarView = null;
+            invalidate();
+        }
+    }
+    public void drawingBlur(RenderNode renderNode, ProfileActivity.AvatarImageView avatarView, float scale, float dy) {
+        this.ignoreRect = false;
+        this.renderNode = renderNode;
+        this.avatarView = avatarView;
+        this.renderNodeScale = scale;
+        this.renderNodeTranslateY = dy;
+        invalidate();
+    }
 }

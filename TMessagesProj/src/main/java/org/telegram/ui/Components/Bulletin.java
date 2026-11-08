@@ -1435,7 +1435,10 @@ public class Bulletin {
             return Theme.getColor(key, resourcesProvider);
         }
         //endregion
+    
+    public void updateColors() {
     }
+}
 
     @SuppressLint("ViewConstructor")
     public static class ButtonLayout extends Layout {

@@ -1,0 +1,49 @@
+--- TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
++++ TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+@@ -2076,7 +2086,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
+                 addZoomInZoomOutItemOptions(options);
+ 
+                 final boolean hasDifferentTypes = isStories || (sharedMediaData[0].hasPhotos && sharedMediaData[0].hasVideos) || !sharedMediaData[0].endReached[0] || !sharedMediaData[0].endReached[1] || !sharedMediaData[0].startReached;
+-                if (!DialogObject.isEncryptedDialog(dialog_id) && !(user != null && user.bot)) {
++                if (!DialogObject.isEncryptedDialog(dialog_id)) {
+                     options.add(R.drawable.msg_calendar2, getString(R.string.Calendar), () -> {
+                         showMediaCalendar(tab, false);
+                         options.dismiss();
+@@ -2252,7 +2270,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
+                 gotoItem.setOnClickListener(v -> onActionBarItemClick(v, gotochat));
+ 
+                 forwardItem = new ActionBarMenuItem(context, null, getThemedColor(Theme.key_actionBarActionModeDefaultSelector), getThemedColor(Theme.key_actionBarActionModeDefaultIcon), false);
+-                forwardItem.setIcon(R.drawable.msg_forward);
++                forwardItem.setIcon(R.drawable.msg_share_quote_solar);
+                 forwardItem.setContentDescription(getString(R.string.Forward));
+                 forwardItem.setDuplicateParentStateEnabled(false);
+                 actionModeLayout.addView(forwardItem, new LinearLayout.LayoutParams(dp(54), ViewGroup.LayoutParams.MATCH_PARENT));
+@@ -2294,7 +2312,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
+                 super.notifyDataSetChanged();
+                 MediaPage mediaPage = getMediaPage(0);
+                 if (mediaPage != null && mediaPage.animationSupportingListView.getVisibility() == View.VISIBLE) {
+-                    animationSupportingPhotoVideoAdapter.notifyDataSetChanged();
++                    AndroidUtilities.notifyDataSetChanged(mediaPage.animationSupportingListView);
+                 }
+             }
+         };
+@@ -3930,12 +3955,15 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
+         if (forwardItem == null) {
+             return;
+         }
+-        boolean noforwards = profileActivity.getMessagesController().isPeerNoForwards(dialog_id) || hasNoforwardsMessage();
++        boolean noforwards = profileActivity.getMessagesController().isPeerNoForwards(dialog_id);
+         forwardItem.setAlpha(noforwards ? 0.5f : 1f);
+-        if (noforwards && forwardItem.getBackground() != null) {
+-            forwardItem.setBackground(null);
+-        } else if (!noforwards && forwardItem.getBackground() == null) {
++        forwardNoQuoteItem.setAlpha(noforwards ? 0.5f : 1f);
++        if (noforwards) {
++            if (forwardItem.getBackground() != null) forwardItem.setBackground(null);
++            if (forwardNoQuoteItem.getBackground() != null) forwardNoQuoteItem.setBackground(null);
++        } else if (forwardItem.getBackground() == null) {
+             forwardItem.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), 5));
++            forwardNoQuoteItem.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), 5));
+         }
+     }
+     private boolean hasNoforwardsMessage() {

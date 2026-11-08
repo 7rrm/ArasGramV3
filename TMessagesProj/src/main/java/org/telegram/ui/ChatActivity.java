@@ -51669,7 +51669,6 @@ public class ChatActivity extends BaseFragment implements
 
 
     // ArasGram: ported member for 13.2.1 compatibility
-        @Override
         public void didPressRichCodeCopy(ChatMessageCell cell, String code, String language) {
             if (TextUtils.isEmpty(code)) {
                 return;

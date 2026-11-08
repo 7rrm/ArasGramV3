@@ -4239,4 +4239,23 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
     int getSectionsBackgroundColorForDecoration() {
         return ColorUtils.setAlphaComponent(Theme.getColor(bitmapSectionsBackgroundColorKey, resourcesProvider), 0xFF);
     }
+
+    public void setSections(
+        Utilities.CallbackReturn<View, Boolean> isSectionView,
+        int padding,
+        float roundRadius,
+        boolean topPadding
+    ) {
+        setSections(isSectionView, padding, roundRadius, this::drawBackgroundRect, topPadding);
+    }
+    public void setSections(
+        Utilities.CallbackReturn<View, Boolean> isSectionView,
+        Utilities.CallbackReturn<Integer, Boolean> isViewTypeSection,
+        int padding,
+        float roundRadius,
+        boolean topPadding
+    ) {
+        setSections(isSectionView, isViewTypeSection, padding, roundRadius, this::drawBackgroundRect, topPadding);
+    }
+    private int bitmapSectionsBackgroundColorKey = Theme.key_windowBackgroundGray;
 }

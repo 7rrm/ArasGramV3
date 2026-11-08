@@ -364,6 +364,7 @@ import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.core.reference.ReferenceList;
 import org.telegram.utils.pip.PipSession;
+import org.telegram.utils.pip.PipTextureView;
 import org.telegram.utils.pip.PipContent;
 import org.telegram.utils.pip.PipCoordinator;
 
@@ -1654,261 +1655,17 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 AndroidUtilities.runOnUIThread(updateProgressRunnable, 17);
             }
         }
-    
-    private final PipContent pipContent = new PipContent() {
-        private boolean isEmbed() {
-            return isEmbedVideo && photoViewerWebView != null;
-        }
 
-        @Override
-        public View getFloatingView() {
-            return isEmbed() ? photoViewerWebView.getWebView() : null;
-        }
 
-        @Override
-        public boolean isOverlayAllowed() {
-            return !isEmbed() || !photoViewerWebView.isInAppOnly();
+    public void onStop() {
+        // the app went to the background without picture-in-picture: the video must not keep playing there
+        if (AndroidUtilities.isInPictureInPictureMode(parentActivity)) {
+            return;
         }
-
-        @Override
-        public boolean hasPlaybackControls() {
-            return !isEmbed() || photoViewerWebView.isControllable();
+        if (videoPlayer != null ? isPlaying : photoViewerWebView != null && photoViewerWebView.isControllable() && photoViewerWebView.isPlaying()) {
+            pauseVideoOrWeb();
         }
-
-        @Override
-        public int getContentWidth() {
-            if (isEmbed()) {
-                return photoViewerWebView.getEmbedWidth();
-            }
-            if (aspectRatioFrameLayout != null && aspectRatioFrameLayout.getAspectRatio() > 0) {
-                return Math.round(aspectRatioFrameLayout.getAspectRatio() * 1000);
-            }
-            return videoWidth;
-        }
-
-        @Override
-        public int getContentHeight() {
-            if (isEmbed()) {
-                return photoViewerWebView.getEmbedHeight();
-            }
-            if (aspectRatioFrameLayout != null && aspectRatioFrameLayout.getAspectRatio() > 0) {
-                return 1000;
-            }
-            return videoHeight;
-        }
-
-        @Override
-        public boolean isPlaying() {
-            if (isEmbed()) {
-                return photoViewerWebView.isPlaying();
-            }
-            return videoPlayer != null && videoPlayer.isPlaying();
-        }
-
-        @Override
-        public boolean isCompleted() {
-            if (isEmbed()) {
-                return false;
-            }
-            return videoPlayer != null && !videoPlayer.isLooping() && videoPlayer.getDuration() > 0 && videoPlayer.getCurrentPosition() >= videoPlayer.getDuration();
-        }
-
-        @Override
-        public void play() {
-            if (isEmbed()) {
-                photoViewerWebView.playVideo();
-            } else if (videoPlayer != null) {
-                videoPlayer.play();
-            }
-        }
-
-        @Override
-        public void pause() {
-            if (isEmbed()) {
-                photoViewerWebView.pauseVideo();
-            } else if (videoPlayer != null) {
-                videoPlayer.pause();
-            }
-        }
-
-        @Override
-        public long getDuration() {
-            if (isEmbed()) {
-                return photoViewerWebView.getVideoDuration();
-            }
-            return videoPlayer != null ? videoPlayer.getDuration() : 0;
-        }
-
-        @Override
-        public long getCurrentPosition() {
-            if (isEmbed()) {
-                return photoViewerWebView.getCurrentPosition();
-            }
-            return videoPlayer != null ? videoPlayer.getCurrentPosition() : 0;
-        }
-
-        @Override
-        public float getBufferedProgress() {
-            if (isEmbed()) {
-                return photoViewerWebView.getBufferedPosition();
-            }
-            if (videoPlayer != null && videoPlayer.getDuration() > 0) {
-                return Math.max(pipBufferedProgress, videoPlayer.getBufferedPosition() / (float) videoPlayer.getDuration());
-            }
-            return pipBufferedProgress;
-        }
-
-        @Override
-        public void seekTo(long positionMs) {
-            if (isEmbed()) {
-                photoViewerWebView.seekTo(positionMs);
-            } else if (videoPlayer != null) {
-                videoPlayer.seekTo(positionMs);
-            }
-        }
-
-        @Override
-        public boolean startRewind(boolean forward, float x, @NonNull SeekSpeedDrawable seekSpeedDrawable) {
-            if (isEmbed()) {
-                getVideoPlayerRewinder().startRewind(photoViewerWebView, forward, x, getCurrentVideoSpeed(), seekSpeedDrawable);
-                return true;
-            }
-            if (videoPlayer == null) {
-                return false;
-            }
-            getVideoPlayerRewinder().startRewind(videoPlayer, forward, x, getCurrentVideoSpeed(), seekSpeedDrawable);
-            return true;
-        }
-
-        @Override
-        public void updateRewind(float x) {
-            getVideoPlayerRewinder().setX(x);
-        }
-
-        @Override
-        public void cancelRewind() {
-            getVideoPlayerRewinder().cancelRewind();
-        }
-
-        @Override
-        public boolean isRewinding() {
-            return getVideoPlayerRewinder().rewinding;
-        }
-
-        @Override
-        public void drawFloatingOverlay(@NonNull Canvas canvas, int width, int height) {
-            framesRewinder.draw(canvas, width, height);
-        }
-
-        @Override
-        public androidx.media3.common.Player getMediaSessionPlayer() {
-            if (isEmbed()) {
-                return null;
-            }
-            return videoPlayer != null ? videoPlayer.player : null;
-        }
-
-        @Override
-        public boolean needsPipOutsideApp() {
-            return pipAvailable && isPlaying() && !isEmbedVideo;
-        }
-
-        @Override
-        public boolean isPrimaryVisible() {
-            return Instance == PhotoViewer.this && isVisible && !isInline && !pipPrimaryHidden && windowView != null && windowView.getParent() != null && !pipAnimationInProgress && animationInProgress == 0;
-        }
-
-        @Override
-        public void getPrimaryVideoRect(@NonNull Rect outScreenRect) {
-            if (!pipVideoRectValid || containerView == null || !containerView.isAttachedToWindow()) {
-                outScreenRect.setEmpty();
-                return;
-            }
-            final int[] location = new int[2];
-            containerView.getLocationOnScreen(location);
-            outScreenRect.set(
-                Math.round(pipVideoRect.left + location[0]), Math.round(pipVideoRect.top + location[1]),
-                Math.round(pipVideoRect.right + location[0]), Math.round(pipVideoRect.bottom + location[1])
-            );
-        }
-
-        @Override
-        public void releasePrimary(@NonNull PipTextureView target) {
-            pipPrimaryHidden = true;
-            if (usedSurfaceView) {
-                if (videoPlayer != null) {
-                    videoPlayer.setSurfaceView(null);
-                    videoPlayer.setTextureView(null);
-                    videoPlayer.setTextureView(target);
-                }
-            } else if (videoTextureView != null) {
-                pipPendingTarget = target;
-                AndroidUtilities.removeFromParent(videoTextureView);
-                pipPendingTarget = null;
-            }
-            try {
-                if (windowView != null && windowView.getParent() != null) {
-                    WindowManager wm = (WindowManager) parentActivity.getSystemService(Context.WINDOW_SERVICE);
-                    wm.removeViewImmediate(windowView);
-                }
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
-
-        @Override
-        public void restorePrimary(@NonNull SurfaceTexture surfaceTexture) {
-            pipPrimaryHidden = false;
-            try {
-                if (windowView != null && windowView.getParent() == null) {
-                    WindowManager wm = (WindowManager) parentActivity.getSystemService(Context.WINDOW_SERVICE);
-                    wm.addView(windowView, windowLayoutParams);
-                }
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-            if (usedSurfaceView) {
-                if (videoPlayer != null) {
-                    videoPlayer.setTextureView(null);
-                    videoPlayer.setSurfaceView(videoSurfaceView);
-                }
-                surfaceTexture.release();
-            } else if (videoTextureView != null && aspectRatioFrameLayout != null) {
-                videoTextureView.setSurfaceTexture(surfaceTexture);
-                AndroidUtilities.removeFromParent(videoTextureView);
-                aspectRatioFrameLayout.addView(videoTextureView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER));
-            }
-        }
-
-        @Override
-        public void onExpandRequested() {
-            exitFromPip();
-        }
-
-        @Override
-        public void onDismissed() {
-            pipSession = null;
-            if (PipInstance == PhotoViewer.this) {
-                destroyPhotoViewer();
-                MediaController.getInstance().tryResumePausedAudio();
-            } else if (Instance == PhotoViewer.this) {
-                if (pipPrimaryHidden) {
-                    // closed from system PiP: bring the window back so the regular close path
-                    // (dismissInternal -> onHideView) restores the parent fragment
-                    pipPrimaryHidden = false;
-                    try {
-                        if (windowView != null && windowView.getParent() == null) {
-                            WindowManager wm = (WindowManager) parentActivity.getSystemService(Context.WINDOW_SERVICE);
-                            wm.addView(windowView, windowLayoutParams);
-                        }
-                    } catch (Exception e) {
-                        FileLog.e(e);
-                    }
-                }
-                closePhoto(false, false);
-            }
-        }
-    };
+    }
 };
 
     private final Runnable switchToInlineRunnable = new Runnable() {
@@ -6759,7 +6516,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         docInfoTextView.setGravity(Gravity.LEFT);
         pickerView.addView(docInfoTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 20, 46, 84, 0));
 
-
         doneButtonFullWidth = new TextView(containerView.getContext());
         doneButtonFullWidth.setBackground(Theme.AdaptiveRipple.filledRect(getThemedColor(Theme.key_featuredStickers_addButton), 6));
         doneButtonFullWidth.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
@@ -8547,7 +8303,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             }
         });
     }
-
 
     private void sendPressed(boolean notify, int scheduleDate, int scheduleRepeatPeriod) {
         sendPressed(notify, scheduleDate, scheduleRepeatPeriod, false, false, false);
@@ -21358,7 +21113,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         return tempInt;
     }
 
-
     private void onActionClick(boolean download) {
         if (currentMessageObject == null && currentBotInlineResult == null && (pageBlocksAdapter == null || currentFileNames[0] == null) && sendPhotoType != SELECT_TYPE_NO_SELECT) {
             return;
@@ -22856,7 +22610,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             && !AndroidUtilities.makingGlobalBlurBitmap;
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.S)
     private RenderNode getRenderNodeBlurred(boolean glass) {
         if (renderNode == null) {
@@ -23518,7 +23271,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 //        }
 
         invalidateAllGlassAttachedViews();
-
 
         if (captionEdit != null) {
             captionEdit.invalidateBlur();
@@ -24290,7 +24042,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         return videoPlayer.getCurrentPosition();
     }
 
-
     @Override
     public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
         if (id == ANIMATOR_ID_POLL_ATTACH_BUTTONS_VISIBLE) {
@@ -24355,7 +24106,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     public void pipRenderBackground(Canvas canvas) {
         canvas.drawColor(0xFF000000);
     }
-
 
     @Override
     public void pipRenderForeground(Canvas canvas) {
@@ -24704,7 +24454,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         setWindowHdrColorMode(enabled);
     }
 
-
     // ArasGram: ported member for 13.2.1 compatibility
     public void completeEmbedPipExpand() {
         if (pipSession != null) {
@@ -24721,7 +24470,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         return true;
     }
 
-
     // ArasGram: ported for 13.2.1 compatibility
     private void ensurePipSession() {
         if (pipSession == null || !pipSession.isAlive()) {
@@ -24730,4 +24478,262 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     private PipSession pipSession;
+
+    private final PipContent pipContent = new PipContent() {
+        private boolean isEmbed() {
+            return isEmbedVideo && photoViewerWebView != null;
+        }
+
+        @Override
+        public View getFloatingView() {
+            return isEmbed() ? photoViewerWebView.getWebView() : null;
+        }
+
+        @Override
+        public boolean isOverlayAllowed() {
+            return !isEmbed() || !photoViewerWebView.isInAppOnly();
+        }
+
+        @Override
+        public boolean hasPlaybackControls() {
+            return !isEmbed() || photoViewerWebView.isControllable();
+        }
+
+        @Override
+        public int getContentWidth() {
+            if (isEmbed()) {
+                return photoViewerWebView.getEmbedWidth();
+            }
+            if (aspectRatioFrameLayout != null && aspectRatioFrameLayout.getAspectRatio() > 0) {
+                return Math.round(aspectRatioFrameLayout.getAspectRatio() * 1000);
+            }
+            return videoWidth;
+        }
+
+        @Override
+        public int getContentHeight() {
+            if (isEmbed()) {
+                return photoViewerWebView.getEmbedHeight();
+            }
+            if (aspectRatioFrameLayout != null && aspectRatioFrameLayout.getAspectRatio() > 0) {
+                return 1000;
+            }
+            return videoHeight;
+        }
+
+        @Override
+        public boolean isPlaying() {
+            if (isEmbed()) {
+                return photoViewerWebView.isPlaying();
+            }
+            return videoPlayer != null && videoPlayer.isPlaying();
+        }
+
+        @Override
+        public boolean isCompleted() {
+            if (isEmbed()) {
+                return false;
+            }
+            return videoPlayer != null && !videoPlayer.isLooping() && videoPlayer.getDuration() > 0 && videoPlayer.getCurrentPosition() >= videoPlayer.getDuration();
+        }
+
+        @Override
+        public void play() {
+            if (isEmbed()) {
+                photoViewerWebView.playVideo();
+            } else if (videoPlayer != null) {
+                videoPlayer.play();
+            }
+        }
+
+        @Override
+        public void pause() {
+            if (isEmbed()) {
+                photoViewerWebView.pauseVideo();
+            } else if (videoPlayer != null) {
+                videoPlayer.pause();
+            }
+        }
+
+        @Override
+        public long getDuration() {
+            if (isEmbed()) {
+                return photoViewerWebView.getVideoDuration();
+            }
+            return videoPlayer != null ? videoPlayer.getDuration() : 0;
+        }
+
+        @Override
+        public long getCurrentPosition() {
+            if (isEmbed()) {
+                return photoViewerWebView.getCurrentPosition();
+            }
+            return videoPlayer != null ? videoPlayer.getCurrentPosition() : 0;
+        }
+
+        @Override
+        public float getBufferedProgress() {
+            if (isEmbed()) {
+                return photoViewerWebView.getBufferedPosition();
+            }
+            if (videoPlayer != null && videoPlayer.getDuration() > 0) {
+                return Math.max(pipBufferedProgress, videoPlayer.getBufferedPosition() / (float) videoPlayer.getDuration());
+            }
+            return pipBufferedProgress;
+        }
+
+        @Override
+        public void seekTo(long positionMs) {
+            if (isEmbed()) {
+                photoViewerWebView.seekTo(positionMs);
+            } else if (videoPlayer != null) {
+                videoPlayer.seekTo(positionMs);
+            }
+        }
+
+        @Override
+        public boolean startRewind(boolean forward, float x, @NonNull SeekSpeedDrawable seekSpeedDrawable) {
+            if (isEmbed()) {
+                getVideoPlayerRewinder().startRewind(photoViewerWebView, forward, x, getCurrentVideoSpeed(), seekSpeedDrawable);
+                return true;
+            }
+            if (videoPlayer == null) {
+                return false;
+            }
+            getVideoPlayerRewinder().startRewind(videoPlayer, forward, x, getCurrentVideoSpeed(), seekSpeedDrawable);
+            return true;
+        }
+
+        @Override
+        public void updateRewind(float x) {
+            getVideoPlayerRewinder().setX(x);
+        }
+
+        @Override
+        public void cancelRewind() {
+            getVideoPlayerRewinder().cancelRewind();
+        }
+
+        @Override
+        public boolean isRewinding() {
+            return getVideoPlayerRewinder().rewinding;
+        }
+
+        @Override
+        public void drawFloatingOverlay(@NonNull Canvas canvas, int width, int height) {
+            framesRewinder.draw(canvas, width, height);
+        }
+
+        @Override
+        public androidx.media3.common.Player getMediaSessionPlayer() {
+            if (isEmbed()) {
+                return null;
+            }
+            return videoPlayer != null ? videoPlayer.player : null;
+        }
+
+        @Override
+        public boolean needsPipOutsideApp() {
+            return pipAvailable && isPlaying() && !isEmbedVideo;
+        }
+
+        @Override
+        public boolean isPrimaryVisible() {
+            return Instance == PhotoViewer.this && isVisible && !isInline && !pipPrimaryHidden && windowView != null && windowView.getParent() != null && !pipAnimationInProgress && animationInProgress == 0;
+        }
+
+        @Override
+        public void getPrimaryVideoRect(@NonNull Rect outScreenRect) {
+            if (!pipVideoRectValid || containerView == null || !containerView.isAttachedToWindow()) {
+                outScreenRect.setEmpty();
+                return;
+            }
+            final int[] location = new int[2];
+            containerView.getLocationOnScreen(location);
+            outScreenRect.set(
+                Math.round(pipVideoRect.left + location[0]), Math.round(pipVideoRect.top + location[1]),
+                Math.round(pipVideoRect.right + location[0]), Math.round(pipVideoRect.bottom + location[1])
+            );
+        }
+
+        @Override
+        public void releasePrimary(@NonNull PipTextureView target) {
+            pipPrimaryHidden = true;
+            if (usedSurfaceView) {
+                if (videoPlayer != null) {
+                    videoPlayer.setSurfaceView(null);
+                    videoPlayer.setTextureView(null);
+                    videoPlayer.setTextureView(target);
+                }
+            } else if (videoTextureView != null) {
+                pipPendingTarget = target;
+                AndroidUtilities.removeFromParent(videoTextureView);
+                pipPendingTarget = null;
+            }
+            try {
+                if (windowView != null && windowView.getParent() != null) {
+                    WindowManager wm = (WindowManager) parentActivity.getSystemService(Context.WINDOW_SERVICE);
+                    wm.removeViewImmediate(windowView);
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
+
+        @Override
+        public void restorePrimary(@NonNull SurfaceTexture surfaceTexture) {
+            pipPrimaryHidden = false;
+            try {
+                if (windowView != null && windowView.getParent() == null) {
+                    WindowManager wm = (WindowManager) parentActivity.getSystemService(Context.WINDOW_SERVICE);
+                    wm.addView(windowView, windowLayoutParams);
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+            if (usedSurfaceView) {
+                if (videoPlayer != null) {
+                    videoPlayer.setTextureView(null);
+                    videoPlayer.setSurfaceView(videoSurfaceView);
+                }
+                surfaceTexture.release();
+            } else if (videoTextureView != null && aspectRatioFrameLayout != null) {
+                videoTextureView.setSurfaceTexture(surfaceTexture);
+                AndroidUtilities.removeFromParent(videoTextureView);
+                aspectRatioFrameLayout.addView(videoTextureView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER));
+            }
+        }
+
+        @Override
+        public void onExpandRequested() {
+            exitFromPip();
+        }
+
+        @Override
+        public void onDismissed() {
+            pipSession = null;
+            if (PipInstance == PhotoViewer.this) {
+                destroyPhotoViewer();
+                MediaController.getInstance().tryResumePausedAudio();
+            } else if (Instance == PhotoViewer.this) {
+                if (pipPrimaryHidden) {
+                    // closed from system PiP: bring the window back so the regular close path
+                    // (dismissInternal -> onHideView) restores the parent fragment
+                    pipPrimaryHidden = false;
+                    try {
+                        if (windowView != null && windowView.getParent() == null) {
+                            WindowManager wm = (WindowManager) parentActivity.getSystemService(Context.WINDOW_SERVICE);
+                            wm.addView(windowView, windowLayoutParams);
+                        }
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                }
+                closePhoto(false, false);
+            }
+        }
+    };
+
+    private final RectF pipVideoRect = new RectF();
+    private boolean pipVideoRectValid;
 }

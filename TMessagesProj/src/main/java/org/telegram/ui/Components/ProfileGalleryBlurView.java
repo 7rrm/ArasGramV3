@@ -640,4 +640,17 @@ public class ProfileGalleryBlurView extends View {
                 return 8;
         }
     }
+
+    private ProfileActionsView actionsView;
+    private ProfileSuggestionView suggestionView;
+    private ProfileMusicView musicView;
+    public void setActionsView(ProfileActionsView actionsView) {
+        this.actionsView = actionsView;
+    }
+    public void setSuggestionView(ProfileSuggestionView suggestionView) {
+        this.suggestionView = suggestionView;
+    }
+    public void setMusicView(ProfileMusicView musicView) {
+        this.musicView = musicView;
+    }
 }

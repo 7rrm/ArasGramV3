@@ -812,5 +812,4 @@ public class RadialProgressView extends View implements Drawable.Callback {
     private int themedProgressColor;
 
     private int progressColorKey = Theme.key_progressCircle;
-    private int themedProgressColor;
 }

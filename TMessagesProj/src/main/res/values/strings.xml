@@ -11732,4 +11732,5 @@
     <string name="HeaderDoneButtonShapeIcon">Round with a check</string>
     <string name="HeaderSettings">Header</string>
     <string name="HeaderDoneButtonColorAccent">Blue</string>
+    <string name="UnsupportedContent">Unsupported content</string>
 </resources>

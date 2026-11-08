@@ -572,6 +572,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public interface ChatMessageCellDelegate {
+        default void didPressRichDocumentOptions(ChatMessageCell cell, TLRPC.Document document, android.graphics.RectF blockBounds) {
+
+        }
         default void didPressRichCodeCopy(ChatMessageCell cell, String code, String language) {
 
         }
