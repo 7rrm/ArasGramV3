@@ -4842,7 +4842,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         blurredBackgroundSource = new GlassSource() {
             private final BlurringShader.StoryBlurDrawer blur = new BlurringShader.StoryBlurDrawer(blurManager, containerView, BlurringShader.StoryBlurDrawer.BLUR_TYPE_BACKGROUND);
 
-            @Override
             public BlurredBackgroundDrawable createDrawable() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     BlurredBackgroundDrawableRenderNode d = new BlurredBackgroundDrawableRenderNode(this);
