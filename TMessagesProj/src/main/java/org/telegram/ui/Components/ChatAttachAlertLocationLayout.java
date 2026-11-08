@@ -993,8 +993,6 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
         }, resourcesProvider).show();
     }
 
-                IMapsProvider.IMarkerOptions options = ApplicationLoader.getMapsProvider().onCreateMarkerOptions(mapView).position(new IMapsProvider.LatLng(venue.geo.lat, venue.geo._long));
-                options.icon(getParentActivity().getResources(), createPlaceBitmap(a));
     private MessagesController getMessagesController() {
         return parentAlert.baseFragment.getMessagesController();
     }
