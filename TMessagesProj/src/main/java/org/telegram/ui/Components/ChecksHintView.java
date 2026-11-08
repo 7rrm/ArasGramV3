@@ -106,7 +106,7 @@ public class ChecksHintView extends HintView2 {
     }
 
 
-    public ChecksHintView(Context context, Theme.ResourcesProvider resourcesProvider) {
+    public ChecksHintView(Context context, org.telegram.ui.ActionBar.Theme.ResourcesProvider resourcesProvider) {
         this(context);
     }
 
