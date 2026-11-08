@@ -100,8 +100,6 @@ import android.text.TextUtils;
 import android.view.animation.OvershootInterpolator;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import org.telegram.ui.Cells.LocationCell;
-import org.telegram.ui.Cells.LocationLoadingCell;
-import org.telegram.ui.Cells.LocationPoweredCell;
 
 public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLayout implements Theme.Colorable, NotificationCenter.NotificationCenterDelegate {
 
