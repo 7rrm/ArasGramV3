@@ -12928,4 +12928,12 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     }
 
         private Drawable wallpaper;
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private static final float TABS_GLASS_INSET_DP = 6.666f;
+
+    private static final int TOP_PANEL_GLASS_TOP = AndroidUtilities.dp(14) + AndroidUtilities.dp(7);
+
+    private Runnable onTopPanelShiftChanged;
 }

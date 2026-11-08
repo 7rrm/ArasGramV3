@@ -865,4 +865,16 @@ public class BitmapSectionsItemDecoration extends RecyclerView.ItemDecoration im
             final int sectionColor = parent.getSectionColorForDecoration();
 
         final int color = parent.getSectionsBackgroundColorForDecoration();
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+            final int sectionColor = parent.getSectionColorForDecoration();
+
+        final int color = parent.getSectionsBackgroundColorForDecoration();
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+            final int sectionColor = parent.getSectionColorForDecoration();
+
+        final int color = parent.getSectionsBackgroundColorForDecoration();
 }

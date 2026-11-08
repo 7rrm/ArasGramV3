@@ -254,4 +254,7 @@ public final class GlassSourceRenderNode implements GlassSource, BlurredBackgrou
             onDrawablesRelativePositionChangeListener.run();
         }
     }
+
+
+    private Runnable onDrawablesRelativePositionChangeListener;
 }

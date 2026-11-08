@@ -29266,4 +29266,25 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } catch (Exception ignore) {}
         delegate.didLongPress(this, lastTouchX, lastTouchY);
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+        final int maxWidth = getCompactContentWidth();
+
+        final float x = getCompactLeft();
+
+                        final boolean hit = block.isCompactCopyHit(x - (block.isRtl() ? currentMessageObject.textXOffset : 0), y - block.padTop, getCompactRight() - textX);
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+        final int maxWidth = getCompactContentWidth();
+
+        final float x = getCompactLeft();
+
+                        final boolean hit = block.isCompactCopyHit(x - (block.isRtl() ? currentMessageObject.textXOffset : 0), y - block.padTop, getCompactRight() - textX);
+
+
+    public boolean isCompactLayout() {
+        return false;
+    }
 }
