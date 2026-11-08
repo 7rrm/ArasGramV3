@@ -9548,7 +9548,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
 
     // ArasGram: ported for 13.2.1 compatibility
-    public final static String VOIP_ANSWER_TOKEN = UUID.randomUUID().toString();
 
 
     // ArasGram: ported for 13.2.1 compatibility

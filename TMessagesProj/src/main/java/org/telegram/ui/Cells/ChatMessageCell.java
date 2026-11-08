@@ -29277,7 +29277,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
 
     // ArasGram: ported for 13.2.1 compatibility
-        final int maxWidth = getCompactContentWidth();
 
         final float x = getCompactLeft();
 
