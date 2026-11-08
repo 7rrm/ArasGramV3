@@ -1119,7 +1119,7 @@ public abstract class NekoDelegateFragment extends BaseFragment implements Notif
     }
 
     private void animateCellChange(@NonNull ChatMessageCell messageCell) {
-        ChatMessageCell.TransitionParams params = messageCell.getTransitionParams();
+        ChatMessageTransitionParams params = messageCell.getTransitionParams();
         if (!params.supportChangeAnimation()) {
             return;
         }

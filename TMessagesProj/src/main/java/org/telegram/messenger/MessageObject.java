@@ -848,7 +848,7 @@ public class MessageObject {
         public float progress;
 
         public boolean fromPreview;
-        public ChatMessageCell.TransitionParams fromParams;
+        public ChatMessageTransitionParams fromParams;
     }
 
     public static class VCardData {
@@ -1042,13 +1042,13 @@ public class MessageObject {
             return quoteCollapse && collapsed() ? collapsedHeight : height;
         }
 
-        public int height(ChatMessageCell.TransitionParams tp) {
+        public int height(ChatMessageTransitionParams tp) {
             if (!quoteCollapse)
                 return height;
             return AndroidUtilities.lerp(height, collapsedHeight, collapsed(tp));
         }
 
-        public float collapsed(ChatMessageCell.TransitionParams tp) {
+        public float collapsed(ChatMessageTransitionParams tp) {
             final boolean pastCollapsed = tp.animateExpandedQuotes ? (tp.animateExpandedQuotesFrom == null ? true : !tp.animateExpandedQuotesFrom.contains(index)) : collapsed();
             return AndroidUtilities.lerp(pastCollapsed ? 1f : 0f, collapsed() ? 1f : 0f, tp.animateChangeProgress);
         }
@@ -1068,7 +1068,7 @@ public class MessageObject {
             return h;
         }
 
-        public float textYOffset(ArrayList<TextLayoutBlock> blocks, ChatMessageCell.TransitionParams tp) {
+        public float textYOffset(ArrayList<TextLayoutBlock> blocks, ChatMessageTransitionParams tp) {
             if (blocks == null) return 0;
             int h = 0;
             for (int i = 0; i < blocks.size(); ++i) {
@@ -9257,7 +9257,7 @@ public class MessageObject {
         return h;
     }
 
-    public int textHeight(ChatMessageCell.TransitionParams tp) {
+    public int textHeight(ChatMessageTransitionParams tp) {
         if (textLayoutBlocks == null) return 0;
         int h = 0;
         for (int i = 0; i < textLayoutBlocks.size(); ++i) {
@@ -9285,7 +9285,7 @@ public class MessageObject {
             return h;
         }
 
-        public int textHeight(ChatMessageCell.TransitionParams tp) {
+        public int textHeight(ChatMessageTransitionParams tp) {
             int h = 0;
             for (int i = 0; i < textLayoutBlocks.size(); ++i) {
                 h += textLayoutBlocks.get(i).padTop + textLayoutBlocks.get(i).height(tp) + textLayoutBlocks.get(i).padBottom;

@@ -413,7 +413,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
 
     public final Props boundProps = new Props();
 
-    private static class Props {
+    public static class Props {
         final Rect bounds = new Rect();
         final float[] radii = new float[8];
         final float[] shaderRadii = new float[8];

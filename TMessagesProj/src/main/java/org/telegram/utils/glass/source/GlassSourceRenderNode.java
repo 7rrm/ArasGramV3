@@ -242,4 +242,16 @@ public final class GlassSourceRenderNode implements GlassSource, BlurredBackgrou
     public void attachDrawable(BlurredBackgroundDrawable drawable) {
         drawables.add(drawable);
     }
+
+
+    // ArasGram: restored from 13.1.1 blur3 API
+    public void setOnDrawablesRelativePositionChangeListener(Runnable callback) {
+        onDrawablesRelativePositionChangeListener = callback;
+    }
+
+    public void dispatchOnDrawablesRelativePositionChange() {
+        if (onDrawablesRelativePositionChangeListener != null) {
+            onDrawablesRelativePositionChangeListener.run();
+        }
+    }
 }

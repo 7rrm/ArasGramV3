@@ -150,7 +150,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
 
     public native int startRecord(String path, int sampleRate);
 
-    private native int writeFrame(ByteBuffer frame, int len);
+    public native int writeFrame(ByteBuffer frame, int len);
 
     private native void stopRecord();
 
