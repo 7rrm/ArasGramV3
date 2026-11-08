@@ -256,9 +256,17 @@ public class ChatBackgroundDrawable extends Drawable {
     }
 
     public void onDetachedFromWindow(View view) {
+<<<<<<< /tmp/tmprrw_sqfl
         if (attachedViews.contains(view)) {
             attachedViews.remove(view);
         }
+||||||| /tmp/tmpqim1vv22
+        if (!attachedViews.contains(view)) {
+            attachedViews.remove(view);
+        }
+=======
+        attachedViews.remove(view);
+>>>>>>> /tmp/tmpjy2z4y0h
         if (isAttached() && !attached) {
             attached = true;
             imageReceiver.onAttachedToWindow();

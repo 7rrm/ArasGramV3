@@ -20,6 +20,7 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RadioButton;
 
@@ -38,6 +39,7 @@ public class RadioButtonCell extends LinearLayout {
     public RadioButtonCell(Context context, boolean dialog) {
         super(context);
 
+<<<<<<< /tmp/tmpcrh2s983
         setOrientation(LinearLayout.HORIZONTAL);
         setGravity(Gravity.CENTER_VERTICAL);
 
@@ -49,12 +51,31 @@ public class RadioButtonCell extends LinearLayout {
         addView(textLayout, new LinearLayout.LayoutParams(-1, -2) {{
             weight = 1;
         }});
+||||||| /tmp/tmp9np_cud_
+        radioButton = new RadioButton(context);
+        radioButton.setSize(AndroidUtilities.dp(20));
+        if (dialog) {
+            radioButton.setColor(Theme.getColor(Theme.key_dialogRadioBackground), Theme.getColor(Theme.key_dialogRadioBackgroundChecked));
+        } else {
+            radioButton.setColor(Theme.getColor(Theme.key_radioBackground), Theme.getColor(Theme.key_radioBackgroundChecked));
+        }
+        addView(radioButton, LayoutHelper.createFrame(22, 22, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, (LocaleController.isRTL ? 0 : 20), 10, (LocaleController.isRTL ? 20 : 0), 0));
+=======
+        radioButton = new RadioButton(context);
+        radioButton.setSize(AndroidUtilities.dp(20));
+        if (dialog) {
+            ThemeBind.radioColors(radioButton, Theme.key_dialogRadioBackground, Theme.key_dialogRadioBackgroundChecked);
+        } else {
+            ThemeBind.radioColors(radioButton, Theme.key_radioBackground, Theme.key_radioBackgroundChecked);
+        }
+        addView(radioButton, LayoutHelper.createFrame(22, 22, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, (LocaleController.isRTL ? 0 : 20), 10, (LocaleController.isRTL ? 20 : 0), 0));
+>>>>>>> /tmp/tmp1hbzaowf
 
         textView = new TextView(context);
         if (dialog) {
-            textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+            ThemeBind.textColor(textView, Theme.key_dialogTextBlack);
         } else {
-            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
         }
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
@@ -62,9 +83,9 @@ public class RadioButtonCell extends LinearLayout {
 
         valueTextView = new TextView(context);
         if (dialog) {
-            valueTextView.setTextColor(Theme.getColor(Theme.key_dialogTextGray2));
+            ThemeBind.textColor(valueTextView, Theme.key_dialogTextGray2);
         } else {
-            valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
+            ThemeBind.textColor(valueTextView, Theme.key_windowBackgroundWhiteGrayText2);
         }
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         valueTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);

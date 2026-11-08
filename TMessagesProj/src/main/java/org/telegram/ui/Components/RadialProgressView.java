@@ -36,9 +36,18 @@ import android.view.animation.DecelerateInterpolator;
 import androidx.annotation.Keep;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.FileLog;
 import org.telegram.ui.ActionBar.Theme;
 
+<<<<<<< /tmp/tmp204fyfx5
 public class RadialProgressView extends View implements Drawable.Callback {
+||||||| /tmp/tmpc6_3mj2a
+public class RadialProgressView extends View {
+=======
+import java.util.HashSet;
+
+public class RadialProgressView extends View implements Theme.Colorable {
+>>>>>>> /tmp/tmpay9rq1v1
 
     // ==================== Constants ====================
     private static final float rotationTime = 700; // ms for a full 360° rotation
@@ -141,6 +150,7 @@ public class RadialProgressView extends View implements Drawable.Callback {
         progressPaint.setStrokeCap(Paint.Cap.ROUND);
         progressPaint.setStrokeWidth(AndroidUtilities.dp(2.5f));
         progressPaint.setColor(progressColor);
+<<<<<<< /tmp/tmp204fyfx5
 
         // ===== Inner ring main paint =====
         innerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -194,6 +204,48 @@ public class RadialProgressView extends View implements Drawable.Callback {
         outerCyanGlowPaint.setMaskFilter(new BlurMaskFilter(AndroidUtilities.dp(0.5f), BlurMaskFilter.Blur.NORMAL));
 
         lastUpdateTime = System.currentTimeMillis();
+||||||| /tmp/tmpc6_3mj2a
+=======
+        themedProgressColor = progressColor;
+    }
+
+    // the key progressColor came from (Theme.key_progressCircle by default, see setProgressColorKey), and the color it gave
+    private int progressColorKey = Theme.key_progressCircle;
+    private int themedProgressColor;
+
+    /** same as setProgressColor(getThemedColor(key)), but follows theme changes */
+    public void setProgressColorKey(int key) {
+        progressColorKey = key;
+        setProgressColor(getThemedColor(key));
+        themedProgressColor = progressColor;
+    }
+
+    @Override
+    public void updateColors() {
+        try {
+            if (progressPaint == null || progressColor != themedProgressColor) {
+                return; // custom color set by the caller
+            }
+            final int color = getThemedColor(progressColorKey);
+            themedProgressColor = color;
+            if (color != progressColor) {
+                final int alpha = progressPaint.getAlpha();
+                setProgressColor(color);
+                themedProgressColor = color;
+                if (useSelfAlpha) {
+                    progressPaint.setAlpha(alpha);
+                }
+                invalidate();
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    @Override
+    public void addColorKeys(HashSet<Integer> colors) {
+        colors.add(progressColorKey);
+>>>>>>> /tmp/tmpay9rq1v1
     }
 
     // ==================== Public API ====================

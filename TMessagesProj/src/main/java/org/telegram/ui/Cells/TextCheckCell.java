@@ -35,6 +35,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.AvatarSpan;
 import org.telegram.ui.Components.AnimationProperties;
 import org.telegram.ui.Components.CheckBoxSquare;
@@ -106,17 +107,31 @@ public class TextCheckCell extends FrameLayout {
         this.padding = padding;
 
         textView = new TextView(context);
+<<<<<<< /tmp/tmpofyxjuj5
         textView.setTextColor(Theme.getColor(dialog ? Theme.key_dialogTextBlack : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         // MeeroX: iOS sets a grouped-table row's label at 17pt, one step above
         // the 16 used here. The subtitle stays at 13 - that already matches
         // the reference, and the gap between the two sizes is what makes the
         // pair read as a title with a note under it rather than two labels.
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, meeroIosCell() ? 17 : 16);
+||||||| /tmp/tmp4gj10qpk
+        textView.setTextColor(Theme.getColor(dialog ? Theme.key_dialogTextBlack : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        textView.setLines(1);
+        textView.setMaxLines(1);
+        textView.setSingleLine(true);
+=======
+        ThemeBind.textColor(textView, dialog ? Theme.key_dialogTextBlack : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        textView.setLines(1);
+        textView.setMaxLines(1);
+        textView.setSingleLine(true);
+>>>>>>> /tmp/tmptp_r9_7r
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 70 : padding, 0, LocaleController.isRTL ? padding : 70, 0));
 
         valueTextView = new TextView(context);
-        valueTextView.setTextColor(Theme.getColor(dialog ? Theme.key_dialogIcon : Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
+        ThemeBind.textColor(valueTextView, dialog ? Theme.key_dialogIcon : Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         valueTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         valueTextView.setLines(1);
@@ -230,7 +245,7 @@ public class TextCheckCell extends FrameLayout {
     }
 
     public void setColors(int key, int switchKey, int switchKeyChecked, int switchThumb, int switchThumbChecked) {
-        textView.setTextColor(Theme.getColor(key, resourcesProvider));
+        ThemeBind.textColor(textView, key, resourcesProvider);
         checkBox.setColors(switchKey, switchKeyChecked, switchThumb, switchThumbChecked);
         textView.setTag(key);
     }

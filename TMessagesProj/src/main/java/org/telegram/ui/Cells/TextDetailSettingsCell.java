@@ -22,7 +22,12 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
+<<<<<<< /tmp/tmpomxogi6b
 import org.telegram.ui.Components.EmojiTextView;
+||||||| /tmp/tmp_ovo9vq6
+=======
+import org.telegram.ui.ActionBar.ThemeBind;
+>>>>>>> /tmp/tmp_lyhm8uv
 import org.telegram.ui.Components.LayoutHelper;
 
 public class TextDetailSettingsCell extends FrameLayout {
@@ -36,8 +41,16 @@ public class TextDetailSettingsCell extends FrameLayout {
     public TextDetailSettingsCell(Context context) {
         super(context);
 
+<<<<<<< /tmp/tmpomxogi6b
         textView = new EmojiTextView(context);
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+||||||| /tmp/tmp_ovo9vq6
+        textView = new TextView(context);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+=======
+        textView = new TextView(context);
+        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
+>>>>>>> /tmp/tmp_lyhm8uv
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setLines(1);
         textView.setMaxLines(1);
@@ -46,8 +59,16 @@ public class TextDetailSettingsCell extends FrameLayout {
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 21, 10, 21, 0));
 
+<<<<<<< /tmp/tmpomxogi6b
         valueTextView = new EmojiTextView(context);
         valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
+||||||| /tmp/tmp_ovo9vq6
+        valueTextView = new TextView(context);
+        valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
+=======
+        valueTextView = new TextView(context);
+        ThemeBind.textColor(valueTextView, Theme.key_windowBackgroundWhiteGrayText2);
+>>>>>>> /tmp/tmp_lyhm8uv
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         valueTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         valueTextView.setLines(1);
@@ -58,7 +79,7 @@ public class TextDetailSettingsCell extends FrameLayout {
 
         imageView = new ImageView(context);
         imageView.setScaleType(ImageView.ScaleType.CENTER);
-        imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.MULTIPLY));
+        ThemeBind.colorFilter(imageView, Theme.key_windowBackgroundWhiteGrayIcon, PorterDuff.Mode.MULTIPLY);
         imageView.setVisibility(GONE);
         addView(imageView, LayoutHelper.createFrame(52, 52, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 8, 6, 8, 0));
 
