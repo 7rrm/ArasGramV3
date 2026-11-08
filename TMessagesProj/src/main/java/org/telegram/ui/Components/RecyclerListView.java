@@ -4131,4 +4131,52 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
             return new float[]{drawFrom, drawTo, topRadius, bottomRadius, alpha};
         }
     }
+
+
+    // ArasGram: ported from Telegram 13.2.1 for the new ChatMessage* subclasses
+    public int getSelectorDrawableColor() {
+        return selectorDrawableColor;
+    }
+
+    static boolean hasSectionContentAboveTop(View child) {
+        return child instanceof SectionContentAboveTop && ((SectionContentAboveTop) child).hasSectionContentAboveTop();
+    }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public boolean getSectionsDrawBackground() {
+        return bitmapSectionsDrawBackground;
+    }
+
+    public int getSectionsOverscanTop() {
+        return sectionsOverscanTop;
+    }
+
+    public void setLegacySections(boolean legacySections) {
+        if (this.legacySections == legacySections) {
+            return;
+        }
+        this.legacySections = legacySections;
+        installSectionsDecoration();
+        invalidateItemDecorations();
+        invalidate();
+    }
+
+    public void setSectionsDrawBackground(boolean drawBackground) {
+        if (bitmapSectionsDrawBackground == drawBackground) {
+            return;
+        }
+        bitmapSectionsDrawBackground = drawBackground;
+        if (drawBackground) {
+            // only this decoration draws it
+            setLegacySections(false);
+        }
+        if (bitmapSectionsItemDecoration != null) {
+            bitmapSectionsItemDecoration.setDrawBackground(drawBackground);
+            hideIfEmpty = false;
+            if (emptyView != null) {
+                setVisibility(VISIBLE);
+            }
+        }
+    }
 }

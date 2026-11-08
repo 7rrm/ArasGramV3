@@ -3053,4 +3053,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         return itemsColor;
     }
     // --- Spring Animation ---
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public boolean doNotDrawCenterGlass;
+
+    public void setCenterTitleAndGlass(boolean value) {
+        if (centerTitleAndGlass == value) {
+            return;
+        }
+        centerTitleAndGlass = value;
+        for (SimpleTextView title : titleTextView) {
+            if (title != null) {
+                title.setGravity(isCenterTitle || value ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL);
+            }
+        }
+        if (subtitleTextView != null) {
+            subtitleTextView.setGravity(isCenterTitle || value ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL);
+        }
+        requestLayout();
+        invalidate();
+    }
 }

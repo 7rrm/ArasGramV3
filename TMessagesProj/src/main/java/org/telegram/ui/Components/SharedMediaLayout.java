@@ -12720,4 +12720,93 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             giftsContainer.initBlurCapture(parent);
         }
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public void capturePages(Canvas canvas, RectF position, ViewGroup root) {
+        for (MediaPage page : mediaPages) {
+            if (page == null || page.getVisibility() != VISIBLE) {
+                continue;
+            }
+            if (page.wallpaper != null && ViewPositionWatcher.computeRectInParent(page, root, capturePageRect)) {
+                // the wallpaper of the polls is under the glass too
+                canvas.save();
+                canvas.translate(capturePageRect.left, capturePageRect.top);
+                page.drawPageBackground(canvas);
+                canvas.restore();
+            }
+            if (page.selectedType == TAB_GIFTS && giftsContainer != null && giftsContainer.getParent() == page) {
+                giftsContainer.capturePages(canvas, position, root);
+                continue;
+            }
+            final RecyclerListView listView;
+            if (page.selectedType == TAB_SAVED_MESSAGES && savedMessagesContainer != null && savedMessagesContainer.getParent() == page) {
+                listView = savedMessagesContainer.chatActivity.getChatListView();
+            } else if (page.selectedType == TAB_BOT_PREVIEWS && botPreviewsContainer != null && botPreviewsContainer.getParent() == page) {
+                listView = botPreviewsContainer.getCurrentListView();
+            } else {
+                listView = page.listView;
+            }
+            if (listView != null && listView.getVisibility() == VISIBLE) {
+                Blur3Utils.captureRelativeParent(listView, canvas, position, listView, root);
+            }
+        }
+    }
+
+    public void setPagesGlassEngine(GlassEngine engine) {
+        pagesGlassEngine = engine;
+        if (giftsContainer != null) {
+            giftsContainer.setGlassEngine(engine);
+        }
+        for (MediaPage page : mediaPages) {
+            if (page != null) {
+                page.listView.setCaptureSectionsDecoratorAllowed(true);
+                engine.addScrolledView(page.listView);
+            }
+        }
+    }
+
+    public void setPagesInsets(int tabsTop, int overscanTop, int overscanBottom, int paddingBottom) {
+        pagesFullscreen = true;
+        pagesTabsTop = tabsTop;
+        pagesOverscanTop = overscanTop;
+        pagesOverscanBottom = overscanBottom;
+        pagesPaddingBottom = paddingBottom;
+
+        applyTopPanelOffset();
+        if (giftsContainer != null) {
+            giftsContainer.setOverscan(overscanTop, overscanBottom);
+            updateGiftsPaddingTop();
+        }
+        for (MediaPage page : mediaPages) {
+            if (page == null) {
+                continue;
+            }
+            page.setClipChildren(false);
+            updatePageBackground(page);
+            setPageOverscan(page.listView);
+            setPageOverscan(page.animationSupportingListView);
+            final int paddingTopOld = page.listView.getPaddingTop();
+            page.listView.setPadding(
+                page.listView.getPaddingLeft(),
+                page.listView.hintPaddingTop = getPagePaddingTop(page.selectedType),
+                page.listView.getPaddingRight(),
+                page.listView.hintPaddingBottom = getPagePaddingBottom(isStoriesView())
+            );
+            final int scroll = paddingTopOld - page.listView.getPaddingTop();
+            if (scroll != 0) {
+                AndroidUtilities.doOnLayout(page.listView, () -> page.listView.scrollBy(0, scroll));
+            }
+            page.emptyView.setPadding(0, tabsTop, 0, paddingBottom);
+            if (savedMessagesContainer != null && savedMessagesContainer.getParent() == page) {
+                setTopMargin(savedMessagesContainer, tabsTop + dp(48 + 8));
+            }
+            if (botPreviewsContainer != null && botPreviewsContainer.getParent() == page) {
+                setTopMargin(botPreviewsContainer, tabsTop);
+            }
+        }
+        setClipChildren(false);
+        requestLayout();
+        invalidate();
+    }
 }

@@ -801,4 +801,12 @@ public class RadialProgressView extends View implements Drawable.Callback {
         }
         invalidate();
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public void setProgressColorKey(int key) {
+        progressColorKey = key;
+        setProgressColor(getThemedColor(key));
+        themedProgressColor = progressColor;
+    }
 }

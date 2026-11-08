@@ -390,4 +390,38 @@ public class BlurredBackgroundProviderImpl {
         }
         return blurEnabled;
     }
+
+
+    // ArasGram: ported from Telegram 13.2.1 for the new ChatMessage* subclasses
+    public static BlurredBackgroundProvider hint(Theme.ResourcesProvider resourcesProvider) {
+        return new BlurredBackgroundProviderBuilder(resourcesProvider)
+            .setBackgroundColor((r, isDark) -> {
+                final float alpha = LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0.82f : 0.76f;
+                final int colorBg = Theme.getColor(Theme.key_windowBackgroundWhite, r);
+                final int colorTarget = 0xFF282828;
+                return isDark ? Theme.multAlpha(0xFF111111, 0.9f) : solveSrcColor(colorBg, colorTarget, alpha);
+            })
+            .setStrokeColorTop(0x33FFFFFF, 0x33FFFFFF)
+            .setStrokeColorBottom(0x1AFFFFFF, 0x1AFFFFFF)
+            .setShadowColor(0x30333333, 0x30000000)
+            .setShadowLayer(dpf2(6f), 0, 0)
+            .setStrokeWidth(1, 1)
+            .build();
+    }
+
+    public static BlurredBackgroundProvider simpleActionBar(Theme.ResourcesProvider resourcesProvider) {
+        return new BlurredBackgroundProviderBuilder(resourcesProvider)
+            .setBackgroundColor((r, isDark) -> {
+                final float alpha = LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0.85f : 0.80f;
+                final int colorBg = Theme.getColor(Theme.key_windowBackgroundGray, r);
+                final int colorTarget = Theme.getColor(Theme.key_windowBackgroundWhite, r);
+                return solveSrcColor(colorBg, colorTarget, alpha);
+            })
+            .setStrokeColorTop(0xFFFFFFFF, 0x20FFFFFF)
+            .setStrokeColorBottom(0xFFFFFFFF, 0x14FFFFFF)
+            .setShadowColor(0x16333333, 0)
+            .setShadowLayer(dpf2(24 / 3f), 0, dpf2(7f / 3f))
+            .setStrokeWidth(dpf2(0.55f), dpf2(0.55f))
+            .build();
+    }
 }

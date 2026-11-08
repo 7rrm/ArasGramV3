@@ -391,4 +391,16 @@ public class ProfileMusicView extends View {
 
         canvas.restore();
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public void drawingBlur(boolean drawing) {
+        if (trailingView != null) trailingView.drawingBlur(drawing);
+        if (ignoreRect != drawing || renderNode != null) {
+            ignoreRect = drawing;
+            renderNode = null;
+            avatarView = null;
+            invalidate();
+        }
+    }
 }

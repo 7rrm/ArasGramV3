@@ -1061,4 +1061,10 @@ public class TextCell extends FrameLayout {
             subtitleView.setVisibility(View.GONE);
         }
     }
+
+
+    // ArasGram: ported from Telegram 13.2.1 for the new ChatMessage* subclasses
+    public void setCompactLayout(boolean compact) {
+        compactLayout = compact;
+    }
 }

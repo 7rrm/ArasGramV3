@@ -51666,4 +51666,21 @@ public class ChatActivity extends BaseFragment implements
         abstract void drawChatBackgroundElements(Canvas canvas, @Nullable RectF position);
         abstract void drawChatForegroundElements(Canvas canvas, @Nullable RectF position);
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+        @Override
+        public void didPressRichCodeCopy(ChatMessageCell cell, String code, String language) {
+            if (TextUtils.isEmpty(code)) {
+                return;
+            }
+            final SpannableString text = new SpannableString(code);
+            text.setSpan(new CodeHighlighting.Span(false, 0, null, language, code), 0, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            AndroidUtilities.addToClipboard(text);
+            BulletinFactory.of(ChatActivity.this).createCopyBulletin(LocaleController.getString(R.string.CodeCopied)).show();
+        }
+
+    public ReplyQuote getReplyingQuote() {
+        return replyingQuote;
+    }
 }

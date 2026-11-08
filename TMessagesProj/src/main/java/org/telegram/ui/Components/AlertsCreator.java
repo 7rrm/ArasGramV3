@@ -9487,4 +9487,49 @@ public class AlertsCreator {
             }
         });
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static AlertDialog.Builder createBackgroundLocationPermissionDialog(Activity activity, TLRPC.User selfUser, Runnable cancelRunnable, Theme.ResourcesProvider resourcesProvider) {
+        if (activity == null || Build.VERSION.SDK_INT < 29) {
+            return null;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity, resourcesProvider);
+        String svg = AndroidUtilities.readRes(Theme.getCurrentTheme().isDark() ? R.raw.permission_map_dark : R.raw.permission_map);
+        String pinSvg = AndroidUtilities.readRes(Theme.getCurrentTheme().isDark() ? R.raw.permission_pin_dark : R.raw.permission_pin);
+        FrameLayout frameLayout = new FrameLayout(activity);
+        frameLayout.setClipToOutline(true);
+        frameLayout.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setRoundRect(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight() + dp(6), dp(6));
+            }
+        });
+
+        View background = new View(activity);
+        background.setBackground(SvgHelper.getDrawable(svg));
+        frameLayout.addView(background, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.TOP, 0, 0, 0, 0));
+
+        View pin = new View(activity);
+        pin.setBackground(SvgHelper.getDrawable(pinSvg));
+        frameLayout.addView(pin, LayoutHelper.createFrame(60, 82, Gravity.CENTER, 0, 0, 0, 0));
+
+        BackupImageView imageView = new BackupImageView(activity);
+        imageView.setRoundRadius(dp(26));
+        imageView.setForUserOrChat(selfUser, new AvatarDrawable(selfUser));
+        frameLayout.addView(imageView, LayoutHelper.createFrame(52, 52, Gravity.CENTER, 0, 0, 0, 11));
+
+        builder.setTopView(frameLayout);
+        float aspectRatio = 354f / 936f;
+        builder.setTopViewAspectRatio(aspectRatio);
+        builder.setMessage(replaceTags(LocaleController.getString(R.string.PermissionBackgroundLocation)));
+        builder.setPositiveButton(LocaleController.getString(R.string.Continue), (dialog, which) -> {
+            if (activity.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                activity.requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 30);
+            }
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), ((dialog, which) -> cancelRunnable.run()));
+        return builder;
+    }
 }

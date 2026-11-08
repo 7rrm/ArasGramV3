@@ -18279,4 +18279,12 @@ public class ChatActivityEnterView extends FrameLayout implements
         cameraSelectionPopup.dimBehind();
         if (!NekoConfig.disableVibration.Bool()) performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public void onRichEditorSent(boolean notify, int scheduleDate, int scheduleRepeatPeriod) {
+        if (delegate != null) {
+            delegate.onMessageSend(null, notify, scheduleDate, scheduleRepeatPeriod, 0);
+        }
+    }
 }

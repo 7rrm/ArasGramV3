@@ -98,4 +98,8 @@ public class BuildVars {
     public static String getSmsHash() {
         return ApplicationLoader.isStandaloneBuild() ? "w0lkcmTZkKh" : (DEBUG_VERSION ? "O2P2z+/jBpJ" : "oLeq9AcOZkT");
     }
+
+
+    // ArasGram: ported from Telegram 13.2.1 for the new ChatMessage* subclasses
+    public static boolean SUPPORTS_FPNV = true;
 }

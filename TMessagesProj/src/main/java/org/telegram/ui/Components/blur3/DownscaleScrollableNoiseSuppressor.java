@@ -528,4 +528,17 @@ public class DownscaleScrollableNoiseSuppressor {
             canvas.drawRect(sourcePart.position, Theme.DEBUG_GREEN_STROKE);
         }
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public int getDownsample(int index) {
+        if (!isLiquidGlassEnabled || rectRenderNodesCount == 0) {
+            return 1;
+        }
+        final SourcePart sourcePart = rectRenderNodes.get(0);
+        final boolean glass = (index == DRAW_GLASS || index == DRAW_FROSTED_GLASS_NO_SATURATION) && sourcePart.renderNodesForGlass != null;
+        return glass ? sourcePart.renderNodesForGlass.scaleX : sourcePart.renderNodesForBlur.scaleX;
+    }
+
+    public boolean hasLostDisplayLists;
 }

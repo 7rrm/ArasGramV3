@@ -1336,4 +1336,15 @@ public class ProfileActionsView extends View {
         }
         return accessibilityNodeProvider;
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public void drawingBlur(boolean drawing) {
+        if (ignoreRect != drawing || renderNode != null) {
+            ignoreRect = drawing;
+            renderNode = null;
+            avatarView = null;
+            invalidate();
+        }
+    }
 }

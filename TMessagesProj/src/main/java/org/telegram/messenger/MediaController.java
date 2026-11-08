@@ -7689,4 +7689,44 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
             audio = null;
         }
     }
+
+
+    // ArasGram: ported from Telegram 13.2.1 for the new ChatMessage* subclasses
+        public boolean loadLivePhoto(Runnable onLoaded) {
+            if (isLivePhotoLoaded()) return true;
+            if (onLoaded != null) {
+                if (onLivePhotoLoaded == null) {
+                    onLivePhotoLoaded = new ArrayList<>();
+                }
+                if (!onLivePhotoLoaded.contains(onLoaded)) {
+                    onLivePhotoLoaded.add(onLoaded);
+                }
+            }
+            if (!loadingLivePhoto) {
+                loadingLivePhoto = true;
+                if (livePhotoQueue == null) {
+                    livePhotoQueue = new DispatchQueue("livePhotoQueue");
+                }
+                livePhotoQueue.postRunnable(() -> {
+                    isLivePhoto();
+                    AndroidUtilities.runOnUIThread(() -> {
+                        loadingLivePhoto = false;
+                        final ArrayList<Runnable> callbacks = onLivePhotoLoaded;
+                        onLivePhotoLoaded = null;
+                        if (callbacks != null) {
+                            for (int i = 0; i < callbacks.size(); ++i) {
+                                callbacks.get(i).run();
+                            }
+                        }
+                    });
+                });
+            }
+            return false;
+        }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+        public boolean isLivePhotoLoaded() {
+            return parsedXmp || isVideo && !loadingLivePhoto;
+        }
 }

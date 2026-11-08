@@ -258,4 +258,17 @@ public class BlurredBackgroundWithFadeDrawable extends Drawable {
             outColors[i] = ColorUtils.setAlphaComponent(baseColor, alpha);
         }
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    @Override
+    public void updateColors() {
+        try {
+            drawable.updateColors();
+            invalidateSelf();
+    
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
 }

@@ -556,4 +556,22 @@ public class ActionBarMenuSubItem extends FrameLayout {
     public ImageView getRightIcon() {
         return rightIcon;
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public ActionBarMenuSubItem setColorKeys(int textKey, int iconKey) {
+        setColors(getThemedColor(textKey), getThemedColor(iconKey));
+        textColorKey = textKey;
+        iconColorKey = iconKey;
+        themedTextColor = textColor;
+        themedIconColor = iconColor;
+        return this;
+    }
+
+    public void setSelectorColorKey(int key, float alpha) {
+        selectorAlpha = alpha;
+        setSelectorColor(Theme.multAlpha(getThemedColor(key), alpha));
+        selectorColorKey = key;
+        themedSelectorColor = selectorColor;
+    }
 }

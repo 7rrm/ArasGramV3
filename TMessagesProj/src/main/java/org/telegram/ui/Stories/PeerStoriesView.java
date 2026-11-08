@@ -8586,4 +8586,15 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             showDownloadAlert();
         }
     }
+
+
+    // ArasGram: ported from Telegram 13.2.1 for the new ChatMessage* subclasses
+    public void onDestroy() {
+        if (destroyed) return;
+        destroyed = true;
+        if (chatActivityEnterView != null) {
+            // it registers itself in NotificationCenter in its constructor, only onDestroy() unregisters it
+            chatActivityEnterView.onDestroy();
+        }
+    }
 }

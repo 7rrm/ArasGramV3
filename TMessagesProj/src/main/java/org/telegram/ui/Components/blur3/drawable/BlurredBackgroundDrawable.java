@@ -879,4 +879,37 @@ public abstract class BlurredBackgroundDrawable extends Drawable {
 
         return ninePatchDrawable;
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public void invalidateDisplayList() {
+        if (renderNodeImpl != null) {
+            renderNodeImpl.invalidate();
+        }
+    }
+
+    public BlurredBackgroundDrawable setArrow(int side, float position, float height, float tipRadius, float filletRadius) {
+        final Props p = boundProps;
+        if (p.arrowSide != side || p.arrowPosition != position || p.arrowHeight != height || p.arrowTipRadius != tipRadius || p.arrowFilletRadius != filletRadius) {
+            p.arrowSide = side;
+            p.arrowPosition = position;
+            p.arrowHeight = height;
+            p.arrowTipRadius = tipRadius;
+            p.arrowFilletRadius = filletRadius;
+            p.build();
+
+            onBoundPropsChanged();
+            invalidateSelf();
+        }
+        return this;
+    }
+
+    public BlurredBackgroundDrawable setEvenRim(boolean evenRim) {
+        if (this.evenRim != evenRim) {
+            this.evenRim = evenRim;
+            rimFromColors = null;
+            invalidateSelf();
+        }
+        return this;
+    }
 }

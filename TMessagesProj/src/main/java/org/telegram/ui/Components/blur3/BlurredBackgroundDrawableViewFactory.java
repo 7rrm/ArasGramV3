@@ -142,4 +142,18 @@ public class BlurredBackgroundDrawableViewFactory {
 
         }
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public GlassSource getFrostedSource() {
+        return frostedSource;
+    }
+
+    public GlassSource getSource() {
+        return glassSource;
+    }
+
+    public GlassSource getStaticSource() {
+        return staticSource;
+    }
 }

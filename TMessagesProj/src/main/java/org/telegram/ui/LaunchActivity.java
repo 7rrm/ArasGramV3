@@ -9530,4 +9530,20 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return AndroidUtilities.fixedDispatchApplyWindowInsets(insets, this);
         }
     }
+
+
+    // ArasGram: ported from Telegram 13.2.1 for the new ChatMessage* subclasses
+    public final static String EXTRA_VOIP_ANSWER_TOKEN = "voip_answer_token";
+
+    public final static String VOIP_ANSWER_TOKEN = UUID.randomUUID().toString();
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public void notifyThemeColorsChanged() {
+        for (INavigationLayout layout : new INavigationLayout[] { actionBarLayout, layersActionBarLayout, rightActionBarLayout }) {
+            if (layout instanceof ActionBarLayout) {
+                ((ActionBarLayout) layout).notifyFragmentsThemeColorsChanged();
+            }
+        }
+    }
 }

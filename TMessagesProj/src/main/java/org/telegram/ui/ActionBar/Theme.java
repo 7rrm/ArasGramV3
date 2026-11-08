@@ -10623,4 +10623,47 @@ public class Theme {
         DEBUG_GREEN_STROKE.setStrokeWidth(2);
         DEBUG_GREEN_STROKE.setStyle(Paint.Style.STROKE);
     }
+
+
+    // ArasGram: ported from Telegram 13.2.1 for the new ChatMessage* subclasses
+    public static Integer getCompactColor(int key, ResourcesProvider resourcesProvider) {
+        if (!isCompactMode(resourcesProvider) || key < 0 || key >= colorsCount) {
+            return null;
+        }
+        final int entry = getCompactColorMap()[key];
+        if (entry == 0) {
+            return null;
+        }
+        final int compactKey = entry & 0xFFFF;
+        switch (entry >> 16) {
+            case COMPACT_OVER_OUT_BUBBLE:
+                return ColorUtils.compositeColors(getColor(compactKey, resourcesProvider), getCompactOutBubbleColor(resourcesProvider));
+            case COMPACT_OVER_BACKGROUND:
+                return ColorUtils.compositeColors(getColor(compactKey, resourcesProvider), getColor(key_chat_compact_background, resourcesProvider));
+            default:
+                return getColor(compactKey, resourcesProvider);
+        }
+    }
+
+    public static int getThemeGenerationId() {
+        return themeGenerationId + ThemeBind.generation();
+    }
+
+    public static void invalidateTheme() {
+        themeGenerationId++;
+    }
+
+    public static void switchThemeWithReveal(ThemeInfo theme, boolean nightTheme, int accentId, View from) {
+        final int[] pos = new int[2];
+        if (from != null && from.isAttachedToWindow()) {
+            from.getLocationInWindow(pos);
+            pos[0] += from.getMeasuredWidth() / 2;
+            pos[1] += from.getMeasuredHeight() / 2;
+        } else {
+            pos[0] = AndroidUtilities.displaySize.x / 2;
+            pos[1] = 0;
+        }
+        // toDark = true: the new theme grows out of the point
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, theme, nightTheme, pos, accentId, true, null);
+    }
 }

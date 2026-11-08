@@ -24446,4 +24446,21 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         boolean enabled = !centerImageIsVideo && AndroidUtil.hasGainmap(bitmap);
         setWindowHdrColorMode(enabled);
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public void completeEmbedPipExpand() {
+        if (pipSession != null) {
+            pipSession.completeExpand(texture -> {});
+        }
+    }
+
+    public boolean startEmbedPip() {
+        if (parentActivity == null || photoViewerWebView == null) {
+            return false;
+        }
+        ensurePipSession();
+        pipSession.startFloating(parentActivity, null, true);
+        return true;
+    }
 }

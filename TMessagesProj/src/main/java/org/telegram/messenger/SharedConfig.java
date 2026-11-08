@@ -2031,4 +2031,8 @@ public class SharedConfig {
 
 
 
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public static boolean shadowsInSections;
 }

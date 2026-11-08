@@ -13782,4 +13782,19 @@ public class MessageObject {
         }
         return total;
     }
+
+
+    // ArasGram: ported member for 13.2.1 compatibility
+    public boolean isCompactMode() {
+        if (SharedConfig.compactMode) {
+            return true;
+        }
+        if (agentBotDialog == 0 && messageOwner != null) {
+            final long dialogId = getDialogId();
+            if (dialogId != 0) {
+                agentBotDialog = SharedConfig.isCompactMode(currentAccount, dialogId) ? (byte) 2 : 1;
+            }
+        }
+        return agentBotDialog == 2;
+    }
 }
