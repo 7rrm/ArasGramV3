@@ -252,8 +252,6 @@ import xyz.nextalone.nagram.NaConfig;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 
-    private int lastDoneCheckColor, lastAudioVideoColor, lastEmojiSelectorColor;
-    private Drawable lastDoneCheckDrawable;
 public class ChatActivityEnterView extends FrameLayout implements
     NotificationCenter.NotificationCenterDelegate,
     SizeNotifierFrameLayout.SizeNotifierFrameLayoutDelegate,
@@ -261,6 +259,8 @@ public class ChatActivityEnterView extends FrameLayout implements
     SuggestEmojiView.AnchorViewDelegate,
     FactorAnimator.Target, Theme.Colorable
 {
+    private int lastDoneCheckColor, lastAudioVideoColor, lastEmojiSelectorColor;
+    private Drawable lastDoneCheckDrawable;
 
     private int commonInputType;
     private boolean stickersEnabled;
