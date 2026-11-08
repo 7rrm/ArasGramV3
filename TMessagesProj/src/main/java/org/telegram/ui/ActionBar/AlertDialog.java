@@ -2173,10 +2173,6 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
             return this;
         }
     }
-
-
-    // ArasGram: ported from 13.2.1
-    private int topBackgroundColorKey = -1;
     private Theme.ResourcesProvider topBackgroundResourcesProvider;
 
     public void setTopBackgroundColorKey(int key, Theme.ResourcesProvider resourcesProvider) {

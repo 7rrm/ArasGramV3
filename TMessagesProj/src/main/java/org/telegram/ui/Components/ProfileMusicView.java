@@ -404,9 +404,4 @@ public class ProfileMusicView extends View {
             invalidate();
         }
     }
-
-
-    // ArasGram: ported for 13.2.1 compatibility
-
-    private boolean ignoreRect = false;
 }

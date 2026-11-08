@@ -13798,8 +13798,4 @@ public class MessageObject {
         }
         return agentBotDialog == 2;
     }
-
-
-    // ArasGram: ported for 13.2.1 compatibility
-    private byte agentBotDialog; // 0 unknown, 1 no, 2 yes
 }
