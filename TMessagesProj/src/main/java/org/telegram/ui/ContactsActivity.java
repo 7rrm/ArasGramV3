@@ -1434,8 +1434,6 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         iBlur3PositionMainTabs.inset(0, LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0 : -dp(48));
     }
 
-    }
-
     @Override
     public GlassSourceRenderNode getGlassSource() {
         return getBaseSimpleGlass().getGlassSource();
