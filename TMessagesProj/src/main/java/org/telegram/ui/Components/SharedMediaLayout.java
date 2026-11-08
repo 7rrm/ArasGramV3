@@ -617,7 +617,8 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
         }
 
     
-        private @Nullable IBlur3Capture iBlur3Capture;}
+        private @Nullable IBlur3Capture iBlur3Capture;
+    }
 
     public float getPhotoVideoOptionsAlpha(float progress) {
         if (isArchivedOnlyStoriesView()) {
@@ -13218,7 +13219,7 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
             giftsContainer.initBlurCapture(parent);
         }
     }
-public final @Nullable IBlur3Capture iBlur3Capture;
+public @Nullable IBlur3Capture iBlur3Capture;
     private HintView fwdRestrictedHintCompat;
     public void setForwardRestrictedHint(HintView hintView) {
         fwdRestrictedHintCompat = hintView;
