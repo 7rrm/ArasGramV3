@@ -91,28 +91,24 @@ public class SimpleActionBarMenuOverlay extends FrameLayout {
             return buttons != null ? blend(buttons.getStrokeColorBottom(), menu) : menu;
         }
 
-        @Override
         public int getOutlineColor() {
             final BlurredBackgroundColorProvider base = base(), buttons = buttons();
             final int menu = base != null ? base.getOutlineColor() : 0;
             return buttons != null ? blend(buttons.getOutlineColor(), menu) : menu;
         }
 
-        @Override
         public float getOutlineWidth() {
             final BlurredBackgroundColorProvider base = base(), buttons = buttons();
             final float menu = base != null ? base.getOutlineWidth() : 0;
             return buttons != null ? AndroidUtilities.lerp(buttons.getOutlineWidth(), menu, glassColorsFactor) : menu;
         }
 
-        @Override
         public int getOutlineShadowColor() {
             final BlurredBackgroundColorProvider base = base(), buttons = buttons();
             final int menu = base != null ? base.getOutlineShadowColor() : 0;
             return buttons != null ? blend(buttons.getOutlineShadowColor(), menu) : menu;
         }
 
-        @Override
         public float getShadowRadiusOverride() {
             final BlurredBackgroundColorProvider base = base(), buttons = buttons();
             final float menu = base != null ? base.getShadowRadiusOverride() : -1;
@@ -120,7 +116,6 @@ public class SimpleActionBarMenuOverlay extends FrameLayout {
             return from >= 0 && menu >= 0 ? AndroidUtilities.lerp(from, menu, glassColorsFactor) : glassColorsFactor < 0.5f ? from : menu;
         }
 
-        @Override
         public float getShadowDyOverride() {
             final BlurredBackgroundColorProvider base = base(), buttons = buttons();
             final float menu = base != null ? base.getShadowDyOverride() : -1;

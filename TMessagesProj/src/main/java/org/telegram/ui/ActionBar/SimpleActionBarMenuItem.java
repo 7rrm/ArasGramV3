@@ -88,18 +88,15 @@ public class SimpleActionBarMenuItem extends ActionBarMenuItem {
     /* Sub menu: opens in the overlay of the fragment, falls back to the popup window without one */
 
     @Nullable
-    @Override
     SimpleActionBarMenuOverlay getSubMenuOverlay() {
         return parentMenu.parentBar.getMenuOverlay();
     }
 
     @Nullable
-    @Override
     MenuOverlayHost getSubMenuOverlayHost() {
         return parentMenu.parentBar;
     }
 
-    @Override
     boolean canOpenSubMenuOverlay() {
         return !parentMenu.isActionMode || parentMenu.parentBar.isActionModeShowed();
     }

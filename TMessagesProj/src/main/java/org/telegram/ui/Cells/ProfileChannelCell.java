@@ -427,7 +427,6 @@ public class ProfileChannelCell extends FrameLayout implements Theme.Colorable {
         subscribersView.setBackground(Theme.createRoundRectDrawable(dp(9f), dp(9f), Theme.multAlpha(headerColor, .1f)));
         headerView.setTextColor(headerColor);
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhiteBlueHeader);
     }

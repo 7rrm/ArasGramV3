@@ -441,7 +441,6 @@ public class RichMediaCell extends RichBlockCell
         selectionPaint.setColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
         if (caption != null) caption.applyColors();
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chat_inFileBackground);
         colors.add(Theme.key_chat_inTextSelectionHighlight);

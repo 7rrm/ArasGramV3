@@ -944,14 +944,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private final static int DOCUMENT_ATTACH_TYPE_NONE = 0;
-    private final static int DOCUMENT_ATTACH_TYPE_DOCUMENT = 1;
-    private final static int DOCUMENT_ATTACH_TYPE_GIF = 2;
-    private final static int DOCUMENT_ATTACH_TYPE_AUDIO = 3;
-    private final static int DOCUMENT_ATTACH_TYPE_VIDEO = 4;
-    private final static int DOCUMENT_ATTACH_TYPE_MUSIC = 5;
+    public final static int DOCUMENT_ATTACH_TYPE_DOCUMENT = 1;
+    public final static int DOCUMENT_ATTACH_TYPE_GIF = 2;
+    public final static int DOCUMENT_ATTACH_TYPE_AUDIO = 3;
+    public final static int DOCUMENT_ATTACH_TYPE_VIDEO = 4;
+    public final static int DOCUMENT_ATTACH_TYPE_MUSIC = 5;
     private final static int DOCUMENT_ATTACH_TYPE_STICKER = 6;
-    private final static int DOCUMENT_ATTACH_TYPE_ROUND = 7;
-    private final static int DOCUMENT_ATTACH_TYPE_WALLPAPER = 8;
+    public final static int DOCUMENT_ATTACH_TYPE_ROUND = 7;
+    public final static int DOCUMENT_ATTACH_TYPE_WALLPAPER = 8;
     private final static int DOCUMENT_ATTACH_TYPE_THEME = 9;
     private final static int DOCUMENT_ATTACH_TYPE_STORY = 10;
 
@@ -959,32 +959,32 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         public int x;
         public int y;
         public int height;
-        private int percent;
-        private float decimal;
-        private int prevPercent;
-        private float percentProgress;
-        private float prevPercentProgress;
-        private boolean chosen;
-        private int count;
-        private boolean prevChosen;
-        private boolean correct;
+        public int percent;
+        public float decimal;
+        public int prevPercent;
+        public float percentProgress;
+        public float prevPercentProgress;
+        public boolean chosen;
+        public int count;
+        public boolean prevChosen;
+        public boolean correct;
         public float titleX, titleY;
         public boolean moveTitleByCounter;
         public StaticLayout title;
-        private Text author;
+        public Text author;
         public AnimatedEmojiSpan.EmojiGroupedSpans animatedEmoji;
-        private TLRPC.PollAnswer answer;
-        private TLRPC.TodoItem task;
-        private boolean translated;
+        public TLRPC.PollAnswer answer;
+        public TLRPC.TodoItem task;
+        public boolean translated;
         public int selectorDrawableColor;
         public Drawable selectorDrawable;
         public PollButtonDrawable pollButtonDrawable;
 
-        private AvatarDrawable avatarDrawable;
-        private ImageReceiver avatarImageReceiver;
+        public AvatarDrawable avatarDrawable;
+        public ImageReceiver avatarImageReceiver;
 
-        private StaticLayout animateTitle;
-        private AnimatedEmojiSpan.EmojiGroupedSpans animateTitleEmoji;
+        public StaticLayout animateTitle;
+        public AnimatedEmojiSpan.EmojiGroupedSpans animateTitleEmoji;
         public int animateY;
         public int animateHeight;
 
@@ -1029,13 +1029,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public static final int INSTANT_BUTTON_TYPE_AI_STYLE = 85;
 
     public static class InstantViewButton {
-        private int type;
-        private float buttonWidth;
-        private float textX;
-        private StaticLayout layout;
-        private final RectF rect = new RectF();
-        private ButtonBounce buttonBounce;
-        private Drawable selectorDrawable;
+        public int type;
+        public float buttonWidth;
+        public float textX;
+        public StaticLayout layout;
+        public final RectF rect = new RectF();
+        public ButtonBounce buttonBounce;
+        public Drawable selectorDrawable;
     }
 
     public boolean pinnedTop;
@@ -1044,8 +1044,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public boolean lastInChatList;
     public boolean drawPinnedTop;
     public boolean drawPinnedBottom;
-    private MessageObject.GroupedMessages currentMessagesGroup;
-    private MessageObject.GroupedMessagePosition currentPosition;
+    public MessageObject.GroupedMessages currentMessagesGroup;
+    public MessageObject.GroupedMessagePosition currentPosition;
     private boolean groupPhotoInvisible;
     public final ReactionsLayoutInBubble reactionsLayoutInBubble = new ReactionsLayoutInBubble(this);
     public final GiveawayMessageCell giveawayMessageCell = new GiveawayMessageCell(this);
@@ -1053,13 +1053,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private boolean playedDice;
     private long starsPrice;
-    private Text starsPriceText;
+    public Text starsPriceText;
     private LinkPath starsPriceTextPath;
     private CornerPathEffect starsPriceTextPathEffect;
     public int starsPriceTopPadding;
 
     private long diceStakeOutcome;
-    private Text bottomActionText;
+    public Text bottomActionText;
     private LinkPath bottomActionTextPath;
     private CornerPathEffect bottomActionTextPathEffect;
     public int bottomActionPadding;
@@ -1083,13 +1083,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean invalidateSpoilersParent;
 
     public int textX;
-    private int unmovedTextX;
-    private int linkPreviewY;
-    private int factCheckY;
+    public int unmovedTextX;
+    public int linkPreviewY;
+    public int factCheckY;
     public int textY;
     public int totalHeight;
     private int additionalTimeOffsetY;
-    private int keyboardHeight;
+    public int keyboardHeight;
     public int linkBlockNum;
     public int linkExplanationBlockNum;
     private int linkSelectionBlockNum;
@@ -1113,19 +1113,19 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public int parentHeight;
     public float parentViewTopOffset;
 
-    private boolean attachedToWindow;
+    public boolean attachedToWindow;
     public boolean isCellAttachedToWindow() {
         return attachedToWindow;
     }
 
     private boolean isUpdating;
 
-    private RadialProgress2 radialProgress;
-    private RadialProgress2 videoRadialProgress;
+    public RadialProgress2 radialProgress;
+    public RadialProgress2 videoRadialProgress;
     private boolean drawRadialCheckBackground;
-    private int[] pollPhotoImageRadius = new int[4];
-    private ImageReceiver photoImage;
-    private ImageReceiver blurredPhotoImage;
+    public int[] pollPhotoImageRadius = new int[4];
+    public ImageReceiver photoImage;
+    public ImageReceiver blurredPhotoImage;
     private ColorMatrixColorFilter fancyBlurFilter;
     private AvatarDrawable contactAvatarDrawable;
     private Drawable locationLoadingThumb;
@@ -1141,9 +1141,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private StickerSetLinkIcon stickerSetIcons;
 
-    private boolean disallowLongPress;
-    private float lastTouchX;
-    private float lastTouchY;
+    public boolean disallowLongPress;
+    public float lastTouchX;
+    public float lastTouchY;
 
     public float getLastTouchX() {
         return lastTouchX;
@@ -1154,7 +1154,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private boolean drawMediaCheckBox;
-    private boolean drawSelectionBackground;
+    public boolean drawSelectionBackground;
     private CheckBoxBase mediaCheckBox;
     private CheckBoxBase checkBox;
     private boolean checkBoxVisible;
@@ -1168,10 +1168,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private LoadingDrawable forwardLoading;
     public boolean linkPreviewAbove;
     public boolean captionAbove;
-    private boolean isSmallImage;
-    private boolean drawImageButton;
-    private boolean drawVideoImageButton;
-    private long lastLoadingSizeTotal;
+    public boolean isSmallImage;
+    public boolean drawImageButton;
+    public boolean drawVideoImageButton;
+    public long lastLoadingSizeTotal;
     private boolean drawVideoSize;
     private boolean canStreamVideo;
     private int animatingDrawVideoImageButton;
@@ -1183,8 +1183,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private int forwardNameCenterX;
     private long lastAnimationTime;
     private long lastNamesAnimationTime;
-    private int documentAttachType;
-    private TLRPC.Document documentAttach;
+    public int documentAttachType;
+    public TLRPC.Document documentAttach;
     public boolean drawPhotoImage;
     private boolean hasFactCheck;
     private Text factCheckTitle, factCheckWhat;
@@ -1198,48 +1198,48 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private Drawable factCheckArrow;
     private int factCheckArrowColor;
     private boolean factCheckLarge;
-    private GradientClip clip;
+    public GradientClip clip;
     private int factCheckTextLayoutLeft;
     private int factCheckTextLayoutHeight;
     private int factCheckText2LayoutLeft;
-    private int pollAddButtonHeight;
+    public int pollAddButtonHeight;
     private int factCheckHeight;
     private int factCheckWidth;
-    private boolean hasLinkPreview;
+    public boolean hasLinkPreview;
     private boolean hasOldCaptionPreview;
-    private boolean hasGamePreview;
-    private boolean hasInvoicePreview;
-    private boolean hasInvoicePrice;
+    public boolean hasGamePreview;
+    public boolean hasInvoicePreview;
+    public boolean hasInvoicePrice;
     public int linkPreviewHeight;
-    private int mediaOffsetY;
-    private int descriptionY;
-    private int durationWidth;
+    public int mediaOffsetY;
+    public int descriptionY;
+    public int durationWidth;
     private int photosCountWidth;
-    private int descriptionX;
-    private int descriptionLayoutWidth, descriptionLayoutLeft;
+    public int descriptionX;
+    public int descriptionLayoutWidth, descriptionLayoutLeft;
     private int titleX;
     private int authorLayoutWidth, authorLayoutLeft;
     private int titleLayoutWidth, titleLayoutLeft;
-    private float siteNameLeft, siteNameLayoutWidth;
-    private int siteNameWidth;
-    private StaticLayout siteNameLayout;
-    private StaticLayout titleLabelLayout;
-    private float titleLabelLayoutWidth, titleLabelLayoutHeight, titleLabelX, titleLabelY;
+    public float siteNameLeft, siteNameLayoutWidth;
+    public int siteNameWidth;
+    public StaticLayout siteNameLayout;
+    public StaticLayout titleLabelLayout;
+    public float titleLabelLayoutWidth, titleLabelLayoutHeight, titleLabelX, titleLabelY;
     private boolean isTitleLabelPressed;
-    private ButtonBounce titleLabelBounce;
-    private StaticLayout titleLayout;
-    private StaticLayout descriptionLayout;
-    private StaticLayout videoInfoLayout;
+    public ButtonBounce titleLabelBounce;
+    public StaticLayout titleLayout;
+    public StaticLayout descriptionLayout;
+    public StaticLayout videoInfoLayout;
     private StaticLayout photosCountLayout;
     private StaticLayout authorLayout;
-    private StaticLayout instantViewLayout;
-    private float instantViewLayoutWidth;
-    private float instantViewLayoutLeft;
-    private boolean drawInstantView;
+    public StaticLayout instantViewLayout;
+    public float instantViewLayoutWidth;
+    public float instantViewLayoutLeft;
+    public boolean drawInstantView;
     private boolean drawContact, drawContactSendMessage, drawContactView, drawContactAdd;
     private int drawnContactButtonsFlag = 0;
     private ArrayList<InstantViewButton> contactButtons;
-    private RectF contactRect;
+    public RectF contactRect;
     private boolean contactPressed;
     private boolean pollInstantViewTouchesBottom;
     public int drawInstantViewType;
@@ -1252,29 +1252,29 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private int imageBackgroundGradientRotation = 45;
     private LinearGradient gradientShader;
     private MotionBackgroundDrawable motionBackgroundDrawable;
-    private int imageBackgroundSideColor;
+    public int imageBackgroundSideColor;
     private int imageBackgroundSideWidth;
     private boolean drawJoinGroupView;
     private boolean drawJoinChannelView;
-    private int instantTextX;
-    private int instantTextLeftX;
-    private int instantWidth;
-    private boolean instantTextNewLine;
-    private boolean instantPressed;
-    private boolean instantButtonPressed;
-    private ButtonBounce instantButtonBounce;
-    private int selectorDrawableColor;
-    private final Drawable[] selectorDrawable = new Drawable[2];
+    public int instantTextX;
+    public int instantTextLeftX;
+    public int instantWidth;
+    public boolean instantTextNewLine;
+    public boolean instantPressed;
+    public boolean instantButtonPressed;
+    public ButtonBounce instantButtonBounce;
+    public int selectorDrawableColor;
+    public final Drawable[] selectorDrawable = new Drawable[2];
     private final MaskDrawable[] selectorMaskDrawable = new MaskDrawable[2];
-    private int[] selectorDrawableMaskType = new int[2];
-    private RectF instantButtonRect = new RectF();
+    public int[] selectorDrawableMaskType = new int[2];
+    public RectF instantButtonRect = new RectF();
     private LoadingDrawable instantButtonLoading;
-    private final int[] pressedState = new int[]{android.R.attr.state_enabled, android.R.attr.state_pressed};
+    public final int[] pressedState = new int[]{android.R.attr.state_enabled, android.R.attr.state_pressed};
     private float animatingLoadingProgressProgress;
     CharSequence accessibilityText;
-    private boolean accessibilityTextUnread, accessibilityTextContentUnread;
-    private long accessibilityTextFileSize;
-    private boolean wasTranscriptionOpen;
+    public boolean accessibilityTextUnread, accessibilityTextContentUnread;
+    public long accessibilityTextFileSize;
+    public boolean wasTranscriptionOpen;
     private Path instantLinkArrowPath;
     private Paint instantLinkArrowPaint;
 
@@ -1291,10 +1291,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private RoundVideoPlayingDrawable roundVideoPlayingDrawable;
 
-    private StaticLayout docTitleLayout;
-    private int docTitleWidth;
-    private int docTitleOffsetX;
-    private boolean locationExpired;
+    public StaticLayout docTitleLayout;
+    public int docTitleWidth;
+    public int docTitleOffsetX;
+    public boolean locationExpired;
 
     private AvatarsDrawable groupCallParticipantsAvatars;
     private Text groupCallParticipantsText;
@@ -1313,21 +1313,21 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private Drawable closeExplanationDrawable;
     private int closeExplanationDrawableColor;
     private int captionOffsetX;
-    private float captionX;
+    public float captionX;
     public float captionY;
-    private int captionHeight;
+    public int captionHeight;
     private int captionWidth;
     private int addedCaptionHeight;
     private boolean fitPhotoImage;
 
-    private StaticLayout infoLayout;
-    private AnimatedTextView.AnimatedTextDrawable animatedInfoLayout;
-    private AnimatedTextView.AnimatedTextDrawable animatedInfoLayout2;
+    public StaticLayout infoLayout;
+    public AnimatedTextView.AnimatedTextDrawable animatedInfoLayout;
+    public AnimatedTextView.AnimatedTextDrawable animatedInfoLayout2;
     private CountdownTimer pollCountDownTimer;
-    private StaticLayout loadingProgressLayout;
+    public StaticLayout loadingProgressLayout;
     private long loadingProgressLayoutHash;
     private int infoX;
-    private int infoWidth;
+    public int infoWidth;
 
     private Text sensitiveText, sensitiveTextShort, sensitiveTextShort2;
 
@@ -1339,30 +1339,30 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean hasEmbed;
 
     private boolean wasSending;
-    private boolean checkOnlyButtonPressed;
-    private int buttonX;
-    private int buttonY;
-    private int videoButtonX;
-    private int videoButtonY;
-    private int buttonState;
-    private int buttonPressed;
-    private int videoButtonPressed;
-    private int miniButtonPressed;
-    private int otherX;
-    private int otherY;
+    public boolean checkOnlyButtonPressed;
+    public int buttonX;
+    public int buttonY;
+    public int videoButtonX;
+    public int videoButtonY;
+    public int buttonState;
+    public int buttonPressed;
+    public int videoButtonPressed;
+    public int miniButtonPressed;
+    public int otherX;
+    public int otherY;
     private int lastWidth;
     private int lastHeight;
     private int hasMiniProgress;
-    private int miniButtonState;
+    public int miniButtonState;
     private boolean imagePressed;
     private boolean otherPressed;
     private boolean photoNotSet;
     private RectF deleteProgressRect = new RectF();
-    private RectF rect = new RectF();
+    public RectF rect = new RectF();
     private TLObject photoParentObject;
     private ImageLocation currentPhotoLocation;
     private ImageLocation currentPhotoThumbLocation;
-    private TLRPC.PhotoSize currentPhotoObject;
+    public TLRPC.PhotoSize currentPhotoObject;
     private TLRPC.PhotoSize currentPhotoObjectThumb;
     private BitmapDrawable currentPhotoObjectThumbStripped;
     private String currentPhotoFilter;
@@ -1374,18 +1374,18 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private float timeAlpha = 1.0f;
     private float actionAlpha = 1.0f;
-    private float controlsAlpha = 1.0f;
+    public float controlsAlpha = 1.0f;
     private long lastControlsAlphaChangeTime;
     private long totalChangeTime;
     private boolean mediaWasInvisible;
     private boolean timeWasInvisible;
 
-    private AnimatedEmojiSpan pressedEmoji;
-    private LinkSpanDrawable pressedLink;
-    private MessageObject.TextLayoutBlock pressedCopyCode;
-    private int pressedBlock = -1;
+    public AnimatedEmojiSpan pressedEmoji;
+    public LinkSpanDrawable pressedLink;
+    public MessageObject.TextLayoutBlock pressedCopyCode;
+    public int pressedBlock = -1;
     public LinkSpanDrawable.LinkCollector links = new LinkSpanDrawable.LinkCollector(this);
-    private int pressedLinkType;
+    public int pressedLinkType;
     private boolean linkPreviewPressed;
     private boolean gamePreviewPressed;
     private ArrayList<LinkPath> urlPathCache = new ArrayList<>();
@@ -1406,20 +1406,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private static float[] radii = new float[8];
 
     private boolean useSeekBarWaveform;
-    private SeekBar seekBar;
-    private SeekBarWaveform seekBarWaveform;
-    private SeekBarAccessibilityDelegate seekBarAccessibilityDelegate;
-    private int seekBarX;
-    private int seekBarY;
+    public SeekBar seekBar;
+    public SeekBarWaveform seekBarWaveform;
+    public SeekBarAccessibilityDelegate seekBarAccessibilityDelegate;
+    public int seekBarX;
+    public int seekBarY;
 
-    private boolean useTranscribeButton;
+    public boolean useTranscribeButton;
     public TranscribeButton transcribeButton;
     private float transcribeX, transcribeY;
 
-    private StaticLayout durationLayout;
+    public StaticLayout durationLayout;
     private double lastTime;
-    private int timeWidthAudio;
-    private int timeAudioX;
+    public int timeWidthAudio;
+    public int timeAudioX;
 
     private StaticLayout songLayout;
     private int songX;
@@ -1427,7 +1427,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private StaticLayout performerLayout;
     private int performerX;
 
-    private final ArrayList<PollButton> oldPollButtons = new ArrayList<>();
+    public final ArrayList<PollButton> oldPollButtons = new ArrayList<>();
     public final ArrayList<PollButton> pollButtons = new ArrayList<>();
     private PollInstantButtonDrawable pollInstantButtonDrawable;
     private PollAddButtonDrawable pollAddButtonDrawable;
@@ -1437,60 +1437,60 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private int pollContentHeight;
     private int pollContentHeightWithOffset;
     private float pollAnimationProgress;
-    private float pollAnimationProgressTime;
+    public float pollAnimationProgressTime;
     public int firstVisiblePollButton = -1, lastVisiblePollButton = -1;
     public float resultsPollButtonOffset;
     private boolean reactionsVisible = true;
-    private boolean pollVoted;
+    public boolean pollVoted;
     private boolean pollAllowAdding;
     private boolean pollInInputNewOption;
     private boolean pollWithMediaInAnswers;
     private boolean pollHideResults;
     private boolean pollHasResults;
     private boolean pollHasVoteRestrictions;
-    private boolean pollClosed;
-    private boolean pollResultsPreview;
+    public boolean pollClosed;
+    public boolean pollResultsPreview;
     private long lastPollCloseTime;
     private String closeTimeText;
     private int closeTimeWidth;
-    private boolean pollVoteInProgress;
-    private boolean vibrateOnPollVote;
-    private boolean pollUnvoteInProgress;
+    public boolean pollVoteInProgress;
+    public boolean vibrateOnPollVote;
+    public boolean pollUnvoteInProgress;
     private boolean animatePollAnswer;
-    private boolean animatePollAvatars;
+    public boolean animatePollAvatars;
     private boolean animatePollAnswerAlpha;
-    private int pollVoteInProgressNum;
+    public int pollVoteInProgressNum;
     private long voteLastUpdateTime;
     private float voteRadOffset;
-    private float voteCurrentCircleLength;
-    private boolean firstCircleLength;
-    private boolean voteRisingCircleLength;
-    private float voteCurrentProgressTime;
-    private int pressedVoteButton;
+    public float voteCurrentCircleLength;
+    public boolean firstCircleLength;
+    public boolean voteRisingCircleLength;
+    public float voteCurrentProgressTime;
+    public int pressedVoteButton;
     private boolean pressedVoteIsMedia;
     private int pollMediaPressedIndex = PollAttachedMediaPack.INDEX_NONE;
-    private TLRPC.Poll lastPoll;
+    public TLRPC.Poll lastPoll;
     private float timerTransitionProgress;
     private TLRPC.PollResults lastPollResultsObj;
-    private ArrayList<TLRPC.PollAnswerVoters> lastPollResults;
-    private int lastPollResultsVoters;
-    private TimerParticles timerParticles;
+    public ArrayList<TLRPC.PollAnswerVoters> lastPollResults;
+    public int lastPollResultsVoters;
+    public TimerParticles timerParticles;
     private AnimatedFloat timerParticlesAlpha;
-    private int pollHintX;
-    private int pollHintY;
-    private boolean pollHintPressed;
-    private boolean hintButtonVisible;
-    private float hintButtonProgress;
-    private int pollAddButtonPressed;
+    public int pollHintX;
+    public int pollHintY;
+    public boolean pollHintPressed;
+    public boolean hintButtonVisible;
+    public float hintButtonProgress;
+    public int pollAddButtonPressed;
 
-    private float lastDrawExplanationX;
-    private float lastDrawExplanationY;
+    public float lastDrawExplanationX;
+    public float lastDrawExplanationY;
 
-    private int closeExplanationX;
-    private int closeExplanationY;
-    private boolean closeExplanationPressed;
+    public int closeExplanationX;
+    public int closeExplanationY;
+    public boolean closeExplanationPressed;
 
-    private String lastPostAuthor;
+    public String lastPostAuthor;
     private TLRPC.Message lastReplyMessage;
 
     private boolean hasPsaHint;
@@ -1504,23 +1504,23 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private boolean autoPlayingMedia;
 
-    private ArrayList<BotButton> botButtons = new ArrayList<>();
+    public ArrayList<BotButton> botButtons = new ArrayList<>();
     private Path botButtonPath = new Path();
     private float[] botButtonRadii = new float[8];
     private HashMap<String, BotButton> botButtonsByData = new HashMap<>();
     private HashMap<String, BotButton> botButtonsByPosition = new HashMap<>();
     private String botButtonsLayout;
-    private int widthForButtons;
+    public int widthForButtons;
     private boolean drawStartBotTopic;
     private boolean drawContinueBotTopic;
-    private int pressedBotButton;
+    public int pressedBotButton;
 
     private SpoilerEffect spoilerPressed;
     private boolean isSpoilerRevealing;
 
     private boolean checkFileLoad;
     private boolean wasAllChats;
-    private MessageObject currentMessageObject;
+    public MessageObject currentMessageObject;
     private MessageObject messageObjectToSet;
     private MessageObject.GroupedMessages groupedMessagesToSet;
     private boolean topNearToSet;
@@ -1565,19 +1565,19 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private int highlightProgress;
     private float currentSelectedBackgroundAlpha;
     private long lastHighlightProgressTime;
-    private boolean mediaBackground;
+    public boolean mediaBackground;
     private boolean isMedia;
     private boolean isCheckPressed = true;
     private boolean wasLayout;
     private boolean forcedLayout;
     public boolean isAvatarVisible;
     private boolean isThreadPost;
-    private boolean drawBackground = true;
-    private int substractBackgroundHeight;
+    public boolean drawBackground = true;
+    public int substractBackgroundHeight;
     private boolean allowAssistant;
     public MessageDrawable currentBackgroundDrawable;
-    private MessageDrawable currentBackgroundSelectedDrawable;
-    private int backgroundDrawableLeft;
+    public MessageDrawable currentBackgroundSelectedDrawable;
+    public int backgroundDrawableLeft;
     private int backgroundDrawableRight;
     private int backgroundDrawableTop;
     private int backgroundDrawableBottom;
@@ -1586,7 +1586,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean viaOnly;
     private TypefaceSpan viaSpan1;
     private TypefaceSpan viaSpan2;
-    private int availableTimeWidth;
+    public int availableTimeWidth;
     private int widthBeforeNewTimeLine;
     public boolean isAllChats;
     public boolean isSideMenued;
@@ -1604,7 +1604,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private Paint pollCutAvatarPaint;
     private Paint pollCheckPaint;
     private Path pollCheckPath;
-    private CheckBoxBase[] pollCheckBox;
+    public CheckBoxBase[] pollCheckBox;
 
     private InfiniteProgress commentProgress;
     private LoadingDrawable commentLoading;
@@ -1613,18 +1613,18 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private ImageReceiver[] commentAvatarImages;
     private AvatarDrawable[] commentAvatarDrawables;
     private boolean[] commentAvatarImagesVisible;
-    private StaticLayout commentLayout;
+    public StaticLayout commentLayout;
     private AnimatedNumberLayout commentNumberLayout;
-    private boolean drawCommentNumber;
-    private int commentArrowX;
-    private int commentUnreadX;
-    private boolean commentDrawUnread;
+    public boolean drawCommentNumber;
+    public int commentArrowX;
+    public int commentUnreadX;
+    public boolean commentDrawUnread;
     private int commentWidth;
-    private int commentX;
-    private int totalCommentWidth;
+    public int commentX;
+    public int totalCommentWidth;
     private int commentNumberWidth;
-    private boolean drawCommentButton;
-    private Rect commentButtonRect = new Rect();
+    public boolean drawCommentButton;
+    public Rect commentButtonRect = new Rect();
     private boolean commentButtonPressed;
 
     private ImageReceiver avatarImage;
@@ -1633,7 +1633,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean forwardNamePressed;
     private boolean forwardBotPressed;
 
-    private ImageReceiver locationImageReceiver;
+    public ImageReceiver locationImageReceiver;
 
     public int replyQuoteDrawableColor;
     public Drawable quoteDrawable[];
@@ -1652,10 +1652,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public int replyStartX;
     public int replyStartY;
     public float replyHeight;
-    private int replyNameWidth;
+    public int replyNameWidth;
     private int replyNameOffset;
-    private int replyTextWidth;
-    private int replyTextHeight;
+    public int replyTextWidth;
+    public int replyTextHeight;
     public int replyTextOffset;
     public boolean replyTextRTL;
     public boolean needReplyImage;
@@ -1687,11 +1687,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
 
     private boolean hideSideButtonByQuickShare;
-    private int drawSideButton;
+    public int drawSideButton;
     private boolean sideButtonVisible;
     private int drawSideButton2;
     private boolean sideButtonPressed;
-    private boolean drawSummarizeButton;
+    public boolean drawSummarizeButton;
     private boolean summarizeButtonPressed;
     private int pressedSideButton;
     private boolean inQuickShareMode;
@@ -1699,12 +1699,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private float[] sideButtonPathCorners1, sideButtonPathCorners2;
     private static final int SIDE_BUTTON_SPONSORED_CLOSE = 4;
     private static final int SIDE_BUTTON_SPONSORED_MORE = 5;
-    private float sideStartX, sideStartY;
+    public float sideStartX, sideStartY;
     private float summarizeButtonX, summarizeButtonY;
 
-    private StaticLayout nameLayout;
+    public StaticLayout nameLayout;
     private int nameLayoutWidth;
-    private boolean adminLayoutIsAdmin, adminLayoutIsOwner, adminLayoutIsTag;
+    public boolean adminLayoutIsAdmin, adminLayoutIsOwner, adminLayoutIsTag;
     private StaticLayout adminLayout;
     private RectF adminLayoutRect = new RectF();
     private ButtonBounce adminLayoutBounce;
@@ -1714,19 +1714,19 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean drawBookmarkInTime; // nax
     private RectF boostCounterBounds;
     private BoostCounterSpan boostCounterSpan;
-    private int nameWidth;
+    public int nameWidth;
     private float nameOffsetX;
-    private float nameX;
-    private float nameY;
-    private boolean drawName;
-    private boolean drawNameLayout;
-    private boolean drawNameAvatar;
+    public float nameX;
+    public float nameY;
+    public boolean drawName;
+    public boolean drawNameLayout;
+    public boolean drawNameAvatar;
 
     private float ephemeralX, ephemeralY;
     private StaticLayout ephemeralLayout;
     private int ephemeralWidth;
 
-    private boolean drawTopic;
+    public boolean drawTopic;
     private TopicButton topicButton;
 
     private AvatarDrawable sideAvatarDrawable;
@@ -1739,13 +1739,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private ButtonBounce closeSponsoredBounce;
     private RectF closeSponsoredBounds;
 
-    private final StaticLayout[] forwardedNameLayout = new StaticLayout[2];
-    private int forwardedNameWidth;
-    private boolean drawForwardedName;
-    private float forwardNameX;
-    private int forwardNameY;
-    private int forwardHeight;
-    private final float[] forwardNameOffsetX = new float[2];
+    public final StaticLayout[] forwardedNameLayout = new StaticLayout[2];
+    public int forwardedNameWidth;
+    public boolean drawForwardedName;
+    public float forwardNameX;
+    public int forwardNameY;
+    public int forwardHeight;
+    public final float[] forwardNameOffsetX = new float[2];
 
     private float drawTimeX;
     private float drawTimeY;
@@ -1754,17 +1754,17 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public int timeTextWidth;
     public int timeX;
     public int signWidth;
-    private SpannableStringBuilder currentTimeString;
-    private boolean drawTime = true;
-    private boolean forceNotDrawTime;
+    public SpannableStringBuilder currentTimeString;
+    public boolean drawTime = true;
+    public boolean forceNotDrawTime;
     private Paint drillHolePaint;
-    private Path drillHolePath;
+    public Path drillHolePath;
 
     private Path mediaSpoilerPath = new Path();
     private float[] mediaSpoilerRadii = new float[8];
     @Nullable
     private SpoilerEffect mediaSpoilerEffect;
-    private float mediaSpoilerRevealProgress;
+    public float mediaSpoilerRevealProgress;
     private float mediaSpoilerRevealX;
     private float mediaSpoilerRevealY;
     private float mediaSpoilerRevealMaxRadius;
@@ -1787,7 +1787,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private Path unlockSpoilerPath = new Path();
     private float[] unlockSpoilerRadii = new float[8];
 
-    private StaticLayout viewsLayout;
+    public StaticLayout viewsLayout;
     private int viewsTextWidth;
     private String currentViewsString;
 
@@ -1795,12 +1795,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private int forwardsTextWidth;
     private String currentForwardsString;
 
-    private StaticLayout repliesLayout;
+    public StaticLayout repliesLayout;
     private int repliesTextWidth;
     private String currentRepliesString;
 
-    private TLRPC.User currentUser;
-    private TLRPC.Chat currentChat;
+    public TLRPC.User currentUser;
+    public TLRPC.Chat currentChat;
     private TLRPC.FileLocation currentPhoto;
     private String currentNameString;
     private Object currentNameStatus;
@@ -1809,10 +1809,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable currentNameStatusDrawable;
     public AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable currentNameEmojiStatusDrawable;
 
-    private TLRPC.User currentForwardUser;
+    public TLRPC.User currentForwardUser;
     private TLRPC.User currentViaBotUser;
-    private TLRPC.Chat currentForwardChannel;
-    private String currentForwardName;
+    public TLRPC.Chat currentForwardChannel;
+    public String currentForwardName;
     private String currentForwardNameString;
     private boolean replyPanelIsForward;
     private boolean animationRunning;
@@ -1837,7 +1837,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public int linkPreviewSelectorColor;
 
     @Nullable
-    private ChatMessageCellDelegate delegate;
+    public ChatMessageCellDelegate delegate;
 
     private MessageBackgroundDrawable backgroundDrawable;
 
@@ -1861,9 +1861,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private float alphaInternal = 1f;
 
     public final TransitionParams transitionParams = new TransitionParams();
-    private boolean edited;
+    public boolean edited;
     private boolean ayuDeleted;
-    private boolean imageDrawn;
+    public boolean imageDrawn;
     private boolean photoImageOutOfBounds;
 
     private boolean wouldBeInPip;
@@ -1907,9 +1907,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
     };
-    private SparseArray<Rect> accessibilityVirtualViewBounds = new SparseArray<>();
-    private boolean isRoundVideo;
-    private boolean isPlayingRound;
+    public SparseArray<Rect> accessibilityVirtualViewBounds = new SparseArray<>();
+    public boolean isRoundVideo;
+    public boolean isPlayingRound;
     private float roundProgressAlpha;
     private float roundToPauseProgress;
     private float roundToPauseProgress2;
@@ -1932,9 +1932,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     VideoForwardDrawable videoForwardDrawable;
     OldVideoPlayerRewinder videoPlayerRewinder;
 
-    private Theme.ResourcesProvider resourcesProvider;
+    public Theme.ResourcesProvider resourcesProvider;
     private final boolean canDrawBackgroundInParent;
-    private ChatMessageSharedResources sharedResources;
+    public ChatMessageSharedResources sharedResources;
 
     public List<SpoilerEffect> replySpoilers = new ArrayList<>();
     private final Stack<SpoilerEffect> replySpoilersPool = new Stack<>();
@@ -2885,8 +2885,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return pressedBlock != -1;
     }
 
-    private boolean touchedByExpanation;
-    private boolean touchedByCaption;
+    public boolean touchedByExpanation;
+    public boolean touchedByCaption;
 
     private boolean checkExplanationMotionEvent(MotionEvent event) {
         if (!(currentExplanation instanceof Spannable) || explanationLayout == null || pressedBlock != -1 || touchedByCaption) {
@@ -6056,7 +6056,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
 
-    private void didClickedPollImage(ChatMessageCell cell, ImageReceiver imageReceiver, TLRPC.PollAnswer answer, TLRPC.MessageMedia media, float x, float y, int unshuffledIndex) {
+    public void didClickedPollImage(ChatMessageCell cell, ImageReceiver imageReceiver, TLRPC.PollAnswer answer, TLRPC.MessageMedia media, float x, float y, int unshuffledIndex) {
         /*if (unshuffledIndex == PollAttachedMediaPack.INDEX_DESCRIPTION) {
             if (pollContentDrawable != null && pollContentDrawable.getMedia() != null && pollContentDrawable.getMedia().document != null && (pollContentDrawable.isFile() || pollContentDrawable.isMusic())) {
                 FileLoader.getInstance(currentAccount).loadFile(pollContentDrawable.getMedia().document,
@@ -12218,7 +12218,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private boolean hadLongPress = false;
+    public boolean hadLongPress = false;
 
     private static boolean spanSupportsLongPress(CharacterStyle span) {
         return span instanceof URLSpanMono || span instanceof URLSpan;
@@ -16552,7 +16552,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         canvas.restore();
     }
 
-    private float isSmallImage() {
+    public float isSmallImage() {
         if (transitionParams.animateSmallImage) {
             return isSmallImage ? transitionParams.animateChangeProgress : 1f - transitionParams.animateChangeProgress;
         }
@@ -16678,7 +16678,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private Paint botButtonPaint;
 
-    private void drawBotButtons(Canvas canvas, ArrayList<BotButton> botButtons, int alpha) {
+    public void drawBotButtons(Canvas canvas, ArrayList<BotButton> botButtons, int alpha) {
         if (SizeNotifierFrameLayout.drawingBlur) {
             return;
         }
@@ -24361,7 +24361,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private void drawTimeInternal(Canvas canvas, float alpha, boolean fromParent, float timeX, StaticLayout timeLayout, float timeWidth, boolean drawSelectionBackground) {
+    public void drawTimeInternal(Canvas canvas, float alpha, boolean fromParent, float timeX, StaticLayout timeLayout, float timeWidth, boolean drawSelectionBackground) {
         if ((!drawTime || groupPhotoInvisible) && shouldDrawTimeOnMedia() || timeLayout == null || (currentMessageObject.deleted && currentPosition != null) || currentMessageObject.type == MessageObject.TYPE_PHONE_CALL) {
             return;
         }
@@ -24826,7 +24826,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     }
 
-    private void drawClockOrErrorLayout(Canvas canvas, boolean drawTime, boolean drawError, float layoutHeight, float alpha, float timeYOffset, float timeX, float progress, boolean drawSelectionBackground) {
+    public void drawClockOrErrorLayout(Canvas canvas, boolean drawTime, boolean drawError, float layoutHeight, float alpha, float timeYOffset, float timeX, float progress, boolean drawSelectionBackground) {
         boolean useScale = progress != 1f;
         float scale = 0.5f + 0.5f * progress;
         alpha *= progress;
@@ -25378,7 +25378,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private Paint srcOutPaint;
+    public Paint srcOutPaint;
 
     public void drawOverlays(Canvas canvas) {
         if (!drawFromPinchToZoom && delegate != null && delegate.getPinchToZoomHelper() != null && delegate.getPinchToZoomHelper().isInOverlayModeFor(this)) {
@@ -27528,7 +27528,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         public static final int CONTACT_MESSAGE = 489;
         private Path linkPath = new Path();
         private RectF rectF = new RectF();
-        private Rect rect = new Rect();
+        public Rect rect = new Rect();
 
         private class ProfileSpan extends ClickableSpan {
             private TLRPC.User user;
@@ -28819,7 +28819,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         public boolean lastShouldDrawTimeOnMedia;
         private boolean animateShouldDrawTimeOnMedia;
         public boolean lastShouldDrawMenuDrawable;
-        private boolean animateShouldDrawMenuDrawable;
+        public boolean animateShouldDrawMenuDrawable;
         public StaticLayout lastTimeLayout;
         public boolean lastIsPlayingRound;
         public boolean animatePlayingRound;
@@ -28894,7 +28894,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         public boolean lastDrawnTranslated;
         public StaticLayout lastDrawnTitleLayout;
         public StaticLayout animateTitleLayout;
-        private AnimatedEmojiSpan.EmojiGroupedSpans animateTitleLayoutEmoji;
+        public AnimatedEmojiSpan.EmojiGroupedSpans animateTitleLayoutEmoji;
 
         public void recordDrawingState() {
             wasDraw = true;
@@ -30033,7 +30033,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return false;
     }
 
-    private static void clearBlurredImage(ImageReceiver blurredPhotoImage) {
+    public static void clearBlurredImage(ImageReceiver blurredPhotoImage) {
         if (blurredPhotoImage == null) {
             return;
         }

@@ -4385,7 +4385,6 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             header.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             text.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhiteBlackText);
             colors.add(Theme.key_windowBackgroundWhiteGrayText2);
@@ -4515,7 +4514,6 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             stepAnimation();
             layout.setBackground(shadowed ? null : Theme.createRoundRectDrawable(dp(18), Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider)));
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhiteGrayText2);
             colors.add(Theme.key_featuredStickers_addButton);

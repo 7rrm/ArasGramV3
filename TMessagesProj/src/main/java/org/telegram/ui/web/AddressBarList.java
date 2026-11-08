@@ -715,7 +715,6 @@ public class AddressBarList extends FrameLayout {
             dividerPaint.setColor(Theme.multAlpha(textColor, .1f));
             iconView.invalidate();
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhite);
             colors.add(Theme.key_windowBackgroundWhiteBlackText);

@@ -371,7 +371,6 @@ public class RichDocumentCell extends RichBlockCell implements Theme.Colorable,
     @Override public void onProgressUpload(String fileName, long uploadedSize, long totalSize, boolean isEncrypted) {}
     @Override public void onProgressDownload(String fileName, long downloadSize, long totalSize) { radialProgress.setProgress(totalSize <= 0 ? 0 : Math.min(1f, downloadSize / (float) totalSize), true); }
     @Override public void updateColors() { selectionPaint.setColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider)); if (caption != null) caption.applyColors(); }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chat_inTextSelectionHighlight);
     }

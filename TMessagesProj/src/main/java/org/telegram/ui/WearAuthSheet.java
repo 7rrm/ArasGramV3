@@ -69,7 +69,6 @@ public class WearAuthSheet {
             // sheet background / navigation bar: setBackgroundColorKey / fixNavigationBarKey
         }
 
-        @Override
         public void addColorKeys(java.util.HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundGray);
         }

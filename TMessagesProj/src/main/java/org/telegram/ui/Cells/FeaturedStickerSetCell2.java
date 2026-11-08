@@ -458,7 +458,6 @@ public class FeaturedStickerSetCell2 extends FrameLayout implements Notification
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         colors.add(Theme.key_featuredStickers_buttonProgress);
         colors.add(Theme.key_featuredStickers_addButton);

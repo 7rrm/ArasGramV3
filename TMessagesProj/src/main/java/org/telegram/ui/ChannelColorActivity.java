@@ -1558,7 +1558,6 @@ public class ChannelColorActivity extends BaseFragment implements NotificationCe
                 textInfo2.setTextColor(isGroup && selectedProfileColor == -1 ? getThemedColor(Theme.key_actionBarDefaultTitle) : Color.WHITE);
             }
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_actionBarDefaultTitle);
         }

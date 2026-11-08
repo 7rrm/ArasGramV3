@@ -1431,7 +1431,6 @@ public class EmojiTabsStrip extends ScrollableHorizontalScrollView {
             }
         }
 
-        @Override
         public void addColorKeys(java.util.HashSet<Integer> colors) {
             colors.add(Theme.key_chat_emojiPanelIcon);
             colors.add(Theme.key_chat_emojiPanelIconSelected);

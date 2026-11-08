@@ -3031,7 +3031,6 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhiteBlackText);
         }

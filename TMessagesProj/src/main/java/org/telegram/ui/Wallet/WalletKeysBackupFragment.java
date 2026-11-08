@@ -793,7 +793,6 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
             statusView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
             arrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider), PorterDuff.Mode.SRC_IN));
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhiteBlackText);
             colors.add(Theme.key_windowBackgroundWhiteGrayText2);

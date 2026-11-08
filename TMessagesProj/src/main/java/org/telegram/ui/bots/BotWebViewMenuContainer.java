@@ -1184,7 +1184,6 @@ public class BotWebViewMenuContainer extends FrameLayout implements Notification
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhite);
         colors.add(Theme.key_actionBarDefault);

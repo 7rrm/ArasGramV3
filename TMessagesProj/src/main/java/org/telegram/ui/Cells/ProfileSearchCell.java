@@ -1238,7 +1238,6 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
     }
 
     private int colorsGeneration = ThemeBind.generation();
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chats_verifiedBackground);
         colors.add(Theme.key_windowBackgroundWhiteGrayText);

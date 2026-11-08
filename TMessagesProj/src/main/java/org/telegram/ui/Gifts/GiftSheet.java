@@ -2190,7 +2190,6 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_gift_ribbon);
             colors.add(Theme.key_gift_ribbon_soldout);

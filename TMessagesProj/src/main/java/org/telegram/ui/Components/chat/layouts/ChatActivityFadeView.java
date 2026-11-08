@@ -213,7 +213,6 @@ public class ChatActivityFadeView extends View implements Theme.Colorable {
             invalidate();
         }
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(colorKey);
     }

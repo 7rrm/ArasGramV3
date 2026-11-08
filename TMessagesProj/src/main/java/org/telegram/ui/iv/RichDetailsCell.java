@@ -247,7 +247,6 @@ public class RichDetailsCell extends FrameLayout implements Theme.Colorable, Tex
         arrow.setColor(Theme.getColor(Theme.key_chat_inArticleDetailsArrow, resourcesProvider));
         dividerPaint.setColor(Theme.getColor(Theme.key_chat_inArticleDetailsLine, resourcesProvider));
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chat_inArticleDetailsArrow);
         colors.add(Theme.key_chat_inArticleDetailsLine);

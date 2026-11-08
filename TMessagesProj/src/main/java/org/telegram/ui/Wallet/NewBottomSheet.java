@@ -55,7 +55,6 @@ public class NewBottomSheet extends BottomSheetWithRecyclerListView implements T
             this.container.invalidate();
         }
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundGray);
     }

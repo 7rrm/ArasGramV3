@@ -677,7 +677,6 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
         }
         invalidate();
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(activeTextColorKey);
     }

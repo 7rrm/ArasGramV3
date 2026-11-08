@@ -462,7 +462,6 @@ public class TransactionCell extends FrameLayout implements Theme.Colorable {
         nftTitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         nftText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhite);
         colors.add(Theme.key_windowBackgroundWhiteBlackText);

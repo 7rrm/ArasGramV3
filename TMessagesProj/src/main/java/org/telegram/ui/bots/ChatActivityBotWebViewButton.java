@@ -82,7 +82,6 @@ public class ChatActivityBotWebViewButton extends FrameLayout implements Theme.C
         }
     }
 
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chat_messagePanelVoiceBackground);
         colors.add(Theme.key_featuredStickers_addButton);

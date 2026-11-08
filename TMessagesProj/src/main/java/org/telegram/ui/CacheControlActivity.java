@@ -1817,7 +1817,6 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_actionBarActionModeDefaultSelector);
         }
@@ -2255,7 +2254,6 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_featuredStickers_addButton);
         }

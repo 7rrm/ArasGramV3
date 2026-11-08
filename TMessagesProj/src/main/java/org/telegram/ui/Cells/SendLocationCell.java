@@ -66,7 +66,6 @@ public class SendLocationCell extends FrameLayout implements Theme.Colorable {
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         if (circleColorKey >= 0) {
             colors.add(circleColorKey);

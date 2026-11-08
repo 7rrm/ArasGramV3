@@ -183,7 +183,6 @@ public class ChatReplyContainer extends FrameLayout {
             obj.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
             objHint.setTextColor(Theme.getColor(Theme.key_glass_defaultText, resourcesProvider));
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_chat_replyPanelIcons);
             colors.add(Theme.key_chat_replyPanelName);

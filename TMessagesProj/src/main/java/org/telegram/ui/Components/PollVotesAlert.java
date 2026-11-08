@@ -297,7 +297,6 @@ public class PollVotesAlert extends BottomSheet {
             }
         }
 
-        @Override
         public void addColorKeys(java.util.HashSet<Integer> colors) {
             colors.add(Theme.key_chats_verifiedBackground);
         }

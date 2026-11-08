@@ -62,7 +62,6 @@ public class TopViewCell extends LinearLayout implements Theme.Colorable {
 
         imageView.setLayoutParams(LayoutHelper.createLinear(imageSize, imageSize, Gravity.CENTER, 0, titleView.getVisibility() == View.VISIBLE ? 0 : 9, 0, 9));
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhiteBlackText);
         colors.add(Theme.key_chat_messageLinkIn);

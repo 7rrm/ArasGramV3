@@ -310,7 +310,6 @@ public class RichAudioCell extends RichBlockCell
             FileLog.e(e);
         }
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chat_inTextSelectionHighlight);
     }

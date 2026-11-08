@@ -827,7 +827,6 @@ public class ChatAttachAlertQuickRepliesLayout extends ChatAttachAlert.AttachAle
     }
 
     /** theme editor: colors this view shows (former ThemeDescription keys) */
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_avatar_backgroundPink);
         colors.add(Theme.key_avatar_backgroundBlue);

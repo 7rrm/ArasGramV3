@@ -117,7 +117,6 @@ public class RichMathCell extends RichBlockCell
         }
         invalidate();
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chat_inTextSelectionHighlight);
         colors.add(Theme.key_windowBackgroundWhiteBlackText);

@@ -237,7 +237,6 @@ public class SelectorUserCell extends BaseCell implements Theme.Colorable {
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         colors.add(Theme.key_chats_verifiedBackground);
     }

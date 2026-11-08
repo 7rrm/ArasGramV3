@@ -106,7 +106,6 @@ public class CommunityRequestsCell extends LinearLayout implements Theme.Colorab
 
         iconBackground.setDrawBorder(resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark());
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhiteBlackText);
         colors.add(Theme.key_chats_unreadCounter);

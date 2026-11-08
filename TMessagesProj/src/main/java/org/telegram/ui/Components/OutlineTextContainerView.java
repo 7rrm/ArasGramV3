@@ -30,7 +30,6 @@ public class OutlineTextContainerView extends FrameLayout implements Theme.Color
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhiteHintText);
         colors.add(Theme.key_windowBackgroundWhiteValueText);

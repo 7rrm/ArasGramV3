@@ -974,7 +974,6 @@ public class FlickerLoadingView extends View implements Theme.Colorable {
             paint.setShader(gradient);
         }
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(colorKey1);
         colors.add(colorKey2);

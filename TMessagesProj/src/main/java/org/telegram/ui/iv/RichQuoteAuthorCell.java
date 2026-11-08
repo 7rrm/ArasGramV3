@@ -166,7 +166,6 @@ public class RichQuoteAuthorCell extends RichBlockCell
         authorEditText.setTextColor(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider));
         authorEditText.setHintTextColor(Theme.multAlpha(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), 0.5f));
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_featuredStickers_addButton);
     }

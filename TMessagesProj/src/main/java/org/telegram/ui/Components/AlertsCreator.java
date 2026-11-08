@@ -239,7 +239,6 @@ public class AlertsCreator {
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             if (hasCursorColorKey) {
                 colors.add(cursorColorKey);

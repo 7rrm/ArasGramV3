@@ -804,7 +804,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         protected final Theme.ResourcesProvider resourcesProvider;
         protected ChatAttachAlert parentAlert;
 
-        private IBlur3Capture iBlur3Capture;
+        public IBlur3Capture iBlur3Capture;
         protected View iBlur3CaptureView;
         protected int listPaddingBottom;
         protected boolean occupyNavigationBar;

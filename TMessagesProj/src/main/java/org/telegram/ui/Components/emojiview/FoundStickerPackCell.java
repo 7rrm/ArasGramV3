@@ -111,7 +111,6 @@ public class FoundStickerPackCell extends FrameLayout implements FactorAnimator.
             Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider),
             (int) (255 * 0.9f)));
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_glass_defaultIcon);
     }

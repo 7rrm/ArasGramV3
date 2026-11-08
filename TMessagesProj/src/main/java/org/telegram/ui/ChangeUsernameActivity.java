@@ -1098,7 +1098,6 @@ public class ChangeUsernameActivity extends BaseFragment {
             }
         }
 
-        @Override
         public void addColorKeys(java.util.HashSet<Integer> colors) {
             colors.add(Theme.key_featuredStickers_addButton);
             colors.add(Theme.key_chats_unreadCounterMuted);

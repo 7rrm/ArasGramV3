@@ -429,7 +429,6 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_player_progress);
         }
@@ -526,7 +525,6 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_player_progress);
         }
@@ -557,7 +555,6 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_player_progress);
         }

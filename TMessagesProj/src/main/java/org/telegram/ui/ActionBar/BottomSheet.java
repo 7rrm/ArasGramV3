@@ -333,7 +333,6 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
 
     public class ContainerView extends FrameLayout implements NestedScrollingParent, Theme.Colorable {
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             addThemeColorKeys(colors);
         }

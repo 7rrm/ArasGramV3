@@ -946,7 +946,6 @@ public class ArticleViewer extends IArticleViewer implements NotificationCenter.
             applyThemeColorsHook();
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_iv_background);
             colors.add(Theme.key_windowBackgroundWhite);
@@ -10686,7 +10685,6 @@ public class ArticleViewer extends IArticleViewer implements NotificationCenter.
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhite);
         }
@@ -11789,7 +11787,6 @@ public class ArticleViewer extends IArticleViewer implements NotificationCenter.
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_iv_backgroundGray);
         }
@@ -13396,7 +13393,6 @@ public class ArticleViewer extends IArticleViewer implements NotificationCenter.
             }
         }
 
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_switchTrack);
             colors.add(Theme.key_windowBackgroundWhiteLinkText);

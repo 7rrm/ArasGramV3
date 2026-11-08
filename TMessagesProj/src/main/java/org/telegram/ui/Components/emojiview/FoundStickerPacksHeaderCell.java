@@ -75,7 +75,6 @@ public class FoundStickerPacksHeaderCell extends FrameLayout implements Theme.Co
             backButton.setBackground(Theme.createSelectorDrawable(getGlassIconColor(0.1f), 1));
         }
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_glass_defaultIcon);
     }

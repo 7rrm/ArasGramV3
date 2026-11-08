@@ -813,7 +813,6 @@ public class RichTextCell extends FrameLayout implements Theme.Colorable, TextSe
             RichBlockChrome.applyEditorQuoteColor(quoteLine, resourcesProvider);
         }
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_featuredStickers_addButton);
     }

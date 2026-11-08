@@ -75,7 +75,6 @@ public class CreateBotAlert {
             }
         }
 
-        @Override
         public void addColorKeys(java.util.HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundGray);
             colors.add(Theme.key_windowBackgroundWhiteHintText);

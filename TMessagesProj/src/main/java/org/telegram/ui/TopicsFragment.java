@@ -4235,12 +4235,10 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
         scrollableViewNoiseSuppressor.invalidateResultRenderNodes(iBlur3Capture, fragmentView.getMeasuredWidth(), fragmentView.getMeasuredHeight());
     }
 
-    @Override
     public GlassSourceRenderNode getGlassSource() {
         return iBlur3SourceGlass;
     }
 
-    @Override
     public GlassSourceRenderNode getFrostedGlassSource() {
         return iBlur3SourceGlassFrosted;
     }

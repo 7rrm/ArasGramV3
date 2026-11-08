@@ -212,7 +212,6 @@ public class RichMapCell extends RichBlockCell
         placeholderIcon.setColorFilter(new PorterDuffColorFilter(Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), 0.5f), PorterDuff.Mode.SRC_IN));
         if (caption != null) caption.applyColors();
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chat_inLocationBackground);
         colors.add(Theme.key_chat_inFileBackground);

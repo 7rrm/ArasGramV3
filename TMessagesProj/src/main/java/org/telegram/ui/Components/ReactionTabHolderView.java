@@ -53,7 +53,6 @@ public class ReactionTabHolderView extends FrameLayout implements Theme.Colorabl
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         colors.add(Theme.key_chat_inReactionButtonText);
     }

@@ -155,7 +155,6 @@ public class RichButtonRowCell extends RichBlockCell implements Theme.Colorable 
             FileLog.e(e);
         }
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhite);
     }

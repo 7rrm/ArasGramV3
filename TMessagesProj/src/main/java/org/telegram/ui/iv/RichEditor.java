@@ -1541,7 +1541,6 @@ public class RichEditor extends BaseFragment implements NotificationCenter.Notif
                 setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), PorterDuff.Mode.SRC_IN));
             }
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_featuredStickers_addButton);
             colors.add(Theme.key_windowBackgroundWhiteBlackText);

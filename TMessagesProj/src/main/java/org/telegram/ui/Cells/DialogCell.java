@@ -420,7 +420,6 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         }
     }
 
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chats_nameArchived);
         colors.add(Theme.key_chats_message_threeLines);

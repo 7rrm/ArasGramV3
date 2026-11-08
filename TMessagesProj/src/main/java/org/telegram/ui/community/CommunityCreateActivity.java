@@ -326,7 +326,6 @@ public class CommunityCreateActivity extends BaseFragment implements Notificatio
             titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhiteBlackText);
             colors.add(Theme.key_windowBackgroundWhiteGrayText2);

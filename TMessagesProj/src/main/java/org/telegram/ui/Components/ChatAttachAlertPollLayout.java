@@ -3214,7 +3214,6 @@ public class ChatAttachAlertPollLayout extends ChatAttachAlert.AttachAlertLayout
     }
 
     /** theme editor: colors this view shows (former ThemeDescription keys) */
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_telegram_color_text);
         colors.add(Theme.key_divider);

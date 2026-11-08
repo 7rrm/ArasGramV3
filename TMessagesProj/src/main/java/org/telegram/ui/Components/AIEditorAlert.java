@@ -1908,7 +1908,6 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
                     roundRadiusDp, roundRadiusDp
                 ));
             }
-            @Override
             public void addColorKeys(HashSet<Integer> colors) {
                 colors.add(Theme.key_windowBackgroundWhiteBlackText);
                 colors.add(Theme.key_featuredStickers_addButton);

@@ -579,7 +579,6 @@ public class TranslateAlert3 extends BottomSheetWithRecyclerListView {
             anotherExampleText.setTextColor(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider));
             anotherExample.setBackground(Theme.createRadSelectorDrawable(Theme.multAlpha(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), .10f), dp(8), dp(8)));
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhiteBlackText);
             colors.add(Theme.key_windowBackgroundWhiteBlueHeader);
@@ -773,7 +772,6 @@ public class TranslateAlert3 extends BottomSheetWithRecyclerListView {
             copyButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), PorterDuff.Mode.SRC_IN));
             copyButton.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), 0.10f)));
         }
-        @Override
         public void addColorKeys(HashSet<Integer> colors) {
             colors.add(Theme.key_windowBackgroundWhiteBlackText);
             colors.add(Theme.key_windowBackgroundWhiteBlueHeader);

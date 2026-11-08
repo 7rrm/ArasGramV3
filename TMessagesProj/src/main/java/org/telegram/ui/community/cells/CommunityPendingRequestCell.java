@@ -321,7 +321,6 @@ public class CommunityPendingRequestCell extends FrameLayout implements Theme.Co
         subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         hiddenLabelView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhiteBlackText);
     }

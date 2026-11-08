@@ -999,7 +999,6 @@ public class RichTableCell extends RichBlockCell implements Theme.Colorable, Tex
         }
     }
 
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhiteBlackText);
         colors.add(Theme.key_windowBackgroundWhite);

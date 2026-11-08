@@ -404,7 +404,6 @@ public class PollAddOptionFieldLayout extends FrameLayout implements ViewTreeObs
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhiteGrayText3);
         colors.add(Theme.key_text_RedRegular);

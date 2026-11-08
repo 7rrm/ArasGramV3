@@ -61,7 +61,6 @@ public class RichDividerCell extends RichBlockCell
         paint.setColor(Theme.getColor(Theme.key_chat_inDivider, resourcesProvider));
         selectionPaint.setColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
     }
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_chat_inDivider);
         colors.add(Theme.key_chat_inTextSelectionHighlight);

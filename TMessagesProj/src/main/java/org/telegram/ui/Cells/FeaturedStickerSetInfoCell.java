@@ -381,7 +381,6 @@ public class FeaturedStickerSetInfoCell extends FrameLayout implements Theme.Col
     }
 
     /** theme editor: colors this view shows (former ThemeDescription keys) */
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_divider);
         colors.add(Theme.key_featuredStickers_unread);

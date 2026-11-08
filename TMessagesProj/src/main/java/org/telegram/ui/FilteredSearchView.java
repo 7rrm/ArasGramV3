@@ -1947,7 +1947,6 @@ public class FilteredSearchView extends FrameLayout implements Theme.Colorable, 
     }
 
     /** theme editor: colors this view shows (former ThemeDescription keys) */
-    @Override
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_graySection);
         colors.add(Theme.key_graySectionText);

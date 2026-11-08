@@ -76,7 +76,6 @@ public class MessageContainsEmojiButton extends FrameLayout implements Notificat
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         colors.add(Theme.key_actionBarDefaultSubmenuItem);
     }

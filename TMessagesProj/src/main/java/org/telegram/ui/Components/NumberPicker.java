@@ -63,7 +63,6 @@ public class NumberPicker extends LinearLayout implements Theme.Colorable {
         }
     }
 
-    @Override
     public void addColorKeys(java.util.HashSet<Integer> colors) {
         colors.add(Theme.key_featuredStickers_addButton);
     }

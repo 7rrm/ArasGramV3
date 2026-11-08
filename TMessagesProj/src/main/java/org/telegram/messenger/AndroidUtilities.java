@@ -311,6 +311,11 @@ public class AndroidUtilities {
     public static boolean usingHardwareInput;
     public static boolean isInMultiwindow;
 
+    /** ArasGram: 13.1.1 call sites pass only withSidemenu; keep the old behaviour. */
+    public static int roundPlayingMessageSize(boolean withSidemenu) {
+        return roundPlayingMessageSize(withSidemenu, false);
+    }
+
     public static int roundPlayingMessageSize(boolean withSidemenu, boolean compact) {
         if (withSidemenu) {
             return roundSidePlayingMessageSize;
