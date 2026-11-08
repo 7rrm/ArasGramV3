@@ -29071,7 +29071,7 @@ public class ChatActivity extends BaseFragment implements
         return false;
     }
 
-    private void updatePinnedMessageView(boolean animated) {
+    public void updatePinnedMessageView(boolean animated) {
         updatePinnedMessageView(animated, 0);
     }
 

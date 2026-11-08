@@ -121,6 +121,7 @@ import android.os.Build;
 import android.graphics.RectF;
 import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
 import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
+import org.telegram.messenger.LiteMode;
 
 public class CallLogActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, MainTabsActivity.TabFragmentDelegate {
 

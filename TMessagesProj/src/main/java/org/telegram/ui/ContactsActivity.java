@@ -110,6 +110,8 @@ import me.vkryl.android.animator.FactorAnimator;
 import android.graphics.RectF;
 import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
 import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
+import androidx.annotation.Nullable;
+import org.telegram.messenger.LiteMode;
 
 public class ContactsActivity extends BaseFragment implements FactorAnimator.Target, NotificationCenter.NotificationCenterDelegate, MainTabsActivity.TabFragmentDelegate, WindowAnimatedInsetsProvider.Listener {
     private static final int ANIMATOR_ID_SECTION_LETTERS = 0;

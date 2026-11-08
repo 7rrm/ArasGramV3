@@ -105,6 +105,7 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
     private ArrayList<VenueLocation> placeMarkers = new ArrayList<>();
 
     private AnimatorSet animatorSet;
+    private SearchButton searchAreaButton;
 
     private IMapsProvider.IMarker lastPressedMarker;
     private VenueLocation lastPressedVenue;
@@ -185,7 +186,6 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
     private Paint backgroundPaint = new Paint();
 
 
-    private AnimatorSet animatorSet;
 
     private boolean checkPermission = true;
 
