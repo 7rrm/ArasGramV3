@@ -534,6 +534,7 @@ public class BotDownloads {
         private final TextView titleView;
         private final TextView subtitleView;
 
+        @Override
         public void updateColors() {
             super.updateColors();
             try {
