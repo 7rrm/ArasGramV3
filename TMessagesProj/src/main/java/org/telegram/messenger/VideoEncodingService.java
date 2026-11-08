@@ -195,5 +195,4 @@ public class VideoEncodingService extends Service implements NotificationCenter.
         return instance != null;
     }
 
-    @Override
 }
