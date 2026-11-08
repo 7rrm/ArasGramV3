@@ -24104,16 +24104,30 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
     private void completePipExpand() {
         if (usedSurfaceView) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                int width = videoSurfaceView.getWidth();
-                int height = videoSurfaceView.getHeight();
-                if (width <= 0 || height <= 0) {
-                    return null;
+            pipSession.completeExpand(texture -> {
+                if (texture != null) {
+                    texture.release();
                 }
-                Bitmap bitmap = Bitmaps.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                AndroidUtilities.getBitmapFromSurface(videoSurfaceView, bitmap);
-                return bitmap;
-            }
+            });
+            AndroidUtilities.runOnUIThread(() -> checkChangedTextureView(false));
+        } else {
+            pipSession.completeExpand(texture -> {
+                if (texture != null && videoTextureView != null) {
+                    if (switchingInlineMode) {
+                        waitingForFirstTextureUpload = 2;
+                    }
+                    videoTextureView.setSurfaceTexture(texture);
+                    videoTextureView.setVisibility(View.VISIBLE);
+                    changingTextureView = false;
+                    containerView.invalidate();
+                    // a paused video produces no new frame to trigger the transition
+                    AndroidUtilities.runOnUIThread(() -> {
+                        if (waitingForFirstTextureUpload == 2) {
+                            checkChangedTextureView(false);
+                        }
+                    }, 64);
+                }
+            });
         }
     }
 

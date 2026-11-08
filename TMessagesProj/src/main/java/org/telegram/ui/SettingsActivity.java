@@ -165,6 +165,9 @@ import xyz.nextalone.nagram.NaConfig;
 
 import kotlin.Unit;
 import java.util.HashSet;
+import android.graphics.RectF;
+import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
+import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
 
 public class SettingsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, ImageUpdater.ImageUpdaterDelegate, MainTabsActivity.TabFragmentDelegate, FactorAnimator.Target {
 
@@ -2349,8 +2352,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     /* Blur */
 
     private final @Nullable DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
-    private final @Nullable BlurredBackgroundSourceRenderNode iBlur3SourceGlassFrosted;
-    private final @Nullable BlurredBackgroundSourceRenderNode iBlur3SourceGlass;
+    private final @Nullable GlassSourceRenderNode iBlur3SourceGlassFrosted;
+    private final @Nullable GlassSourceRenderNode iBlur3SourceGlass;
 
     private IBlur3Capture iBlur3Capture;
     private boolean iBlur3Invalidated;

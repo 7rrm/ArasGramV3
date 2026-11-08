@@ -1651,7 +1651,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private float drawTimeY;
     public StaticLayout timeLayout;
     public int timeWidth;
-    int timeTextWidth;
+    public int timeTextWidth;
     public int timeX;
     public int signWidth;
     CharSequence currentTimeString;
@@ -24169,5 +24169,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             bitmap.recycle();
             blurredPhotoImage.setImageBitmap((Bitmap) null);
         }
+    }
+
+    // MeeroX: horizontal pop offset used by ChatListItemAnimator. Only affects
+    // view translation, never in-canvas element positions.
+    private float meeroPopOffsetX;
+
+    public void setMeeroPopOffsetX(float offsetX) {
+        if (meeroPopOffsetX != offsetX) {
+            meeroPopOffsetX = offsetX;
+            updateTranslation();
+        }
+    }
+
+    public float getMeeroPopOffsetX() {
+        return meeroPopOffsetX;
     }
 }

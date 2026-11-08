@@ -252,6 +252,8 @@ import xyz.nextalone.nagram.NaConfig;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 
+    private int lastDoneCheckColor, lastAudioVideoColor, lastEmojiSelectorColor;
+    private Drawable lastDoneCheckDrawable;
 public class ChatActivityEnterView extends FrameLayout implements
     NotificationCenter.NotificationCenterDelegate,
     SizeNotifierFrameLayout.SizeNotifierFrameLayoutDelegate,
@@ -18482,5 +18484,33 @@ public class ChatActivityEnterView extends FrameLayout implements
         cameraSelectionPopup.showAtLocation(anchorView, Gravity.LEFT | Gravity.TOP, x, y);
         cameraSelectionPopup.dimBehind();
         if (!NekoConfig.disableVibration.Bool()) performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+    }
+
+    private void updateColorsExtra() {
+        try {
+            if (messageEditText != null) {
+                ThemeBind.editHintColor(messageEditText, Theme.key_chat_messagePanelHint, resourcesProvider);
+                ThemeBind.cursorColor(messageEditText, Theme.key_chat_messagePanelCursor, resourcesProvider);
+                ThemeBind.editHandlesColor(messageEditText, Theme.key_chat_TextSelectionCursor, resourcesProvider);
+            }
+            if (dotPaint != null) {
+                dotPaint.setColor(getThemedColor(Theme.key_chat_emojiPanelNewTrending));
+            }
+            if (slowModeButton != null) {
+                slowModeButton.setTextColor(getThemedColor(Theme.key_glass_defaultIcon));
+            }
+            if (stickersArrow != null) {
+                stickersArrow.setColor(getThemedColor(Theme.key_glass_defaultIcon));
+            }
+            if (sendButton != null && sendButtonBackgroundColor != 0 && sendButton.getBackground() != null) {
+                final int color = slowModeTimer == Integer.MAX_VALUE && !isSlowModeIgnored() ? getThemedColor(Theme.key_glass_defaultIcon) : getThemedColor(Theme.key_chat_messagePanelSend);
+                if (color != sendButtonBackgroundColor) {
+                    sendButtonBackgroundColor = color;
+                    Theme.setSelectorDrawableColor(sendButton.getBackground(), Color.argb(24, Color.red(color), Color.green(color), Color.blue(color)), true);
+                }
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
     }
 }

@@ -101,7 +101,7 @@ public class BotCommandsMenuView extends View implements Theme.Colorable {
         invalidate();
     }
 
-    private void updateColors() {
+    public void updateColors() {
         // MeeroX v219 (owner field report, RTL bot chats): the stock solid
         // accent pill («القائمة») squatted inside our glass iOS capsule as
         // a loud color block and wrecked the bar's shape («زر مخرب شكل بار

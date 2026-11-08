@@ -2944,13 +2944,6 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                 left = Math.round(lerp(adaptiveLeft, leftDefault, meeroMorphFactor));
                 right = Math.round(lerp(adaptiveRight, rightDefault, meeroMorphFactor));
             } else {
-                final int menuWidthWithPadding = menuWidth + ((hasForcedMenuWidth || hasForcedMenuMinWidth) ? (menuWidth > 0 ? p : 0) : (int) (p * animatorHasMenuItems.getFloatValue()));
-                final int rightOffset = lerp(menuWidthWithPadding, Math.max(menuWidthWithPadding, p + s), chatAvatarContainer == null ? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
-
-                final int leftDefault = lerp(hasBackButton ? s + p : 0, s + p, chatAvatarContainer == null? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
-                final int rightDefault = getWidth() - rightOffset;
-                final int widthDefault = rightDefault - leftDefault;
-                final int left, right;
                 if (chatAvatarContainer != null) {
                     final int width = lerp(Math.min(widthDefault, (int) animatorAvatarContainerWidth.getFactor() + p * 2), widthDefault, Math.max(searchFactor, actionModeFactor));
                     left = (rightDefault + leftDefault - width) / 2;

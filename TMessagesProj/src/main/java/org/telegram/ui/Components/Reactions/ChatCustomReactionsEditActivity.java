@@ -109,7 +109,6 @@ public class ChatCustomReactionsEditActivity extends BaseFragment implements Not
     private final List<TLRPC.TL_availableReaction> allAvailableReactions = new ArrayList<>();
     private boolean initialPaid;
     private int initialSelectedType = -1;
-    private int initialSelectedType;
 
     private final int maxReactionsCount = getMessagesController().boostsChannelLevelMax;
     private boolean emojiKeyboardVisible = false;

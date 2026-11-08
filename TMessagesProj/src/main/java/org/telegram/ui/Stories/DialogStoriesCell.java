@@ -220,6 +220,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
     ActionBarAnimatedSubtitleOverlayContainer subtitleOverlayContainer;
     AnimatedTitleView telegramLogoView;
     AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable statusDrawable;
+    ImageView emojiStatusView;
     boolean drawCircleForce;
     ArrayList<Runnable> afterNextLayout = new ArrayList<>();
     private float collapsedProgress1 = -1;
@@ -406,6 +407,11 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
         statusDrawable.center = true;
         statusDrawable.setCallback(this);
+
+        emojiStatusView = new ImageView(context);
+        emojiStatusView.setScaleType(ImageView.ScaleType.CENTER);
+        emojiStatusView.setImageDrawable(statusDrawable);
+        addView(emojiStatusView, LayoutHelper.createFrame(40, 40));
 
         subtitleOverlayContainer = new ActionBarAnimatedSubtitleOverlayContainer(context, null, ellipsizeSpanAnimator) {
             @Override

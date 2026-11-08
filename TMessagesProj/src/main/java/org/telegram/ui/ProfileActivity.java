@@ -17095,4 +17095,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         keys.add(Theme.key_chat_lockIcon);
         keys.add(Theme.key_avatar_actionBarSelectorBlue);
     }
+
+    public void setChatInfoChannelMsg(ProfileChannelCell.ChannelMessageFetcher channelMessageFetcher) {
+        // na: Group Profile Show Linked Channel Info
+        if (profileChannelMessageFetcher == null) {
+            profileChannelMessageFetcher = channelMessageFetcher;
+        }
+        if (profileChannelMessageFetcher == null) {
+            profileChannelMessageFetcher = new ProfileChannelCell.ChannelMessageFetcher(currentAccount);
+        }
+        profileChannelMessageFetcher.subscribe(() -> updateListAnimated(false));
+        profileChannelMessageFetcher.fetchChannelMsg(chatInfo);
+    }
 }

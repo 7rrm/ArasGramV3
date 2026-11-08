@@ -107,6 +107,7 @@ import org.telegram.ui.Adapters.LocationActivityAdapter;
 import org.telegram.ui.Adapters.LocationActivitySearchAdapter;
 import org.telegram.ui.Cells.GraySectionCell;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.LocationCell;
 import org.telegram.ui.Cells.LocationDirectionCell;
 import org.telegram.ui.Cells.SendLocationCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
@@ -1966,6 +1967,14 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
             FileLog.e(e);
         }
         return null;
+    }
+
+    private ArrayList<VenueLocation> placeMarkers = new ArrayList<>();
+
+    public static class VenueLocation {
+        public int num;
+        public IMapsProvider.IMarker marker;
+        public TLRPC.TL_messageMediaVenue venue;
     }
 
     private void updatePlacesMarkers(ArrayList<TLRPC.TL_messageMediaVenue> places) {

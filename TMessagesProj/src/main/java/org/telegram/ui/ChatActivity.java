@@ -48455,4 +48455,9 @@ public class ChatActivity extends BaseFragment implements
         return messageObject.isRich() && !RichMessageTransHelper.collectPlainTexts(messageObject.messageOwner.rich_message).isEmpty();
     }
     // ===== end MeeroX / ArasGram additions =====
+
+    // NekoX select-between: upstream getMessageType() still returns these codes
+    // (2 = media and above, 20 = failed outgoing text) but does not name them.
+    private static final int MESSAGE_TYPE_MEDIA = 2;
+    private static final int MESSAGE_TYPE_SEND_ERROR_TEXT = 20;
 }
