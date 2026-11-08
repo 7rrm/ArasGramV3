@@ -1,5 +1,9 @@
 package org.telegram.ui.Components;
 
+import android.graphics.RenderNode;
+import org.telegram.ui.ProfileActivity;
+
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.dpf2;
 import static org.telegram.messenger.LocaleController.getString;

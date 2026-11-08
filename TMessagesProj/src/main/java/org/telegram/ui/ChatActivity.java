@@ -51686,4 +51686,6 @@ public class ChatActivity extends BaseFragment implements
     protected void setKeepVoiceRecordingOnPause(boolean value) {
         keepVoiceRecordingOnPause = value;
     }
+
+    private boolean keepVoiceRecordingOnPause;
 }
