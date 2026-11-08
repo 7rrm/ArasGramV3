@@ -615,7 +615,8 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
             }
         }
 
-    }
+    
+        private @Nullable IBlur3Capture iBlur3Capture;}
 
     public float getPhotoVideoOptionsAlpha(float progress) {
         if (isArchivedOnlyStoriesView()) {
@@ -11577,7 +11578,7 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
     }
     protected void onTabScroll(boolean scrolling) {}
 
-    public static class InternalListView extends RecyclerListView implements StoriesListPlaceProvider.ClippedView {
+    public static class InternalListView extends BlurredRecyclerView implements StoriesListPlaceProvider.ClippedView {
 
         /** The paddings its owner set, applied again on every measure of the layout. */
         public int topPadding;

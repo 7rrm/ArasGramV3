@@ -53,6 +53,8 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
+import org.telegram.ui.Components.blur3.ViewGroupPartRenderer;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BirthdayController;
 import org.telegram.messenger.ChatObject;
@@ -1040,7 +1042,8 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
                 emptyView2Button.updateColors();
             }
         }
-    }
+    
+        public @Nullable IBlur3Capture iBlur3Capture;}
 
     public boolean canScroll(boolean forward) {
         if (forward)
@@ -2233,5 +2236,24 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
             update.run();
             return true;
         });
+    }
+
+public @Nullable IBlur3Capture iBlur3Capture;
+private ViewGroup iBlur3CaptureParent;
+    public void initBlurCapture(ViewGroup parent) {
+        iBlur3CaptureParent = parent;
+
+        iBlur3Capture = (canvas, position) -> {
+            View[] pages = viewPager.getViewPages();
+            for (View view : pages) {
+                if (view instanceof Page) {
+                    Page page = (Page) view;
+                    if (page.iBlur3Capture == null) {
+                        page.iBlur3Capture = new ViewGroupPartRenderer(page.listView, iBlur3CaptureParent, page.listView::drawChild);
+                    }
+                    page.iBlur3Capture.capture(canvas, position);
+                }
+            }
+        };
     }
 }

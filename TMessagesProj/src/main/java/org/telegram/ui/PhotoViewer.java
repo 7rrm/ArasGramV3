@@ -24480,7 +24480,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private PipSession pipSession;
 
     /* Universal PiP (org.telegram.utils.pip) */
-    final PipTextureView target = pipPendingTarget;
+    private PipTextureView pipPendingTarget;
     private float pipBufferedProgress;
     private boolean pipPrimaryHidden;
     private final RectF pipVideoRect = new RectF();
