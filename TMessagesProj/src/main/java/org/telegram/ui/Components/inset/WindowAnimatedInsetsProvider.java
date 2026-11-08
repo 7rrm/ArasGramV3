@@ -52,7 +52,6 @@ public class WindowAnimatedInsetsProvider extends WindowInsetsAnimationCompat.Ca
         return activeAnimationsCounter > 0;
     }
 
-    @Override
     public WindowInsetsAnimationCompat.@NonNull BoundsCompat onStart(@NonNull WindowInsetsAnimationCompat animation, WindowInsetsAnimationCompat.@NonNull BoundsCompat bounds) {
         if (activeAnimationsCounter == 0) {
             dispatchWindowInsetsAnimationStart();

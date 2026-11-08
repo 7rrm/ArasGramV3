@@ -263,7 +263,6 @@ public class TodoItemMenu extends Dialog {
         containerView.addView(hintTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 0, 0, 0, 66));
 
         ViewCompat.setOnApplyWindowInsetsListener(windowView, new OnApplyWindowInsetsListener() {
-            @Override
             public @NonNull WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat i) {
                 insets = i.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars());
                 containerView.setPadding(insets.left, insets.top, insets.right, insets.bottom);

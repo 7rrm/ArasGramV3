@@ -125,7 +125,6 @@ public abstract class JobIntentService extends Service {
             mRunWakeLock.setReferenceCounted(false);
         }
 
-        @Override
         void enqueueWork(Intent work) {
             Intent intent = new Intent(work);
             intent.setComponent(mComponentName);
@@ -297,7 +296,6 @@ public abstract class JobIntentService extends Service {
                     Context.JOB_SCHEDULER_SERVICE);
         }
 
-        @Override
         void enqueueWork(Intent work) {
             if (DEBUG) Log.d(TAG, "Enqueueing work: " + work);
             mJobScheduler.enqueue(mJobInfo, new JobWorkItem(work));

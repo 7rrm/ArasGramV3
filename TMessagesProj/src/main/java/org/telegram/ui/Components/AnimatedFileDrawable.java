@@ -772,7 +772,6 @@ public final class AnimatedFileDrawable extends BitmapDrawable implements Animat
         return PixelFormat.TRANSPARENT;
     }
 
-    @Override
     @AnyThread
     public void start() {
         if (isRunning || parents.isEmpty()) {
@@ -902,7 +901,6 @@ public final class AnimatedFileDrawable extends BitmapDrawable implements Animat
         applyTransformation = true;
     }
 
-    @Override
     @AnyThread
     public void draw(Canvas canvas) {
         drawInternal(canvas, false, System.currentTimeMillis(), 0);
@@ -1223,13 +1221,11 @@ public final class AnimatedFileDrawable extends BitmapDrawable implements Animat
     int tryCount;
     int lastMetadata;
 
-    @Override
     @AnyThread
     public void prepareForGenerateCache() {
         cacheGenerateDecoder = AnimatedFileNative.createDecoderFrom(path.getAbsolutePath(), metaData, currentAccount, streamFileSize, stream, false);
     }
 
-    @Override
     @AnyThread
     public void releaseForGenerateCache() {
         if (cacheGenerateDecoder != null) {
@@ -1238,7 +1234,6 @@ public final class AnimatedFileDrawable extends BitmapDrawable implements Animat
         }
     }
 
-    @Override
     @AnyThread
     public int getNextFrame(Bitmap bitmap) {
         if (cacheGenerateDecoder == null) {

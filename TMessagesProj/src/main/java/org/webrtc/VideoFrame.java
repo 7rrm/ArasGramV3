@@ -74,7 +74,6 @@ public class VideoFrame implements RefCounted {
    * Interface for I420 buffers.
    */
   public interface I420Buffer extends Buffer {
-    @Override
     default int getBufferType() {
       return 1;
     }
@@ -224,7 +223,6 @@ public class VideoFrame implements RefCounted {
     buffer.retain();
   }
 
-  @Override
   @CalledByNative
   public void release() {
     buffer.release();

@@ -365,7 +365,6 @@ public class EnableTopicsActivity extends BaseFragment {
                 return new TopicsLayoutSwitcher(context, resourcesProvider);
             }
 
-            @Override
             @SuppressWarnings("unchecked")
             public void bindView(View view, UItem item, boolean divider, UniversalAdapter adapter, UniversalRecyclerView listView) {
                 ((TopicsLayoutSwitcher) view).onSelected = (Utilities.Callback<Integer>) item.object;

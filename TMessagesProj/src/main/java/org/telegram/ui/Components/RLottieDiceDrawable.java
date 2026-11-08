@@ -135,7 +135,6 @@ public class RLottieDiceDrawable extends RLottieDrawable {
         return false;
     }
 
-    @Override
     @WorkerThread
     protected int beforeLoadFrameImpl() {
         if (isRecycled) {
@@ -147,7 +146,6 @@ public class RLottieDiceDrawable extends RLottieDrawable {
         return LOAD_FRAME_RESULT_OK;
     }
 
-    @Override
     @WorkerThread
     protected int loadFrameRunnableImpl(Bitmap bitmap, boolean needClearBitmap) {
         final RLottieNative ptrToUse;
@@ -170,7 +168,6 @@ public class RLottieDiceDrawable extends RLottieDrawable {
         return LOAD_FRAME_RESULT_OK;
     }
 
-    @Override
     @WorkerThread
     protected void afterLoadFrameImpl() {
         final int framesPerUpdates = 1;

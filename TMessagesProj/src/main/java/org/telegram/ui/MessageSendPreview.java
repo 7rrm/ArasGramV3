@@ -430,7 +430,6 @@ public class MessageSendPreview extends Dialog implements NotificationCenter.Not
         containerView.setClipToPadding(false);
         windowView.addView(containerView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
         ViewCompat.setOnApplyWindowInsetsListener(windowView, new OnApplyWindowInsetsListener() {
-            @Override
             public @NonNull WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat i) {
                 insets = AndroidUtilities.getDefaultWindowInsets(i, false);
                 containerView.setPadding(insets.left, insets.top, insets.right, insets.bottom);

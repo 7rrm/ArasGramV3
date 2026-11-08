@@ -273,7 +273,6 @@ public class ShapeInput {
             shape.arrowTriangleLength = Math.abs(shape.centerY - shape.middleY);
             final Point triangleLengthControl, middleControl, endControl;
             allPoints.add(triangleLengthControl = new Point() {
-                @Override
                 void set() {
                     double a = Math.atan2(shape.centerY - shape.middleY, shape.centerX - shape.middleX) + Math.PI, r = shape.arrowTriangleLength / 5.5f;
                     set(shape.centerX + (float) (Math.cos(a) * r), shape.centerY + (float) (Math.sin(a) * r));
@@ -288,7 +287,6 @@ public class ShapeInput {
                 }
             });
             allPoints.add(middleControl = new Point() {
-                @Override
                 void set() {
                     set(shape.middleX, shape.middleY);
                 }
@@ -301,7 +299,6 @@ public class ShapeInput {
             });
             movingPoints.add(middleControl);
             allPoints.add(endControl = new Point() {
-                @Override
                 void set() {
                     set(shape.radiusX, shape.radiusY);
                 }
@@ -317,7 +314,6 @@ public class ShapeInput {
 
         if (shape.getType() == Brush.Shape.SHAPE_TYPE_CIRCLE) {
             allPoints.add(new Point() {
-                @Override
                 void set() {
                     set(shape.centerX + shape.radiusX, shape.centerY);
                 }
@@ -334,7 +330,6 @@ public class ShapeInput {
             allPoints.add(new Point() {
                 final int n = 5;
 
-                @Override
                 void set() {
                     float r = Math.min(shape.radiusX, shape.radiusY);
                     double a = -Math.PI / 2f + 2 * Math.PI / n;
@@ -356,7 +351,6 @@ public class ShapeInput {
             allPoints.add(new CornerPoint(shape, false, true));
             allPoints.add(new CornerPoint(shape, true, true));
             allPoints.add(new Point(true) {
-                @Override
                 void set() {
                     set(shape.centerX, shape.centerY - Math.abs(shape.radiusY));
                 }
@@ -398,7 +392,6 @@ public class ShapeInput {
                     }
                 }
 
-                @Override
                 void set() {
                     set(shape.middleX, shape.middleY);
                 }
@@ -411,7 +404,6 @@ public class ShapeInput {
                     shape.middleY = this.y;
                 }
 
-                @Override
                 void set(float x, float y) {
                     super.set(shape.middleX = x, shape.middleY = y);
                 }
@@ -421,7 +413,6 @@ public class ShapeInput {
         }
 
         center = new Point(true) {
-            @Override
             void set() {
                 this.x = shape.centerX;
                 this.y = shape.centerY;
@@ -558,7 +549,6 @@ public class ShapeInput {
             set();
         }
 
-        @Override
         void set() {
             if (shape != null) {
                 float x = shape.centerX + rx * shape.radiusX,

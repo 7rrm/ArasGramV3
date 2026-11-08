@@ -68,12 +68,10 @@ public abstract class WidgetFrameNode {
             node.setPosition(left, top, right, bottom);
         }
 
-        @Override
         Canvas beginRecording() {
             return node.beginRecording(right - left, bottom - top);
         }
 
-        @Override
         void endRecording() {
             node.endRecording();
         }
@@ -83,7 +81,6 @@ public abstract class WidgetFrameNode {
             return node.hasDisplayList();
         }
 
-        @Override
         void discard() {
             node.discardDisplayList();
         }
@@ -115,13 +112,11 @@ public abstract class WidgetFrameNode {
             super(left, top, right, bottom);
         }
 
-        @Override
         Canvas beginRecording() {
             recording = true;
             return picture.beginRecording(Math.max(1, right - left), Math.max(1, bottom - top));
         }
 
-        @Override
         void endRecording() {
             picture.endRecording();
             recording = false;
@@ -132,7 +127,6 @@ public abstract class WidgetFrameNode {
             return true;
         }
 
-        @Override
         void discard() {
             if (recording) endRecording();
         }

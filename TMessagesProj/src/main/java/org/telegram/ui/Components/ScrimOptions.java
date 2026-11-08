@@ -161,7 +161,6 @@ public class ScrimOptions extends Dialog {
         iBlur3Factory.setSourceRootView(new ViewPositionWatcher(windowView), windowView);
 
         ViewCompat.setOnApplyWindowInsetsListener(windowView, new OnApplyWindowInsetsListener() {
-            @Override
             public @NonNull WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
                 final Insets r = AndroidUtilities.getDefaultWindowInsets(insets, false);
                 containerView.setPadding(r.left, r.top, r.right, r.bottom);

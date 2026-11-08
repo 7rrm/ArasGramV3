@@ -341,7 +341,6 @@ public class GridLayoutManager extends LinearLayoutManager {
         }
     }
 
-    @Override
     void onAnchorReady(RecyclerView.Recycler recycler, RecyclerView.State state,
                        AnchorInfo anchorInfo, int itemDirection) {
         super.onAnchorReady(recycler, state, anchorInfo, itemDirection);
@@ -403,7 +402,6 @@ public class GridLayoutManager extends LinearLayoutManager {
         }
     }
 
-    @Override
     View findReferenceChild(RecyclerView.Recycler recycler, RecyclerView.State state,
                             int start, int end, int itemCount) {
         ensureLayoutState();
@@ -497,7 +495,6 @@ public class GridLayoutManager extends LinearLayoutManager {
         return mSpanSizeLookup.getSpanSize(adapterPosition);
     }
 
-    @Override
     void collectPrefetchPositionsForLayoutState(RecyclerView.State state, LayoutState layoutState,
             LayoutPrefetchRegistry layoutPrefetchRegistry) {
         int remainingSpan = mSpanCount;
@@ -512,7 +509,6 @@ public class GridLayoutManager extends LinearLayoutManager {
         }
     }
 
-    @Override
     void layoutChunk(RecyclerView.Recycler recycler, RecyclerView.State state,
             LayoutState layoutState, LayoutChunkResult result) {
         final int otherDirSpecMode = mOrientationHelper.getModeInOther();

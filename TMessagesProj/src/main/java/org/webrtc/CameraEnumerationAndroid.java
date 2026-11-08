@@ -175,7 +175,6 @@ public class CameraEnumerationAndroid {
                                        : threshold * lowWeight + (value - threshold) * highWeight;
           }
 
-          @Override
           int diff(CaptureFormat.FramerateRange range) {
             final int minFpsError = progressivePenalty(
                 range.min, MIN_FPS_THRESHOLD, MIN_FPS_LOW_VALUE_WEIGHT, MIN_FPS_HIGH_VALUE_WEIGHT);
@@ -189,7 +188,6 @@ public class CameraEnumerationAndroid {
   public static Size getClosestSupportedSize(
       List<Size> supportedSizes, final int requestedWidth, final int requestedHeight) {
     return Collections.min(supportedSizes, new ClosestComparator<Size>() {
-      @Override
       int diff(Size size) {
         return abs(requestedWidth - size.width) + abs(requestedHeight - size.height);
       }

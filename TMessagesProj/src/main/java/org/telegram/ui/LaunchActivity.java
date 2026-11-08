@@ -7422,7 +7422,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         super.onMultiWindowModeChanged(isInMultiWindowMode);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public void didReceivedNotification(int id, final int account, Object... args) {
         if (id == NotificationCenter.appDidLogout) {

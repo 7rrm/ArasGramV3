@@ -760,7 +760,6 @@ public class AnimatedTextView extends View {
                 return TextUtils.concat(Arrays.copyOfRange(words, from, to));
             }
 
-            @Override
             @NonNull
             public String toString() {
                 StringBuilder sb = new StringBuilder();

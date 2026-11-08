@@ -1267,7 +1267,6 @@ public class RLottieDrawable extends BitmapDrawable implements Animatable, Bitma
 
     private RLottieNative generateCacheNative;
 
-    @Override
     @AnyThread
     public final void prepareForGenerateCache() {
         generateCacheNative = RLottieNative.createFromFile(
@@ -1288,7 +1287,6 @@ public class RLottieDrawable extends BitmapDrawable implements Animatable, Bitma
         generateCacheFramePointer = i;
     }
 
-    @Override
     @AnyThread
     public final int getNextFrame(Bitmap bitmap) {
         if (generateCacheNative == null) {
@@ -1306,7 +1304,6 @@ public class RLottieDrawable extends BitmapDrawable implements Animatable, Bitma
         return 1;
     }
 
-    @Override
     @AnyThread
     public final void releaseForGenerateCache() {
         if (generateCacheNative != null) {

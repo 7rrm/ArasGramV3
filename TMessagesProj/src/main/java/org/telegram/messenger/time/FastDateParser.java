@@ -606,7 +606,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         boolean isNumber() {
             char c = formatField.charAt(0);
             if (c == '\'') {
@@ -618,7 +617,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         boolean addRegex(final FastDateParser parser, final StringBuilder regex) {
             escapeRegex(regex, formatField, true);
             return false;
@@ -647,7 +645,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         boolean addRegex(final FastDateParser parser, final StringBuilder regex) {
             regex.append('(');
             for (final String textKeyValue : keyValues.keySet()) {
@@ -660,7 +657,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         void setCalendar(final FastDateParser parser, final Calendar cal, final String value) {
             final Integer iVal = keyValues.get(value);
             if (iVal == null) {
@@ -695,7 +691,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         boolean isNumber() {
             return true;
         }
@@ -703,7 +698,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         boolean addRegex(final FastDateParser parser, final StringBuilder regex) {
             // See LANG-954: We use {Nd} rather than {IsNd} because Android does not support the Is prefix
             if (parser.isNextNumber()) {
@@ -717,7 +711,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         void setCalendar(final FastDateParser parser, final Calendar cal, final String value) {
             cal.set(field, modify(Integer.parseInt(value)));
         }
@@ -737,7 +730,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         void setCalendar(final FastDateParser parser, final Calendar cal, final String value) {
             int iValue = Integer.parseInt(value);
             if (iValue < 100) {
@@ -816,7 +808,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         boolean addRegex(final FastDateParser parser, final StringBuilder regex) {
             regex.append(validTimeZoneChars);
             return true;
@@ -825,7 +816,6 @@ public class FastDateParser implements DateParser, Serializable {
         /**
          * {@inheritDoc}
          */
-        @Override
         void setCalendar(final FastDateParser parser, final Calendar cal, final String value) {
             TimeZone tz;
             if (value.charAt(0) == '+' || value.charAt(0) == '-') {
@@ -843,7 +833,6 @@ public class FastDateParser implements DateParser, Serializable {
     }
 
     private static final Strategy NUMBER_MONTH_STRATEGY = new NumberStrategy(Calendar.MONTH) {
-        @Override
         int modify(final int iValue) {
             return iValue - 1;
         }
@@ -856,13 +845,11 @@ public class FastDateParser implements DateParser, Serializable {
     private static final Strategy DAY_OF_WEEK_IN_MONTH_STRATEGY = new NumberStrategy(Calendar.DAY_OF_WEEK_IN_MONTH);
     private static final Strategy HOUR_OF_DAY_STRATEGY = new NumberStrategy(Calendar.HOUR_OF_DAY);
     private static final Strategy MODULO_HOUR_OF_DAY_STRATEGY = new NumberStrategy(Calendar.HOUR_OF_DAY) {
-        @Override
         int modify(final int iValue) {
             return iValue % 24;
         }
     };
     private static final Strategy MODULO_HOUR_STRATEGY = new NumberStrategy(Calendar.HOUR) {
-        @Override
         int modify(final int iValue) {
             return iValue % 12;
         }

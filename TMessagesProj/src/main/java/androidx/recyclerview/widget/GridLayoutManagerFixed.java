@@ -115,7 +115,6 @@ public class GridLayoutManagerFixed extends GridLayoutManager {
         measureChildWithDecorationsAndMargin(view, wSpec, hSpec, alreadyMeasured);
     }
 
-    @Override
     void layoutChunk(RecyclerView.Recycler recycler, RecyclerView.State state, LayoutState layoutState, LayoutChunkResult result) {
         final int otherDirSpecMode = mOrientationHelper.getModeInOther();
 

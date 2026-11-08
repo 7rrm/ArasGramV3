@@ -401,7 +401,6 @@ public class DebugRecordingCanvas extends Canvas {
 
         // ── replay ────────────────────────────────────────────────────────────
 
-        @Override
         @SuppressWarnings("deprecation")
         public void replay(@NonNull Canvas c) {
             // quickReject is a query — result is intentionally discarded during replay.
@@ -1236,7 +1235,6 @@ public class DebugRecordingCanvas extends Canvas {
         return super.clipRect(rect);
     }
 
-    @Override
     @SuppressWarnings("deprecation")
     public boolean clipRect(@NonNull RectF rect, @NonNull Region.Op op) {
         record(new ClipRectCmd(rect, op));
@@ -1249,7 +1247,6 @@ public class DebugRecordingCanvas extends Canvas {
         return super.clipRect(rect);
     }
 
-    @Override
     @SuppressWarnings("deprecation")
     public boolean clipRect(@NonNull Rect rect, @NonNull Region.Op op) {
         record(new ClipRectCmd(new RectF(rect), op));
@@ -1262,7 +1259,6 @@ public class DebugRecordingCanvas extends Canvas {
         return super.clipRect(left, top, right, bottom);
     }
 
-    @Override
     @SuppressWarnings("deprecation")
     public boolean clipRect(float left, float top, float right, float bottom, @NonNull Region.Op op) {
         record(new ClipRectCmd(left, top, right, bottom, op));
@@ -1280,7 +1276,6 @@ public class DebugRecordingCanvas extends Canvas {
         return super.clipPath(path);
     }
 
-    @Override
     @SuppressWarnings("deprecation")
     public boolean clipPath(@NonNull Path path, @NonNull Region.Op op) {
         record(new ClipPathCmd(path, op));
@@ -1307,7 +1302,6 @@ public class DebugRecordingCanvas extends Canvas {
      * EdgeType.AA / EdgeType.BW hint the rasteriser about anti-aliasing.
      * Recorded with edgeType for full fidelity.
      */
-    @Override
     @SuppressWarnings("deprecation")
     public boolean quickReject(@NonNull RectF rect, @NonNull Canvas.EdgeType type) {
         boolean result = super.quickReject(rect, type);
@@ -1328,7 +1322,6 @@ public class DebugRecordingCanvas extends Canvas {
     /**
      * Deprecated (API < 30): quickReject(float, float, float, float, EdgeType)
      */
-    @Override
     @SuppressWarnings("deprecation")
     public boolean quickReject(float left, float top, float right, float bottom,
                                @NonNull Canvas.EdgeType type) {
@@ -1350,7 +1343,6 @@ public class DebugRecordingCanvas extends Canvas {
     /**
      * Deprecated (API < 30): quickReject(Path, EdgeType)
      */
-    @Override
     @SuppressWarnings("deprecation")
     public boolean quickReject(@NonNull Path path, @NonNull Canvas.EdgeType type) {
         boolean result = super.quickReject(path, type);

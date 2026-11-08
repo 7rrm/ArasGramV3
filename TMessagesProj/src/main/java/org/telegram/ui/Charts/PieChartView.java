@@ -307,7 +307,6 @@ public class PieChartView extends StackLinearChartView<PieChartViewData> {
 
     }
 
-    @Override
     void drawBottomSignature(Canvas canvas) {
 
     }

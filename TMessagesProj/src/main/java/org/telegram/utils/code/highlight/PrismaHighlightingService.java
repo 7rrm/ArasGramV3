@@ -18,7 +18,6 @@ public final class PrismaHighlightingService implements AutoCloseable {
 
         String[] getLanguages();
 
-        @Override
         void close();
     }
 

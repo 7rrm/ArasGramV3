@@ -1744,7 +1744,6 @@ public class LinearLayoutManager extends RecyclerView.LayoutManager implements
         result.mFocusable = view.hasFocusable();
     }
 
-    @Override
     boolean shouldMeasureTwice() {
         return getHeightMode() != View.MeasureSpec.EXACTLY
                 && getWidthMode() != View.MeasureSpec.EXACTLY

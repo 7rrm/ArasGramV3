@@ -640,7 +640,6 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             super(PAGE_TYPE_CHATS);
         }
 
-        @Override
         void update() {
             old.clear();
             old.addAll(itemInners);
@@ -711,7 +710,6 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             super(type);
         }
 
-        @Override
         void update() {
             oldItems.clear();
             oldItems.addAll(itemInners);
@@ -789,7 +787,6 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
 
         ArrayList<Object> photoEntries = new ArrayList<>();
 
-        @Override
         void update() {
             super.update();
             photoEntries.clear();
@@ -868,7 +865,6 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
 
         ArrayList<Object> photoEntries = new ArrayList<>();
 
-        @Override
         void update() {
             super.update();
             photoEntries.clear();

@@ -632,7 +632,6 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         playerLayout.addView(authorTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 14, 47, 20, 0));
 
         seekBarView = new SeekBarView(context, resourcesProvider) {
-            @Override
             boolean onTouch(MotionEvent ev) {
                 if (rewindingState != 0) {
                     return false;

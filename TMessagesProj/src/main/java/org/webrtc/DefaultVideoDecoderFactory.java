@@ -38,7 +38,6 @@ public class DefaultVideoDecoderFactory implements VideoDecoderFactory {
     this.platformSoftwareVideoDecoderFactory = null;
   }
 
-  @Override
   public @Nullable VideoDecoder createDecoder(VideoCodecInfo codecType) {
     VideoDecoder softwareDecoder = softwareVideoDecoderFactory.createDecoder(codecType);
     final VideoDecoder hardwareDecoder = hardwareVideoDecoderFactory.createDecoder(codecType);

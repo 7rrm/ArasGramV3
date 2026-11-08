@@ -603,7 +603,6 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         balanceOverlay.setClipToPadding(false);
 
         card = new WalletCardComponent(context) {
-            @Override
             void setStickerStyle(float[] style) {
                 super.setStickerStyle(style);
                 updateBalanceTransitionColors(balanceTransitionProgress);

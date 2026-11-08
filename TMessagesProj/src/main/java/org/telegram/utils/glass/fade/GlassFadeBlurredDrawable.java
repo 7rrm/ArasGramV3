@@ -337,17 +337,14 @@ public class GlassFadeBlurredDrawable extends GlassDrawable {
         private final RenderNode overlayNode = new RenderNode("glass-fade-overlay-only");
         private final Paint gradientPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        @Override
         void setAlpha(float alpha) {
             overlayNode.setAlpha(alpha);
         }
 
-        @Override
         void draw(Canvas canvas) {
             canvas.drawRenderNode(overlayNode);
         }
 
-        @Override
         void buildDisplayList(Rect bounds, RectF boundsRelativeRoot) {
             if (!overlayOnlyDirty && overlayNode.hasDisplayList()) {
                 return;
@@ -367,12 +364,10 @@ public class GlassFadeBlurredDrawable extends GlassDrawable {
             overlayOnlyDirty = false;
         }
 
-        @Override
         void discard() {
             overlayNode.discardDisplayList();
         }
 
-        @Override
         boolean hasDisplayList() {
             return overlayNode.hasDisplayList();
         }
@@ -392,12 +387,10 @@ public class GlassFadeBlurredDrawable extends GlassDrawable {
             maskPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
         }
 
-        @Override
         void setAlpha(float alpha) {
             layerPaint.setAlpha(Math.round(alpha * 255f));
         }
 
-        @Override
         void draw(Canvas canvas) {
             final Rect bounds = getBounds();
             final int width = bounds.width();
@@ -451,26 +444,21 @@ public class GlassFadeBlurredDrawable extends GlassDrawable {
             canvas.restore();
         }
 
-        @Override
         void buildDisplayList(Rect bounds, RectF boundsRelativeRoot) {
         }
 
-        @Override
         void discard() {
             shaderWidth = -1;
         }
 
-        @Override
         boolean hasDisplayList() {
             return false;
         }
 
-        @Override
         boolean shouldHaveDisplayList() {
             return false;
         }
 
-        @Override
         boolean supportsSoftwareCanvas() {
             return true;
         }
@@ -490,19 +478,16 @@ public class GlassFadeBlurredDrawable extends GlassDrawable {
             maskPaint.setBlendMode(BlendMode.DST_IN);
         }
 
-        @Override
         void setAlpha(float alpha) {
             contentNode.setAlpha(alpha);
             overlayNode.setAlpha(alpha);
         }
 
-        @Override
         void draw(Canvas canvas) {
             canvas.drawRenderNode(contentNode);
             canvas.drawRenderNode(overlayNode);
         }
 
-        @Override
         void buildDisplayList(Rect bounds, RectF boundsRelativeRoot) {
             final boolean useDownsampledSource = canDrawDownsampled();
             final int downsample = useDownsampledSource ? downsampledSource.getDownsample() : 1;
@@ -581,14 +566,12 @@ public class GlassFadeBlurredDrawable extends GlassDrawable {
             shaderDirty = false;
         }
 
-        @Override
         void discard() {
             contentNode.discardDisplayList();
             overlayNode.discardDisplayList();
             shaderWidth = -1;
         }
 
-        @Override
         boolean hasDisplayList() {
             return contentNode.hasDisplayList() && overlayNode.hasDisplayList();
         }
@@ -620,17 +603,14 @@ public class GlassFadeBlurredDrawable extends GlassDrawable {
         private float[] effectPoolOffsetX;
         private float[] effectPoolOffsetY;
 
-        @Override
         void setAlpha(float alpha) {
             contentNode.setAlpha(alpha);
         }
 
-        @Override
         void draw(Canvas canvas) {
             canvas.drawRenderNode(contentNode);
         }
 
-        @Override
         void buildDisplayList(Rect bounds, RectF boundsRelativeRoot) {
             final boolean useDownsampledSource = canDrawDownsampled();
             final int downsample = useDownsampledSource ? downsampledSource.getDownsample() : 1;
@@ -724,13 +704,11 @@ public class GlassFadeBlurredDrawable extends GlassDrawable {
             shaderDirty = false;
         }
 
-        @Override
         void discard() {
             contentNode.discardDisplayList();
             shaderWidth = -1;
         }
 
-        @Override
         boolean hasDisplayList() {
             return contentNode.hasDisplayList();
         }

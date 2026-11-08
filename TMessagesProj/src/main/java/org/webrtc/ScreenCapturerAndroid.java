@@ -82,7 +82,6 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
     return mediaProjection;
   }
 
-  @Override
   // TODO(bugs.webrtc.org/8491): Remove NoSynchronizedMethodCheck suppression.
   @SuppressWarnings("NoSynchronizedMethodCheck")
   public synchronized void initialize(final SurfaceTextureHelper surfaceTextureHelper,
@@ -103,7 +102,6 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
         Context.MEDIA_PROJECTION_SERVICE);
   }
 
-  @Override
   // TODO(bugs.webrtc.org/8491): Remove NoSynchronizedMethodCheck suppression.
   @SuppressWarnings("NoSynchronizedMethodCheck")
   public synchronized void startCapture(
@@ -132,7 +130,6 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
     }
   }
 
-  @Override
   // TODO(bugs.webrtc.org/8491): Remove NoSynchronizedMethodCheck suppression.
   @SuppressWarnings("NoSynchronizedMethodCheck")
   public synchronized void stopCapture() {
@@ -156,7 +153,6 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
     });
   }
 
-  @Override
   // TODO(bugs.webrtc.org/8491): Remove NoSynchronizedMethodCheck suppression.
   @SuppressWarnings("NoSynchronizedMethodCheck")
   public synchronized void dispose() {
@@ -171,7 +167,6 @@ public class ScreenCapturerAndroid implements VideoCapturer, VideoSink {
    * @param height new output video height
    * @param ignoredFramerate ignored
    */
-  @Override
   // TODO(bugs.webrtc.org/8491): Remove NoSynchronizedMethodCheck suppression.
   @SuppressWarnings("NoSynchronizedMethodCheck")
   public synchronized void changeCaptureFormat(

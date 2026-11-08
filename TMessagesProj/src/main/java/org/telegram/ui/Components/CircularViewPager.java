@@ -56,7 +56,6 @@ public class CircularViewPager extends ViewPager {
         });
     }
 
-    @Override
     @Deprecated
     public void setAdapter(@Nullable PagerAdapter adapter) {
         if (adapter instanceof Adapter) {

@@ -281,7 +281,6 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 	}
 
 	@SuppressLint("NotifyDataSetChanged")
-    @Override
 	@SuppressWarnings("unchecked")
 	public void didReceivedNotification(int id, int account, Object... args) {
 		if (id == NotificationCenter.didReceiveNewMessages) {

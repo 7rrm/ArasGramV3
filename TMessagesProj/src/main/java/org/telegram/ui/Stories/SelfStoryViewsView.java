@@ -65,7 +65,6 @@ public class SelfStoryViewsView extends FrameLayout {
         this.storyViewer = storyViewer;
         selfStoriesPreviewView = new SelfStoriesPreviewView(getContext()) {
 
-            @Override
             void onDragging() {
                 listenPager = false;
             }

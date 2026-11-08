@@ -76,7 +76,6 @@ public class EglRenderer implements VideoSink {
       this.surface = surface;
     }
 
-    @Override
     // TODO(bugs.webrtc.org/8491): Remove NoSynchronizedMethodCheck suppression.
     @SuppressWarnings("NoSynchronizedMethodCheck")
     public synchronized void run() {

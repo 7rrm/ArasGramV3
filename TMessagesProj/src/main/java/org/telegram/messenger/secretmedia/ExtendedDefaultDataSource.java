@@ -209,7 +209,6 @@ public final class ExtendedDefaultDataSource implements DataSource {
         return Assertions.checkNotNull(dataSource).read(buffer, offset, readLength);
     }
 
-    @Override
     public @Nullable Uri getUri() {
         return dataSource == null ? null : dataSource.getUri();
     }

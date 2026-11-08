@@ -103,7 +103,6 @@ public final class EncryptedFileDataSource extends BaseDataSource {
         return length;
     }
 
-    @Override
     @Nullable
     public Uri getUri() {
         return uri;

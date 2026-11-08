@@ -46,7 +46,6 @@ public final class SlotsDrawable extends RLottieDiceDrawable {
         super(diceEmoji, w, h);
     }
 
-    @Override
     @WorkerThread
     protected int beforeLoadFrameImpl() {
         if (isRecycled) {
@@ -58,7 +57,6 @@ public final class SlotsDrawable extends RLottieDiceDrawable {
         return LOAD_FRAME_RESULT_OK;
     }
 
-    @Override
     @WorkerThread
     protected int loadFrameRunnableImpl(Bitmap bitmap, boolean needClearBitmap) {
         if (backgroundBitmapTmp == null) {
@@ -143,7 +141,6 @@ public final class SlotsDrawable extends RLottieDiceDrawable {
         return LOAD_FRAME_RESULT_OK;
     }
 
-    @Override
     @WorkerThread
     protected void afterLoadFrameImpl() {
 

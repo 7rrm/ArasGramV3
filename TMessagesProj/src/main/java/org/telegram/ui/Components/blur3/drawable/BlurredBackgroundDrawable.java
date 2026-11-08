@@ -966,7 +966,6 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
         private long ninePatchHash;
         private final Bitmap[] ninePatchRef = new Bitmap[1];
 
-        @Override
         void draw(Canvas canvas, GlassSource source) {
             final GlassSource unwrapped = unwrap(source);
             final int sourceColor = Color.alpha(backgroundColor) != 255 && unwrapped instanceof GlassSourceColor
@@ -1046,7 +1045,6 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
             bitmapPaint.setFilterBitmap(true);
         }
 
-        @Override
         void draw(Canvas canvas, GlassSource s) {
             final GlassSourceBitmap source = (GlassSourceBitmap) unwrap(s);
             final int alpha = getAlpha();
@@ -1091,7 +1089,6 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
             shadowPaint.setColor(0);
         }
 
-        @Override
         void draw(Canvas canvas, GlassSource source) {
             final int alpha = getAlpha();
             if (alpha == 0) {
@@ -1170,29 +1167,24 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
             paintShadow.setColor(0);
         }
 
-        @Override
         void setClipToOutline(boolean clipToOutline) {
             this.clipToOutline = clipToOutline;
             // the arrow's path is not an outline every Android clips by: the canvas clips it
             renderNode.setClipToOutline(clipToOutline && !boundProps.hasArrow());
         }
 
-        @Override
         void setAlpha(float alpha) {
             renderNode.setAlpha(alpha);
         }
 
-        @Override
         void invalidate() {
             invalidated = true;
         }
 
-        @Override
         boolean hasDisplayList() {
             return renderNode.hasDisplayList();
         }
 
-        @Override
         void setLiquidGlassEnabled(boolean enabled) {
             if (enabled == (liquidGlassEffect != null) || Build.VERSION.SDK_INT < 33) {
                 return;
@@ -1206,7 +1198,6 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
             invalidated = true;
         }
 
-        @Override
         void onBoundPropsChanged() {
             final Rect b = boundProps.boundsWithPadding;
             outlineRect.set(0, 0, b.width(), b.height());
@@ -1222,12 +1213,10 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
             }
         }
 
-        @Override
         void onColorsChanged() {
             invalidated = true;
         }
 
-        @Override
         void record() {
             invalidated = false;
             final Rect b = boundProps.boundsWithPadding;
@@ -1314,7 +1303,6 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
             renderNode.endRecording();
         }
 
-        @Override
         void draw(Canvas canvas, GlassSource source) {
             if (!renderNode.hasDisplayList() || invalidated) {
                 record();
@@ -1341,7 +1329,6 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
             canvas.restore();
         }
 
-        @Override
         void discard() {
             renderNode.discardDisplayList();
             renderNodeFill.discardDisplayList();

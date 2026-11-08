@@ -2301,7 +2301,6 @@ public class TableLayout extends View {
     }
 
     static final Alignment UNDEFINED_ALIGNMENT = new Alignment() {
-        @Override
         int getGravityOffset(Child view, int cellDelta) {
             return UNDEFINED;
         }
@@ -2313,7 +2312,6 @@ public class TableLayout extends View {
     };
 
     private static final Alignment LEADING = new Alignment() {
-        @Override
         int getGravityOffset(Child view, int cellDelta) {
             return 0;
         }
@@ -2325,7 +2323,6 @@ public class TableLayout extends View {
     };
 
     private static final Alignment TRAILING = new Alignment() {
-        @Override
         int getGravityOffset(Child view, int cellDelta) {
             return cellDelta;
         }
@@ -2343,7 +2340,6 @@ public class TableLayout extends View {
 
     private static Alignment createSwitchingAlignment(final Alignment ltr) {
         return new Alignment() {
-            @Override
             int getGravityOffset(Child view, int cellDelta) {
                 return ltr.getGravityOffset(view, cellDelta);
             }
@@ -2358,7 +2354,6 @@ public class TableLayout extends View {
     public static final Alignment LEFT = createSwitchingAlignment(START);
     public static final Alignment RIGHT = createSwitchingAlignment(END);
     public static final Alignment CENTER = new Alignment() {
-        @Override
         int getGravityOffset(Child view, int cellDelta) {
             return cellDelta >> 1;
         }
@@ -2370,7 +2365,6 @@ public class TableLayout extends View {
     };
 
     public static final Alignment BASELINE = new Alignment() {
-        @Override
         int getGravityOffset(Child view, int cellDelta) {
             return 0;
         }
@@ -2411,7 +2405,6 @@ public class TableLayout extends View {
     };
 
     public static final Alignment FILL = new Alignment() {
-        @Override
         int getGravityOffset(Child view, int cellDelta) {
             return 0;
         }

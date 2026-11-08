@@ -498,7 +498,6 @@ public class NetworkMonitorAutoDetect extends BroadcastReceiver implements Netwo
     }
 
     // BroadcastReceiver
-    @Override
     @SuppressLint("InlinedApi")
     public void onReceive(Context context, Intent intent) {
       if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(intent.getAction())) {
@@ -644,7 +643,6 @@ public class NetworkMonitorAutoDetect extends BroadcastReceiver implements Netwo
     return isRegistered;
   }
 
-  @Override
   @Nullable
   public List<NetworkInformation> getActiveNetworkList() {
     List<NetworkInformation> connectivityManagerList =

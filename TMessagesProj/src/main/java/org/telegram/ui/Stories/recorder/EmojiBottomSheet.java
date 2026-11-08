@@ -3113,7 +3113,6 @@ public class EmojiBottomSheet extends BottomSheet implements NotificationCenter.
                 progressToNext.set(1, true);
             }
 
-            @Override
             void draw(Canvas canvas, float left, float top) {
                 top -= AndroidUtilities.dp(4);
                 bounds.set((int) left, (int) top, (int) (left + width), (int) (top + width));

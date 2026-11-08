@@ -5901,7 +5901,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
             float fromScrollYProperty;
 
-            @Override
             boolean getOccupyStatusbar() {
                 return actionBar != null && actionBar.getOccupyStatusBar();
             }
@@ -6009,7 +6008,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 updateDialogsHint();
             }
 
-            @Override
             void setOpenProgress(float progress) {
                 boolean opened = progress > 0f;
                 if (anotherFragmentOpened != opened) {

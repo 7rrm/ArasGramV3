@@ -29,7 +29,6 @@ import me.vkryl.core.lambda.FutureInt;
 
 public class ColorAnimator extends AtomicAnimator<ColorAnimator.FutureColor> implements FutureInt {
   public interface FutureColor extends FutureFloat, FutureInt {
-    @Override
     default float getFloatValue () {
       return Float.intBitsToFloat(getIntValue());
     }

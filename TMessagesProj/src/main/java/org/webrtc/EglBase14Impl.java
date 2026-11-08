@@ -56,7 +56,6 @@ class EglBase14Impl implements EglBase14 {
       return egl14Context;
     }
 
-    @Override
     @SuppressWarnings("deprecation")
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public long getNativeEglContext() {
