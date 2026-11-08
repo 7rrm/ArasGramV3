@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="AskBeforeOpeningStory">Ask before opening a story</string>
-    <string name="AskBeforeOpeningStoryInfo">Offers to view it in ghost mode, normally or not at all.</string>
+    <string name="AskBeforeOpeningStoryInfo">Offers to view stories in ghost mode, normally or not at all. Turning this on disables the global hide story views setting, and vice versa.</string>
     <string name="AskBeforeOpeningStoryTitle">Open story?</string>
     <string name="AskBeforeOpeningStoryGhost">View in ghost mode</string>
     <string name="AskBeforeOpeningStoryNormal">View</string>

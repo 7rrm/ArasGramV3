@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="AskBeforeOpeningStory">السؤال قبل فتح القصة</string>
-    <string name="AskBeforeOpeningStoryInfo">يعرض مشاهدتها في وضع الشبح أو بشكل عادي أو عدم مشاهدتها.</string>
+    <string name="AskBeforeOpeningStoryInfo">يعرض مشاهدتها في وضع الشبح أو بشكل عادي أو عدم مشاهدتها. تفعيل هذا الخيار يعطّل إخفاء مشاهدة القصص العام، والعكس صحيح.</string>
     <string name="AskBeforeOpeningStoryTitle">فتح القصة؟</string>
     <string name="AskBeforeOpeningStoryGhost">المشاهدة في وضع الشبح</string>
     <string name="AskBeforeOpeningStoryNormal">مشاهدة</string>

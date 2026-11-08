@@ -123,11 +123,12 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
         var isActive = NekoConfig.isGhostModeActive();
 
         listAdapter.notifyItemChanged(ghostModeToggleRow, PARTIAL);
-        listAdapter.notifyItemChanged(sendReadMessagePacketsRow, !isActive);
-        listAdapter.notifyItemChanged(sendOnlinePacketsRow, !isActive);
-        listAdapter.notifyItemChanged(sendUploadProgressRow, !isActive);
-        listAdapter.notifyItemChanged(sendReadStoriesPacketsRow, !isActive);
-        listAdapter.notifyItemChanged(sendOfflinePacketAfterOnlineRow, isActive);
+        if (sendReadMessagePacketsRow >= 0) listAdapter.notifyItemChanged(sendReadMessagePacketsRow, !isActive);
+        if (sendOnlinePacketsRow >= 0) listAdapter.notifyItemChanged(sendOnlinePacketsRow, !isActive);
+        if (sendUploadProgressRow >= 0) listAdapter.notifyItemChanged(sendUploadProgressRow, !isActive);
+        if (sendReadStoriesPacketsRow >= 0) listAdapter.notifyItemChanged(sendReadStoriesPacketsRow, !isActive);
+        if (sendOfflinePacketAfterOnlineRow >= 0) listAdapter.notifyItemChanged(sendOfflinePacketAfterOnlineRow, isActive);
+        listAdapter.notifyItemChanged(askBeforeOpeningStoryRow);
 
         NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
     }
@@ -233,6 +234,9 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
         } else if (position == sendReadStoriesPacketsRow) {
             if (!view.isEnabled()) return;
             NekoConfig.sendReadStoriesPackets.toggleConfigBool();
+            if (!NekoConfig.sendReadStoriesPackets.Bool()) {
+                NekoConfig.askBeforeOpeningStory.setConfigBool(false);
+            }
             ((CheckBoxCell) view).setChecked(NekoConfig.sendReadStoriesPackets.Bool(), true);
             updateGhostViews();
         } else if (position == sendOnlinePacketsRow) {
@@ -252,7 +256,11 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
             updateGhostViews();
         } else if (position == askBeforeOpeningStoryRow) {
             NekoConfig.askBeforeOpeningStory.toggleConfigBool();
+            if (NekoConfig.askBeforeOpeningStory.Bool()) {
+                NekoConfig.sendReadStoriesPackets.setConfigBool(true);
+            }
             ((TextCheckCell) view).setChecked(NekoConfig.askBeforeOpeningStory.Bool());
+            updateGhostViews();
         } else if (position == ghostSwipeReadRow) {
             NekoConfig.meeroGhostSwipeRead.toggleConfigBool();
             boolean nowOn = NekoConfig.meeroGhostSwipeRead.Bool();

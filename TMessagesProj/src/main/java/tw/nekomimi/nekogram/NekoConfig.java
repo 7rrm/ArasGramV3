@@ -573,6 +573,10 @@ public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackB
                 item.setConfigBool(targetValue);
             }
         }
+        // Master ghost mode may enable the global story-hiding option.
+        if (!sendReadStoriesPackets.Bool()) {
+            askBeforeOpeningStory.setConfigBool(false);
+        }
     }
 
     public static void toggleGhostMode() {
