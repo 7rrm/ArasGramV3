@@ -52,6 +52,24 @@ if (properties != null) {
     pwd = properties.getProperty('ALIAS_PASS')
 }
 
+keystorePwd = keystorePwd ?: System.getenv('KEYSTORE_PASS')
+alias = alias ?: System.getenv('ALIAS_NAME')
+pwd = pwd ?: System.getenv('ALIAS_PASS')
+
+def nativeTarget = System.getenv('NATIVE_TARGET') ?: ''
+
+if (nativeTarget == 'SKIP') {
+    tasks.configureEach { task ->
+        if (
+            task.name.toLowerCase().contains('cmake') ||
+            task.name.toLowerCase().contains('jni') ||
+            task.name.toLowerCase().contains('test')
+        ) {
+            task.enabled = false
+        }
+    }
+}
+
 dependencies {
     implementation 'androidx.core:core:1.16.0'
     implementation 'androidx.palette:palette:1.0.0'
