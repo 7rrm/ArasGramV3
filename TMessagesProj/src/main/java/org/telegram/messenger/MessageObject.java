@@ -134,6 +134,7 @@ import tw.nekomimi.nekogram.filters.ReactionFilter;
 import xyz.nextalone.nagram.NaConfig;
 import tw.nekomimi.nekogram.helpers.MessageHelper;
 import tw.nekomimi.nekogram.syntaxhighlight.SyntaxHighlight;
+import org.telegram.ui.Cells.ChatMessageTransitionParams;
 
 public class MessageObject {
     private static final int MESSAGE_ID_RESERVED_BITS_MASK = 0x70000000;

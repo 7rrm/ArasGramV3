@@ -88,6 +88,7 @@ import tw.nekomimi.nekogram.ui.cells.NekoMessageCell;
 import tw.nekomimi.nekogram.utils.AlertUtil;
 import tw.nekomimi.nekogram.utils.AndroidUtil;
 import xyz.nextalone.nagram.NaConfig;
+import org.telegram.ui.Cells.ChatMessageTransitionParams;
 
 public abstract class NekoDelegateFragment extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, NekoMessageCell.NekoMessageCellDelegate {
 

@@ -4220,4 +4220,15 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
     private int sectionsOverscanTop;
 
     private int selectorDrawableColor;
+
+    // ArasGram: ported for 13.2.1 compatibility
+    public interface SectionContentAboveTop {
+        boolean hasSectionContentAboveTop();
+    }
+
+    private SectionsDrawingMode bitmapSectionsDrawingMode = SectionsDrawingMode.OPTIMIZED_BACKGROUND;
+    private Utilities.CallbackReturn<View, Boolean> isSectionView;
+    private boolean legacySections = true;
+    private int sectionPadding;
+    private boolean sectionTopPadding;
 }
