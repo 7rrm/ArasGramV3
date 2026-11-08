@@ -3838,3 +3838,4 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         keys.add(Theme.key_chat_outLoader);
         keys.add(Theme.key_chat_inLoader);
     }
+}

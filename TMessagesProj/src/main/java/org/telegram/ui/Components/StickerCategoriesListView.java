@@ -1035,3 +1035,4 @@ public class StickerCategoriesListView extends RecyclerListView implements Theme
             FileLog.e(e);
         }
     }
+}

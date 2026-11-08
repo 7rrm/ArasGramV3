@@ -2360,3 +2360,4 @@ public class TopicsTabsView extends FrameLayout implements NotificationCenter.No
             onMovedOutOfSight();
         }
     }
+}

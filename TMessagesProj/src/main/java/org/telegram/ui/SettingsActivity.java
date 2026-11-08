@@ -1520,22 +1520,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         public static class Factory extends UItem.UItemFactory<SettingCell> {
             static { setup(new Factory()); }
 
-            @Override
-            public SettingCell createView(Context context, RecyclerListView listView, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
-                return new SettingCell(context, resourcesProvider);
-            }
 
-            @Override
-            public void bindView(View view, UItem item, boolean divider, UniversalAdapter adapter, UniversalRecyclerView listView) {
-                int iconColorTop    = (int) item.longValue;
-                int iconColorBottom = (int) (item.longValue >>> 32);
-                ((SettingCell) view).set(
-                    iconColorTop, iconColorBottom, item.iconResId,
-                    item.text,
-                    item.subtext,
-                    item.textValue
-                );
-            }
 
             public static UItem of(int id, int iconColorTop, int iconColorBottom, int icon, CharSequence title) {
                 return of(id, iconColorTop, iconColorBottom, icon, title, null, null);
@@ -1625,24 +1610,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         public static class Factory extends UItem.UItemFactory<SuggestionCell> {
             static { setup(new Factory()); }
 
-            @Override
-            public SuggestionCell createView(Context context, RecyclerListView listView, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
-                return new SuggestionCell(context, resourcesProvider);
-            }
 
             @Override
             public boolean isClickable() {
                 return false;
             }
 
-            @Override
-            public void bindView(View view, UItem item, boolean divider, UniversalAdapter adapter, UniversalRecyclerView listView) {
-                ((SuggestionCell) view).set(
-                    item.text, item.subtext,
-                    item.textValue, item.clickCallback,
-                    item.animatedText, item.clickCallback2
-                );
-            }
 
             public static UItem of(
                 CharSequence title,

@@ -15870,3 +15870,4 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         keys.add(Theme.key_actionBarDefaultSubmenuItem);
         keys.add(Theme.key_actionBarDefaultSubmenuBackground);
     }
+}

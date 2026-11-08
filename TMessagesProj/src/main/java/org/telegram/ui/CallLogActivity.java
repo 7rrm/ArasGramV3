@@ -651,15 +651,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		public static final class Factory extends UItem.UItemFactory<GroupCallCell> {
 			static { setup(new Factory()); }
 
-			@Override
-			public GroupCallCell createView(Context context, RecyclerListView listView, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
-				return new GroupCallCell(context);
-			}
 
-			@Override
-			public void bindView(View view, UItem item, boolean divider, UniversalAdapter adapter, UniversalRecyclerView listView) {
-				((GroupCallCell) view).setChat((TLRPC.Chat) item.object, item.clickCallback);
-			}
 
 			public static UItem of(TLRPC.Chat chat, View.OnClickListener onJoinClick) {
 				final UItem item = UItem.ofFactory(Factory.class);

@@ -2189,3 +2189,4 @@ public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.N
             FileLog.e(e);
         }
     }
+}

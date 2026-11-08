@@ -4210,3 +4210,4 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             v.invalidate();
         }
     }
+}
