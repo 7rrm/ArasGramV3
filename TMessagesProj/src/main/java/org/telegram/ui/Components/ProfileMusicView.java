@@ -403,4 +403,12 @@ public class ProfileMusicView extends View {
             invalidate();
         }
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private ProfileActivity.AvatarImageView avatarView;
+
+    private boolean ignoreRect = false;
+
+    private RenderNode renderNode;
 }

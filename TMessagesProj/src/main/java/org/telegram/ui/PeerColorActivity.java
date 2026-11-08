@@ -141,9 +141,9 @@ import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
 import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceWrapped;
+import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.utils.glass.source.GlassSourceRenderNode;
+import org.telegram.utils.glass.source.GlassSourceWrapped;
 import org.telegram.ui.Components.blur3.utils.Blur3Utils;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.Gifts.GiftSheet;
@@ -1503,24 +1503,24 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         }
     }
 
-    private final BlurredBackgroundSourceColor iBlur3SourceButtonColor;
+    private final GlassSourceColor iBlur3SourceButtonColor;
     private final BlurredBackgroundDrawableViewFactory iBlur3ButtonFactory;
 
-    private final BlurredBackgroundSourceColor iBlur3SourceBackgroundColor;
+    private final GlassSourceColor iBlur3SourceBackgroundColor;
     private final BlurredBackgroundDrawableViewFactory iBlur3BackgroundFactory;
 
     public PeerColorActivity(long dialogId) {
         super();
 
-        iBlur3SourceButtonColor = new BlurredBackgroundSourceColor();
+        iBlur3SourceButtonColor = new GlassSourceColor();
         iBlur3ButtonFactory = new BlurredBackgroundDrawableViewFactory(iBlur3SourceButtonColor);
-        iBlur3SourceBackgroundColor = new BlurredBackgroundSourceColor();
+        iBlur3SourceBackgroundColor = new GlassSourceColor();
         iBlur3BackgroundFactory = new BlurredBackgroundDrawableViewFactory(iBlur3SourceBackgroundColor);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.chatBlurEnabled()) {
             scrollableViewNoiseSuppressor = new DownscaleScrollableNoiseSuppressor();
 
-            glassBackgroundSourceRenderNode = new BlurredBackgroundSourceRenderNode(iBlur3SourceButtonColor);
+            glassBackgroundSourceRenderNode = new GlassSourceRenderNode(iBlur3SourceButtonColor);
             glassBackgroundSourceRenderNode.setOnDrawablesRelativePositionChangeListener(this::invalidateMergedVisibleBlurredPositionsAndSourcesPositions);
             glassBackgroundSourceRenderNode.setScrollableNoiseSuppressor(scrollableViewNoiseSuppressor, DownscaleScrollableNoiseSuppressor.DRAW_GLASS);
             glassBackgroundSourceRenderNode.setUnderSource(iBlur3SourceButtonColor);
@@ -4179,7 +4179,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
     private final ReferenceList<View> glassAttachedViews = new ReferenceList<>();
     private final ReferenceList<BlurredBackgroundDrawable> glassAttachedDrawables = new ReferenceList<>();
     private final @Nullable DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
-    private final @Nullable BlurredBackgroundSourceRenderNode glassBackgroundSourceRenderNode;
+    private final @Nullable GlassSourceRenderNode glassBackgroundSourceRenderNode;
     private final @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactory;
     private IBlur3Capture iBlur3Capture = this::drawList;
 

@@ -184,9 +184,9 @@ import org.telegram.ui.Components.URLSpanUserMention;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSource;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
+import org.telegram.utils.glass.source.GlassSource;
+import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.utils.glass.source.GlassSourceRenderNode;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.Components.chat.layouts.ChatActivitySideControlsButtonsLayout;
 import org.telegram.ui.Components.voip.CellFlickerDrawable;
@@ -426,9 +426,9 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
 
     private BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableFactory;
 
-    private final @NonNull BlurredBackgroundSourceColor blurredBackgroundSourceFallback;
-    private final @NonNull BlurredBackgroundSource blurredBackgroundSourceWithSaturation;
-    private final @Nullable BlurredBackgroundSourceRenderNode blurredBackgroundSourceRenderNodeWithSaturation;
+    private final @NonNull GlassSourceColor blurredBackgroundSourceFallback;
+    private final @NonNull GlassSource blurredBackgroundSourceWithSaturation;
+    private final @Nullable GlassSourceRenderNode blurredBackgroundSourceRenderNodeWithSaturation;
     private BlurredBackgroundColorProviderThemed blurredBackgroundColorProvider;
 
     public PeerStoriesView(@NonNull Context context, StoryViewer storyViewer, SharedResources sharedResources, Theme.ResourcesProvider resourcesProvider) {
@@ -550,10 +550,10 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
 
         blurredBackgroundColorProvider = new BlurredBackgroundColorProviderThemed(resourcesProvider, Theme.key_chat_messagePanelBackground, 0.8f);
 
-        blurredBackgroundSourceFallback = new BlurredBackgroundSourceColor();
+        blurredBackgroundSourceFallback = new GlassSourceColor();
         blurredBackgroundSourceFallback.setColor(ColorUtils.blendARGB(Color.BLACK, Color.WHITE, 0.2f));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.canBlurChat()) {
-            blurredBackgroundSourceRenderNodeWithSaturation = new BlurredBackgroundSourceRenderNode(blurredBackgroundSourceFallback);
+            blurredBackgroundSourceRenderNodeWithSaturation = new GlassSourceRenderNode(blurredBackgroundSourceFallback);
             blurredBackgroundSourceRenderNodeWithSaturation.setBlur(dp(8));
             blurredBackgroundSourceWithSaturation = blurredBackgroundSourceRenderNodeWithSaturation;
         } else {
@@ -8597,4 +8597,8 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             chatActivityEnterView.onDestroy();
         }
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private boolean destroyed;
 }

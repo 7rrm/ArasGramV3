@@ -3074,4 +3074,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         requestLayout();
         invalidate();
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private boolean centerTitleAndGlass;
 }

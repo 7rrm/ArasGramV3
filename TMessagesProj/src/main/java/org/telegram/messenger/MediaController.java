@@ -7729,4 +7729,12 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         public boolean isLivePhotoLoaded() {
             return parsedXmp || isVideo && !loadingLivePhoto;
         }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+        private static DispatchQueue livePhotoQueue;
+
+        private boolean loadingLivePhoto;
+
+        private ArrayList<Runnable> onLivePhotoLoaded;
 }

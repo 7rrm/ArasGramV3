@@ -318,7 +318,7 @@ import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawableRenderNode;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawableSource;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSource;
+import org.telegram.utils.glass.source.GlassSource;
 import org.telegram.ui.Components.blur3.utils.Blur3Utils;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.Components.spoilers.SpoilersTextView;
@@ -901,7 +901,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private int videoWidth, videoHeight;
     private float inlineOutAnimationProgress;
 
-    private BlurredBackgroundSource blurredBackgroundSource;
+    private GlassSource blurredBackgroundSource;
     private BlurredBackgroundDrawableViewFactory iBlur3FactoryFrostedLiquidGlass;
     private ReferenceList<BlurredBackgroundDrawableRenderNode> iBlur3BlurredDrawables = new ReferenceList<>();
     private ReferenceList<View> glassAttachedViews;
@@ -4837,7 +4837,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         blurManager = new BlurringShader.BlurManager(containerView);
         blurManager.padding = 1;
 
-        blurredBackgroundSource = new BlurredBackgroundSource() {
+        blurredBackgroundSource = new GlassSource() {
             private final BlurringShader.StoryBlurDrawer blur = new BlurringShader.StoryBlurDrawer(blurManager, containerView, BlurringShader.StoryBlurDrawer.BLUR_TYPE_BACKGROUND);
 
             @Override
@@ -24463,4 +24463,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         pipSession.startFloating(parentActivity, null, true);
         return true;
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private void ensurePipSession() {
+        if (pipSession == null || !pipSession.isAlive()) {
+            pipSession = PipCoordinator.getInstance().register(pipContent);
+        }
+    }
+
+    private PipSession pipSession;
 }

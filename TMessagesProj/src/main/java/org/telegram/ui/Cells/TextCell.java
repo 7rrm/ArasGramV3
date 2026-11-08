@@ -1067,4 +1067,8 @@ public class TextCell extends FrameLayout {
     public void setCompactLayout(boolean compact) {
         compactLayout = compact;
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private boolean compactLayout;
 }

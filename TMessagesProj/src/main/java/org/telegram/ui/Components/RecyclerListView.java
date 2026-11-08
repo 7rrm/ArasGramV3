@@ -4179,4 +4179,45 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
             }
         }
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private boolean bitmapSectionsDrawBackground;
+
+    private BitmapSectionsItemDecoration bitmapSectionsItemDecoration;
+
+    private void installSectionsDecoration() {
+        if (sectionsItemDecoration != null) {
+            removeItemDecoration(sectionsItemDecoration);
+            sectionsItemDecoration = null;
+        }
+        if (bitmapSectionsItemDecoration != null) {
+            removeItemDecoration(bitmapSectionsItemDecoration);
+            bitmapSectionsItemDecoration = null;
+        }
+        if (isSectionView == null || isViewTypeSection == null || drawSectionBackground == null) {
+            return;
+        }
+        if (!legacySections) {
+            bitmapSectionsItemDecoration = new BitmapSectionsItemDecoration(
+                    this,
+                    isSectionView,
+                    isViewTypeSection,
+                    sectionPadding,
+                    sectionRadius,
+                    drawSectionBackground,
+                    sectionTopPadding,
+                    bitmapSectionsDrawBackground,
+                    bitmapSectionsDrawingMode
+            );
+            addItemDecoration(bitmapSectionsItemDecoration);
+        } else {
+            sectionsItemDecoration = new ListSectionsDecoration(this, isSectionView, sectionPadding, sectionTopPadding);
+            addItemDecoration(sectionsItemDecoration);
+        }
+    }
+
+    private int sectionsOverscanTop;
+
+    private int selectorDrawableColor;
 }

@@ -16,11 +16,11 @@ import androidx.annotation.RequiresApi;
 
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.LiquidGlassEffect;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSource;
+import org.telegram.utils.glass.source.GlassSource;
 
 @RequiresApi(api = Build.VERSION_CODES.Q)
 public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawable {
-    private final BlurredBackgroundSource source;
+    private final GlassSource source;
     private final Outline outline = new Outline();
     private final Rect outlineRect = new Rect();
 
@@ -33,7 +33,7 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
 
     private boolean renderNodeInvalidated;
 
-    public BlurredBackgroundDrawableRenderNode(BlurredBackgroundSource source) {
+    public BlurredBackgroundDrawableRenderNode(GlassSource source) {
         this.renderNode = new RenderNode("BlurredNode");
         this.renderNodeFill = new RenderNode("BlurredFill");
         this.renderNode.setClipToOutline(true);
@@ -61,7 +61,7 @@ public class BlurredBackgroundDrawableRenderNode extends BlurredBackgroundDrawab
 
 
     @Override
-    public BlurredBackgroundSource getSource() {
+    public GlassSource getSource() {
         return source;
     }
 

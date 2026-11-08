@@ -4,13 +4,13 @@ import android.graphics.Canvas;
 
 import androidx.annotation.NonNull;
 
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSource;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceWrapped;
+import org.telegram.utils.glass.source.GlassSource;
+import org.telegram.utils.glass.source.GlassSourceWrapped;
 
 public class BlurredBackgroundDrawableSource extends BlurredBackgroundDrawable {
-    private final BlurredBackgroundSource source;
+    private final GlassSource source;
 
-    public BlurredBackgroundDrawableSource(BlurredBackgroundSource source) {
+    public BlurredBackgroundDrawableSource(GlassSource source) {
         this.source = source;
     }
 
@@ -20,7 +20,7 @@ public class BlurredBackgroundDrawableSource extends BlurredBackgroundDrawable {
     }
 
     @Override
-    public BlurredBackgroundSource getSource() {
+    public GlassSource getSource() {
         return source;
     }
 }

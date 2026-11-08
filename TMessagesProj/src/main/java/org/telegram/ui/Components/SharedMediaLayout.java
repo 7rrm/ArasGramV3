@@ -143,7 +143,7 @@ import org.telegram.ui.Components.blur3.ViewGroupPartRenderer;
 import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
+import org.telegram.utils.glass.source.GlassSourceColor;
 import org.telegram.ui.Components.poll.PollAttachedMediaPack;
 import org.telegram.ui.ContentPreviewViewer;
 import org.telegram.ui.DialogsActivity;
@@ -1581,7 +1581,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         return -1;
     }
 
-    private final @NonNull BlurredBackgroundSourceColor iBlur3SourceColor;
+    private final @NonNull GlassSourceColor iBlur3SourceColor;
 
     public SharedMediaLayout(Context context, long did, SharedMediaPreloader preloader, int commonGroupsCount, ArrayList<Integer> sortedUsers, TLRPC.ChatFull chatInfo, TLRPC.UserFull userInfo, int initialTab, int initialStoryAlbumId, BaseFragment parent, Delegate delegate, int viewType, Theme.ResourcesProvider resourcesProvider) {
         this(context, did, preloader, commonGroupsCount, sortedUsers, chatInfo, userInfo, initialTab, initialStoryAlbumId, parent, delegate, viewType, resourcesProvider, null);
@@ -1592,7 +1592,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     public SharedMediaLayout(Context context, long did, SharedMediaPreloader preloader, int commonGroupsCount, ArrayList<Integer> sortedUsers, TLRPC.ChatFull chatInfo, TLRPC.UserFull userInfo, int initialTab, int initialStoryAlbumId, BaseFragment parent, Delegate delegate, int viewType, Theme.ResourcesProvider resourcesProvider, BlurredBackgroundDrawableViewFactory iBlur3FactoryLiquidGlass) {
         super(context);
 
-        iBlur3SourceColor = new BlurredBackgroundSourceColor();
+        iBlur3SourceColor = new GlassSourceColor();
         iBlur3SourceColor.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
 
         if (iBlur3FactoryLiquidGlass == null) {
@@ -12809,4 +12809,119 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         requestLayout();
         invalidate();
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private void applyTopPanelOffset() {
+        final int tabsTop = pagesTabsTop, shift = topLayoutPadding;
+        // the player's glass where the glass of the tabs is without it
+        setTopMargin(topPanelLayout, tabsTop + dp(TABS_GLASS_INSET_DP) - TOP_PANEL_GLASS_TOP);
+        setTopMargin(scrollSlidingTextTabStrip, tabsTop + shift);
+        setTopMargin(actionModeLayout, tabsTop + shift);
+        setTopMargin(floatingDateView, tabsTop + dp(48 + 4) + shift);
+        setTopMargin(searchTagsList, tabsTop + dp(4) + shift);
+        setTopMargin(storiesContainer, tabsTop + dp(48) + shift);
+        if (appliedTopPanelShift != shift) {
+            appliedTopPanelShift = shift;
+            if (onTopPanelShiftChanged != null) {
+                onTopPanelShiftChanged.run();
+            }
+        }
+    }
+
+    private final RectF capturePageRect = new RectF();
+
+        private void drawPageBackground(Canvas canvas) {
+            final int top = Math.min(0, listView.getTop());
+            final int bottom = Math.max(getHeight(), listView.getBottom());
+            // the photos page is wider by its -1dp margins and its neighbour moves by that width: past the sides,
+            // so that no gap opens between the pages during a swipe
+            final int side = dp(2);
+            if (wallpaper != null) {
+                canvas.save();
+                canvas.clipRect(-side, top, getWidth() + side, bottom);
+                wallpaper.setBounds(-side, top, getWidth() + side, bottom);
+                wallpaper.draw(canvas);
+                canvas.restore();
+            } else if (drawPageBackground) {
+                backgroundPaint.setColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
+                canvas.drawRect(-side, top, getWidth() + side, bottom, backgroundPaint);
+            }
+        }
+
+    private boolean pagesFullscreen;
+
+    private int pagesOverscanBottom;
+
+    private int pagesOverscanTop;
+
+    private int pagesTabsTop;
+
+    private void setPageOverscan(InternalListView listView) {
+        if (!pagesFullscreen || listView == null) {
+            return;
+        }
+        listView.clipToContent = true;
+        final MarginLayoutParams lp = (MarginLayoutParams) listView.getLayoutParams();
+        if (lp != null && (lp.topMargin != -pagesOverscanTop || lp.bottomMargin != -pagesOverscanBottom)) {
+            lp.topMargin = -pagesOverscanTop;
+            lp.bottomMargin = -pagesOverscanBottom;
+            listView.setLayoutParams(lp);
+        }
+    }
+
+    private static void setTopMargin(View view, int topMargin) {
+        if (view == null || !(view.getLayoutParams() instanceof MarginLayoutParams)) {
+            return;
+        }
+        final MarginLayoutParams lp = (MarginLayoutParams) view.getLayoutParams();
+        if (lp.topMargin != topMargin) {
+            lp.topMargin = topMargin;
+            view.setLayoutParams(lp);
+        }
+    }
+
+    private void updateGiftsPaddingTop() {
+        if (giftsContainer != null) {
+            giftsContainer.setPaddingTop(pagesTabsTop + dp(48) + (topPanelLayout != null ? (int) topPanelLayout.getAnimatedHeightWithPadding(dp(7)) : 0));
+        }
+    }
+
+    private void updatePageBackground(MediaPage page) {
+        final boolean sections = page.listView.hasSections();
+        if (sections) {
+            page.listView.setSectionsDrawBackground(pagesFullscreen);
+        }
+        page.setDrawPageBackground(pagesFullscreen && !sections && page.selectedType != TAB_POLL);
+        if (page.selectedType == TAB_POLL) {
+            final Drawable wallpaper = PreviewView.getBackgroundDrawable(
+                page.wallpaper != null ? page.wallpaper : page.getBackground(),
+                profileActivity.getCurrentAccount(),
+                dialog_id,
+                Theme.isCurrentThemeDark()
+            );
+            if (pagesFullscreen) {
+                // under the glass of the host too, so no rounded clip below the tabs
+                page.setBackground(null);
+                page.setClipToOutline(false);
+                page.setWallpaper(wallpaper);
+            } else {
+                page.setWallpaper(null);
+                page.setBackground(wallpaper);
+                page.setOutlineProvider(new ViewOutlineProvider() {
+                    @Override
+                    public void getOutline(View view, Outline outline) {
+                        outline.setRoundRect(0, dp(50), view.getWidth(), view.getHeight() + dp(24), dp(24));
+                    }
+                });
+                page.setClipToOutline(true);
+            }
+        } else {
+            page.setClipToOutline(false);
+            page.setBackground(null);
+            page.setWallpaper(null);
+        }
+    }
+
+        private Drawable wallpaper;
 }

@@ -574,4 +574,12 @@ public class ActionBarMenuSubItem extends FrameLayout {
         selectorColorKey = key;
         themedSelectorColor = selectorColor;
     }
+
+
+    // ArasGram: ported for 13.2.1 compatibility
+    private float selectorAlpha = 1f;
+
+    private int textColorKey = Theme.key_actionBarDefaultSubmenuItem, iconColorKey = Theme.key_actionBarDefaultSubmenuItemIcon, selectorColorKey = Theme.key_dialogButtonSelector;
+
+    private int themedTextColor, themedIconColor, themedSelectorColor;
 }
