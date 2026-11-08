@@ -1,47 +1,9 @@
-<<<<<<< /tmp/tmpp52copu6
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id 'com.android.application' apply false
     id 'com.google.gms.google-services' version '4.5.0' apply false
     id 'com.google.firebase.crashlytics' version '3.0.8' apply false
-||||||| /tmp/tmpcza2813p
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-buildscript {
-    repositories {
-        mavenCentral()
-        google()
-        maven { url 'https://developer.huawei.com/repo/' }
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.2'
-        classpath 'com.google.gms:google-services:4.3.15'
-        classpath 'com.huawei.agconnect:agcp:1.9.1.301'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0"
-    }
-}
-repositories {
-    google()
-=======
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-buildscript {
-    repositories {
-        mavenCentral()
-        google()
-        maven { url 'https://developer.huawei.com/repo/' }
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.2'
-        classpath 'com.google.gms:google-services:4.5.0'
-        classpath 'com.huawei.agconnect:agcp:1.9.1.301'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.8'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0"
-    }
-}
-repositories {
-    google()
->>>>>>> /tmp/tmp68mz5wea
 }
 
 subprojects {
