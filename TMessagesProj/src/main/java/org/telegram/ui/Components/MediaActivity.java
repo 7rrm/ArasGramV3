@@ -563,12 +563,10 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
                 AndroidUtilities.updateViewVisibilityAnimated(avatarContainer, !expanded, 0.95f, true);
             }
 
-            @Override
             protected void drawBackgroundWithBlur(Canvas canvas, float y, Rect rectTmp2, Paint backgroundPaint) {
                 fragmentView.drawBlurRect(canvas, getY() + y, rectTmp2, backgroundPaint, true);
             }
 
-            @Override
             protected void invalidateBlur() {
                 fragmentView.invalidateBlur();
             }

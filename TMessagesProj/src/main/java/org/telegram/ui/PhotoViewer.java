@@ -225,6 +225,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.SimpleTextView;
+import org.telegram.utils.pip.PipTextureView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.PhotoPickerPhotoCell;
@@ -364,7 +365,6 @@ import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.core.reference.ReferenceList;
 import org.telegram.utils.pip.PipSession;
-import org.telegram.utils.pip.PipTextureView;
 import org.telegram.utils.pip.PipContent;
 import org.telegram.utils.pip.PipCoordinator;
 
@@ -1655,17 +1655,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 AndroidUtilities.runOnUIThread(updateProgressRunnable, 17);
             }
         }
+    
 
-
-    public void onStop() {
-        // the app went to the background without picture-in-picture: the video must not keep playing there
-        if (AndroidUtilities.isInPictureInPictureMode(parentActivity)) {
-            return;
-        }
-        if (videoPlayer != null ? isPlaying : photoViewerWebView != null && photoViewerWebView.isControllable() && photoViewerWebView.isPlaying()) {
-            pauseVideoOrWeb();
-        }
-    }
 };
 
     private final Runnable switchToInlineRunnable = new Runnable() {
@@ -6516,6 +6507,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         docInfoTextView.setGravity(Gravity.LEFT);
         pickerView.addView(docInfoTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 20, 46, 84, 0));
 
+
         doneButtonFullWidth = new TextView(containerView.getContext());
         doneButtonFullWidth.setBackground(Theme.AdaptiveRipple.filledRect(getThemedColor(Theme.key_featuredStickers_addButton), 6));
         doneButtonFullWidth.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
@@ -8303,6 +8295,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             }
         });
     }
+
 
     private void sendPressed(boolean notify, int scheduleDate, int scheduleRepeatPeriod) {
         sendPressed(notify, scheduleDate, scheduleRepeatPeriod, false, false, false);
@@ -21113,6 +21106,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         return tempInt;
     }
 
+
     private void onActionClick(boolean download) {
         if (currentMessageObject == null && currentBotInlineResult == null && (pageBlocksAdapter == null || currentFileNames[0] == null) && sendPhotoType != SELECT_TYPE_NO_SELECT) {
             return;
@@ -22610,6 +22604,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             && !AndroidUtilities.makingGlobalBlurBitmap;
     }
 
+
     @RequiresApi(api = Build.VERSION_CODES.S)
     private RenderNode getRenderNodeBlurred(boolean glass) {
         if (renderNode == null) {
@@ -23271,6 +23266,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 //        }
 
         invalidateAllGlassAttachedViews();
+
 
         if (captionEdit != null) {
             captionEdit.invalidateBlur();
@@ -24042,6 +24038,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         return videoPlayer.getCurrentPosition();
     }
 
+
     @Override
     public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
         if (id == ANIMATOR_ID_POLL_ATTACH_BUTTONS_VISIBLE) {
@@ -24106,6 +24103,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     public void pipRenderBackground(Canvas canvas) {
         canvas.drawColor(0xFF000000);
     }
+
 
     @Override
     public void pipRenderForeground(Canvas canvas) {
@@ -24454,6 +24452,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         setWindowHdrColorMode(enabled);
     }
 
+
     // ArasGram: ported member for 13.2.1 compatibility
     public void completeEmbedPipExpand() {
         if (pipSession != null) {
@@ -24470,6 +24469,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         return true;
     }
 
+
     // ArasGram: ported for 13.2.1 compatibility
     private void ensurePipSession() {
         if (pipSession == null || !pipSession.isAlive()) {
@@ -24478,6 +24478,23 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     private PipSession pipSession;
+
+    /* Universal PiP (org.telegram.utils.pip) */
+    final PipTextureView target = pipPendingTarget;
+    private float pipBufferedProgress;
+    private boolean pipPrimaryHidden;
+    private final RectF pipVideoRect = new RectF();
+    private boolean pipVideoRectValid;
+
+    public void onStop() {
+        // the app went to the background without picture-in-picture: the video must not keep playing there
+        if (AndroidUtilities.isInPictureInPictureMode(parentActivity)) {
+            return;
+        }
+        if (videoPlayer != null ? isPlaying : photoViewerWebView != null && photoViewerWebView.isControllable() && photoViewerWebView.isPlaying()) {
+            pauseVideoOrWeb();
+        }
+    }
 
     private final PipContent pipContent = new PipContent() {
         private boolean isEmbed() {
@@ -24733,7 +24750,4 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             }
         }
     };
-
-    private final RectF pipVideoRect = new RectF();
-    private boolean pipVideoRectValid;
 }

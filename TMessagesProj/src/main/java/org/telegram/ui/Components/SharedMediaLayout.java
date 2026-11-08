@@ -118,6 +118,7 @@ import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.SimpleActionBar;
 import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.SimpleActionBarMenuItem;
+import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
@@ -5110,6 +5111,9 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
                     if (fwdRestrictedHint != null) {
                         fwdRestrictedHint.setText(getString(R.string.ForwardsRestrictedInfoUser));
                         fwdRestrictedHint.showForView(v, true);
+                    } else if (fwdRestrictedHintCompat != null) {
+                        fwdRestrictedHintCompat.setText(getString(R.string.ForwardsRestrictedInfoUser));
+                        fwdRestrictedHintCompat.showForView(v, true);
                     }
                     return;
                 }
@@ -5121,6 +5125,10 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
                         fwdRestrictedHint.setText(ChatObject.isChannel(chat) && !chat.megagroup ? getString(R.string.ForwardsRestrictedInfoChannel) :
                                 getString(R.string.ForwardsRestrictedInfoGroup));
                         fwdRestrictedHint.showForView(v, true);
+                    } else if (fwdRestrictedHintCompat != null) {
+                        fwdRestrictedHintCompat.setText(ChatObject.isChannel(chat) && !chat.megagroup ? getString(R.string.ForwardsRestrictedInfoChannel) :
+                                getString(R.string.ForwardsRestrictedInfoGroup));
+                        fwdRestrictedHintCompat.showForView(v, true);
                     }
                     return;
                 }
@@ -6595,7 +6603,7 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
         for (MediaPage mediaPage : mediaPages) {
             if (mediaPage != null && (mediaPage.listView.isComputingLayout() || mediaPage.animationSupportingListView.isComputingLayout())) {
                 post(this::updateAdapters);
-                return;
+                return true;
             }
         }
         for (int a = 0; a < mediaPages.length; a++) {
@@ -13180,5 +13188,37 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
         colors.add(Theme.key_inappPlayerPlayPause);
         colors.add(Theme.key_chat_mediaTimeText);
         colors.add(Theme.key_chat_mediaTimeBackground);
+    }
+
+    public void drawListForBlur(Canvas blurCanvas, ArrayList<SizeNotifierFrameLayout.IViewWithInvalidateCallback> views) {
+        for (int i = 0; i < mediaPages.length; i++) {
+            if (mediaPages[i] != null && mediaPages[i].getVisibility() == View.VISIBLE) {
+                for (int j = 0; j < mediaPages[i].listView.getChildCount(); j++) {
+                    View child = mediaPages[i].listView.getChildAt(j);
+                    if (child.getY() < mediaPages[i].listView.blurTopPadding + dp(100)) {
+                        int restore = blurCanvas.save();
+                        blurCanvas.translate(mediaPages[i].getX() + child.getX(), getY() + mediaPages[i].getY() + mediaPages[i].listView.getY() + child.getY());
+                        child.draw(blurCanvas);
+                        if (views != null && child instanceof SizeNotifierFrameLayout.IViewWithInvalidateCallback) {
+                            views.add((SizeNotifierFrameLayout.IViewWithInvalidateCallback) child);
+                        }
+                        blurCanvas.restoreToCount(restore);
+                    }
+                }
+            }
+        }
+    }
+    public void initBlurCapture(ViewGroup parent) {
+        for (MediaPage mediaPage : mediaPages) {
+            mediaPage.iBlur3Capture = new ViewGroupPartRenderer(mediaPage.listView, parent, mediaPage.listView::drawChild);
+        }
+        if (giftsContainer != null) {
+            giftsContainer.initBlurCapture(parent);
+        }
+    }
+public final @Nullable IBlur3Capture iBlur3Capture;
+    private HintView fwdRestrictedHintCompat;
+    public void setForwardRestrictedHint(HintView hintView) {
+        fwdRestrictedHintCompat = hintView;
     }
 }

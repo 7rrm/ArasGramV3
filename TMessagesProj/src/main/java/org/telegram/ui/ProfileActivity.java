@@ -3947,12 +3947,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 return ProfileActivity.this.onMemberClick(participant, isLong, view);
             }
 
-            @Override
             protected void drawBackgroundWithBlur(Canvas canvas, float y, Rect rectTmp2, Paint backgroundPaint) {
                 contentView.drawBlurRect(canvas, listView.getY() + getY() + y, rectTmp2, backgroundPaint, true);
             }
 
-            @Override
             protected void invalidateBlur() {
                 if (contentView != null) {
                     contentView.invalidateBlur();
