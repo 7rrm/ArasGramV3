@@ -10708,4 +10708,12 @@ public class Theme {
 
     // ArasGram: ported for 13.2.1 compatibility
 
+
+
+    // ArasGram: ported from 13.2.1
+    private static void mapCompact(int mode, int compactKey, int... keys) {
+        for (int key : keys) {
+            compactColorMap[key] = (mode << 16) | compactKey;
+        }
+    }
 }

@@ -1351,17 +1351,13 @@ public class ProfileActionsView extends View {
 
 
     // ArasGram: ported for 13.2.1 compatibility
-    private ProfileActivity.AvatarImageView avatarView;
 
     private boolean ignoreRect = false;
 
-    private RenderNode renderNode;
 
 
     // ArasGram: ported for 13.2.1 compatibility
-    private RenderNode renderNode;
 
 
     // ArasGram: ported for 13.2.1 compatibility
-    private RenderNode renderNode;
 }

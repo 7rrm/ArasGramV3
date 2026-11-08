@@ -12933,7 +12933,6 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     // ArasGram: ported for 13.2.1 compatibility
     private @Nullable GlassEngine pagesGlassEngine;
 
-    private final RectF capturePageRect = new RectF();
 
     private static final float TABS_GLASS_INSET_DP = 6.666f;
 
@@ -12969,5 +12968,4 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     // ArasGram: ported for 13.2.1 compatibility
     private @Nullable GlassEngine pagesGlassEngine;
 
-    private final RectF capturePageRect = new RectF();
 }

@@ -24480,11 +24480,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     // ArasGram: ported for 13.2.1 compatibility
             final PipSession floatingSession = PipCoordinator.getInstance().findFloating();
 
-            final PipSession floatingSession = PipCoordinator.getInstance().findFloating();
 
 
     // ArasGram: ported for 13.2.1 compatibility
-            final PipSession floatingSession = PipCoordinator.getInstance().findFloating();
 
-            final PipSession floatingSession = PipCoordinator.getInstance().findFloating();
 }
