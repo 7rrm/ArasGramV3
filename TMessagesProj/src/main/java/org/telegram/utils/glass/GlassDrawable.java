@@ -108,7 +108,7 @@ public abstract class GlassDrawable extends Drawable {
 
     /* View position relative root */
 
-    private float sourceOffsetX, sourceOffsetY;
+    public float sourceOffsetX, sourceOffsetY;
 
     public final void setSourceOffset(float sourceOffsetX, float sourceOffsetY) {
         if (this.sourceOffsetX != sourceOffsetX || this.sourceOffsetY != sourceOffsetY) {

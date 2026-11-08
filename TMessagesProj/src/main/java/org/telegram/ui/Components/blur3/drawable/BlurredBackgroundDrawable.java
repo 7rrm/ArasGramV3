@@ -255,7 +255,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
     /* Colors */
 
     private BlurredBackgroundColorProvider colorProvider;
-    private int shadowColor, backgroundColor, strokeColorTop, strokeColorBottom, outlineShadowColor, outlineColor;
+    public int shadowColor, backgroundColor, strokeColorTop, strokeColorBottom, outlineShadowColor, outlineColor;
     private float outlineWidth;
     // the drawable's own shadow, back when a theme no longer overrides it
     private float defaultShadowRadius = -1, defaultShadowDx, defaultShadowDy;
@@ -411,7 +411,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
 
     /* Bound Props */
 
-    private final Props boundProps = new Props();
+    public final Props boundProps = new Props();
 
     private static class Props {
         final Rect bounds = new Rect();
@@ -695,16 +695,16 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
 
     /* Shadow and stroke params */
 
-    private boolean inAppKeyboardOptimization;
+    public boolean inAppKeyboardOptimization;
 
     public void enableInAppKeyboardOptimization() {
         inAppKeyboardOptimization = true;
     }
 
-    private float shadowLayerRadius;
-    private float shadowLayerDx;
-    private float shadowLayerDy;
-    private float shadowAlpha = 1.0f;
+    public float shadowLayerRadius;
+    public float shadowLayerDx;
+    public float shadowLayerDy;
+    public float shadowAlpha = 1.0f;
 
     public void setShadowParams(float radius, float dx, float dy) {
         shadowLayerRadius = radius;
