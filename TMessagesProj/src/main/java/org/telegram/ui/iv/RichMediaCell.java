@@ -36,11 +36,10 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.tl.TL_iv;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
-import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
+import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawableRenderNode;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
-import org.telegram.utils.glass.source.GlassSourceColor;
-import org.telegram.utils.glass.source.GlassSourceRenderNode;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
 import org.telegram.ui.Cells.TextSelectionHelper;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.CubicBezierInterpolator;
@@ -57,7 +56,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.HashSet;
 
 public class RichMediaCell extends RichBlockCell
     implements Theme.Colorable, TextSelectionHelper.ArticleSelectableView, RichCaptionHost {
@@ -96,10 +94,10 @@ public class RichMediaCell extends RichBlockCell
     private final ArrayList<RectF> itemRects = new ArrayList<>();
 
     private final boolean glass = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.chatBlurEnabled();
-    private GlassSourceRenderNode blurSource;
+    private BlurredBackgroundSourceRenderNode blurSource;
     private BlurredBackgroundColorProvider blurColors;
     private final ArrayList<ImageView> circleButtons = new ArrayList<>();
-    private final HashMap<ImageView, BlurredBackgroundDrawable> circleButtonBg = new HashMap<>();
+    private final HashMap<ImageView, BlurredBackgroundDrawableRenderNode> circleButtonBg = new HashMap<>();
 
     private SpoilerEffect2 spoilerEffect;
 
@@ -151,7 +149,7 @@ public class RichMediaCell extends RichBlockCell
         setClipToPadding(false);
 
         if (glass && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            blurSource = new GlassSourceRenderNode(new GlassSourceColor());
+            blurSource = new BlurredBackgroundSourceRenderNode(new BlurredBackgroundSourceColor());
             blurSource.setBlur(dp(24));
             blurColors = new BlurredBackgroundColorProvider() {
                 @Override public int getShadowColor() { return 0; }
@@ -178,52 +176,18 @@ public class RichMediaCell extends RichBlockCell
         updateColors();
     }
 
-    private final ArrayList<android.graphics.drawable.Drawable> circleButtonInnerBg = new ArrayList<>();
-    private int circleButtonsThemeGeneration = ThemeBind.generation();
-
-    private void checkCircleButtonsThemeColors() {
-        if (circleButtonsThemeGeneration == ThemeBind.generation()) {
-            return;
-        }
-        circleButtonsThemeGeneration = ThemeBind.generation();
-        try {
-            final int color = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
-            if (getBackground() instanceof RichEditor.DraggingDrawable) {
-                ((RichEditor.DraggingDrawable) getBackground()).setColor(color);
-            }
-            final int rippleColor = Theme.blendOver(color, Theme.getColor(Theme.key_listSelector, resourcesProvider));
-            for (int i = 0; i < circleButtonInnerBg.size(); ++i) {
-                final android.graphics.drawable.Drawable d = circleButtonInnerBg.get(i);
-                if (!(d instanceof android.graphics.drawable.RippleDrawable)) continue;
-                final android.graphics.drawable.RippleDrawable ripple = (android.graphics.drawable.RippleDrawable) d;
-                if (ripple.getNumberOfLayers() > 0 && ripple.getId(0) != android.R.id.mask && ripple.getDrawable(0) instanceof android.graphics.drawable.ShapeDrawable) {
-                    final android.graphics.drawable.ShapeDrawable content = (android.graphics.drawable.ShapeDrawable) ripple.getDrawable(0);
-                    if (content.getPaint().getColor() != color) {
-                        content.getPaint().setColor(color);
-                        ripple.setColor(android.content.res.ColorStateList.valueOf(rippleColor));
-                        ripple.invalidateSelf();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            org.telegram.messenger.FileLog.e(e);
-        }
-    }
-
     private ImageView createCircleButton() {
         final ImageView b = new ImageView(getContext());
         b.setScaleType(ImageView.ScaleType.CENTER);
         if (glass && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             b.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
-            final BlurredBackgroundDrawable bg = new BlurredBackgroundDrawable(blurSource);
+            final BlurredBackgroundDrawableRenderNode bg = (BlurredBackgroundDrawableRenderNode) blurSource.createDrawable();
             bg.setColorProvider(blurColors);
             bg.setRadius(dp(16));
             circleButtonBg.put(b, bg);
         } else {
-            ThemeBind.colorFilter(b, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider, PorterDuff.Mode.SRC_IN);
-            final android.graphics.drawable.Drawable innerBg = Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider), Theme.blendOver(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider), Theme.getColor(Theme.key_listSelector, resourcesProvider)), 20, 20);
-            circleButtonInnerBg.add(innerBg);
-            b.setBackground(RichEditor.withShadow(innerBg));
+            b.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), PorterDuff.Mode.SRC_IN));
+            b.setBackground(RichEditor.withShadow(Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider), Theme.blendOver(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider), Theme.getColor(Theme.key_listSelector, resourcesProvider)), 20, 20)));
         }
         ScaleStateListAnimator.apply(b);
         circleButtons.add(b);
@@ -440,11 +404,6 @@ public class RichMediaCell extends RichBlockCell
         backgroundPaint.setColor(Theme.getColor(Theme.key_chat_inFileBackground, resourcesProvider));
         selectionPaint.setColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
         if (caption != null) caption.applyColors();
-    }
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_chat_inFileBackground);
-        colors.add(Theme.key_chat_inTextSelectionHighlight);
     }
 
     @Override
@@ -774,7 +733,7 @@ public class RichMediaCell extends RichBlockCell
 
     private void drawGlassButton(Canvas canvas, ImageView b) {
         if (b.getVisibility() != VISIBLE) return;
-        final BlurredBackgroundDrawable bg = circleButtonBg.get(b);
+        final BlurredBackgroundDrawableRenderNode bg = circleButtonBg.get(b);
         if (bg == null) return;
         bg.setBounds(b.getLeft(), b.getTop(), b.getRight(), b.getBottom());
         bg.setAlpha((int) (b.getAlpha() * 255));
@@ -960,7 +919,6 @@ public class RichMediaCell extends RichBlockCell
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
-        checkCircleButtonsThemeColors();
         super.dispatchDraw(canvas);
         caption.drawSelection(canvas);
     }

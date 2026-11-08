@@ -31,13 +31,11 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 public class ChangeNameActivity extends BaseFragment {
 
@@ -56,8 +54,8 @@ public class ChangeNameActivity extends BaseFragment {
 
     @Override
     public View createView(Context context) {
-        ThemeBind.actionBarItemsBackgroundColor(actionBar, Theme.key_avatar_actionBarSelectorBlue, resourcesProvider, false);
-        ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarDefaultIcon, resourcesProvider, false);
+        actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_avatar_actionBarSelectorBlue, resourcesProvider), false);
+        actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), false);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString(R.string.EditName));
@@ -96,10 +94,10 @@ public class ChangeNameActivity extends BaseFragment {
             }
         };
         firstNameField.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-        ThemeBind.hintTextColor(firstNameField, Theme.key_windowBackgroundWhiteHintText, resourcesProvider);
-        ThemeBind.textColor(firstNameField, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        firstNameField.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText, resourcesProvider));
+        firstNameField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         firstNameField.setBackgroundDrawable(null);
-        ThemeBind.lineColors(firstNameField, Theme.key_windowBackgroundWhiteInputField, Theme.key_windowBackgroundWhiteInputFieldActivated, Theme.key_text_RedRegular, getResourceProvider());
+        firstNameField.setLineColors(getThemedColor(Theme.key_windowBackgroundWhiteInputField), getThemedColor(Theme.key_windowBackgroundWhiteInputFieldActivated), getThemedColor(Theme.key_text_RedRegular));
         firstNameField.setMaxLines(1);
         firstNameField.setLines(1);
         firstNameField.setSingleLine(true);
@@ -107,7 +105,7 @@ public class ChangeNameActivity extends BaseFragment {
         firstNameField.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
         firstNameField.setImeOptions(EditorInfo.IME_ACTION_NEXT);
         firstNameField.setHint(LocaleController.getString(R.string.FirstName));
-        ThemeBind.cursorColor(firstNameField, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        firstNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         firstNameField.setCursorSize(AndroidUtilities.dp(20));
         firstNameField.setCursorWidth(1.5f);
         linearLayout.addView(firstNameField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36, 24, 24, 24, 0));
@@ -127,10 +125,10 @@ public class ChangeNameActivity extends BaseFragment {
             }
         };
         lastNameField.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-        ThemeBind.hintTextColor(lastNameField, Theme.key_windowBackgroundWhiteHintText, resourcesProvider);
-        ThemeBind.textColor(lastNameField, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        lastNameField.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText, resourcesProvider));
+        lastNameField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         lastNameField.setBackgroundDrawable(null);
-        ThemeBind.lineColors(lastNameField, Theme.key_windowBackgroundWhiteInputField, Theme.key_windowBackgroundWhiteInputFieldActivated, Theme.key_text_RedRegular, getResourceProvider());
+        lastNameField.setLineColors(getThemedColor(Theme.key_windowBackgroundWhiteInputField), getThemedColor(Theme.key_windowBackgroundWhiteInputFieldActivated), getThemedColor(Theme.key_text_RedRegular));
         lastNameField.setMaxLines(1);
         lastNameField.setLines(1);
         lastNameField.setSingleLine(true);
@@ -138,7 +136,7 @@ public class ChangeNameActivity extends BaseFragment {
         lastNameField.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
         lastNameField.setImeOptions(EditorInfo.IME_ACTION_DONE);
         lastNameField.setHint(LocaleController.getString(R.string.LastName));
-        ThemeBind.cursorColor(lastNameField, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        lastNameField.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         lastNameField.setCursorSize(AndroidUtilities.dp(20));
         lastNameField.setCursorWidth(1.5f);
         linearLayout.addView(lastNameField, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36, 24, 16, 24, 0));
@@ -218,23 +216,22 @@ public class ChangeNameActivity extends BaseFragment {
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
+        themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundWhite));
 
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
 
+        themeDescriptions.add(new ThemeDescription(firstNameField, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(firstNameField, ThemeDescription.FLAG_HINTTEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteHintText));
         themeDescriptions.add(new ThemeDescription(firstNameField, ThemeDescription.FLAG_BACKGROUNDFILTER, null, null, null, null, Theme.key_windowBackgroundWhiteInputField));
         themeDescriptions.add(new ThemeDescription(firstNameField, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_windowBackgroundWhiteInputFieldActivated));
+        themeDescriptions.add(new ThemeDescription(lastNameField, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(lastNameField, ThemeDescription.FLAG_HINTTEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteHintText));
         themeDescriptions.add(new ThemeDescription(lastNameField, ThemeDescription.FLAG_BACKGROUNDFILTER, null, null, null, null, Theme.key_windowBackgroundWhiteInputField));
         themeDescriptions.add(new ThemeDescription(lastNameField, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_windowBackgroundWhiteInputFieldActivated));
 
         return themeDescriptions;
-    }
-
-    /** theme editor: colors this page shows (former ThemeDescription keys) */
-    @Override
-    public void addThemeColorKeys(HashSet<Integer> keys) {
-        super.addThemeColorKeys(keys);
-        keys.add(Theme.key_actionBarDefaultSelector);
-        keys.add(Theme.key_actionBarDefaultTitle);
-        keys.add(Theme.key_actionBarDefault);
-        keys.add(Theme.key_windowBackgroundWhite);
     }
 }

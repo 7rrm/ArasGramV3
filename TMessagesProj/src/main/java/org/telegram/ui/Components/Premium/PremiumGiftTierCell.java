@@ -25,7 +25,6 @@ import org.telegram.messenger.GenericProvider;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.CheckBoxBase;
 import org.telegram.ui.Components.LayoutHelper;
@@ -67,7 +66,7 @@ public class PremiumGiftTierCell extends ViewGroup {
 
         titleView = new TextView(context);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText);
+        titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         addView(titleView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 0, 8, 0, 0));
 
         discountView = new TextView(context);
@@ -79,12 +78,12 @@ public class PremiumGiftTierCell extends ViewGroup {
 
         pricePerMonthView = new TextView(context);
         pricePerMonthView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(pricePerMonthView, Theme.key_windowBackgroundWhiteGrayText);
+        pricePerMonthView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
         addView(pricePerMonthView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.BOTTOM, 0, 0, 0, 8));
 
         priceTotalView = new TextView(context);
         priceTotalView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        ThemeBind.textColor(priceTotalView, Theme.key_windowBackgroundWhiteGrayText);
+        priceTotalView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
         addView(priceTotalView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.END));
 
         setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(12));

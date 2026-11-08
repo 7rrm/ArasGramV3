@@ -75,7 +75,6 @@ class BotButton {
         RectF rect,
         boolean drawProgress,
         boolean drawBuyCard,
-        boolean compact,
         Theme.ResourcesProvider resourcesProvider
     ) {
         boolean invalidate = false;
@@ -153,15 +152,11 @@ class BotButton {
             loadingRect.inset(AndroidUtilities.dpf2(.625f), AndroidUtilities.dpf2(.625f));
             loadingDrawable.setRadii(radii);
             loadingDrawable.setBounds(loadingRect);
-            // compact buttons have dark text on a light background: tint the loading like the text
-            final int loadingColor = compact ?
-                Theme.multAlpha(Theme.getColor(Theme.key_chat_compact_botButtonText, resourcesProvider), .125f) :
-                Theme.getColor(Theme.key_chat_serviceBackgroundSelector, resourcesProvider);
             loadingDrawable.setColors(
-                Theme.multAlpha(loadingColor, 1f),
-                Theme.multAlpha(loadingColor, 2.5f),
-                Theme.multAlpha(loadingColor, 3f),
-                Theme.multAlpha(loadingColor, 10f)
+                Theme.multAlpha(Theme.getColor(Theme.key_chat_serviceBackgroundSelector, resourcesProvider), 1f),
+                Theme.multAlpha(Theme.getColor(Theme.key_chat_serviceBackgroundSelector, resourcesProvider), 2.5f),
+                Theme.multAlpha(Theme.getColor(Theme.key_chat_serviceBackgroundSelector, resourcesProvider), 3f),
+                Theme.multAlpha(Theme.getColor(Theme.key_chat_serviceBackgroundSelector, resourcesProvider), 10f)
             );
             loadingDrawable.setAlpha(0xFF);
             loadingDrawable.draw(canvas);

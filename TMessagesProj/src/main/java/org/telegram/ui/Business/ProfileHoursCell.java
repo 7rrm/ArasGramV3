@@ -26,7 +26,6 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.ClickableAnimatedTextView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
@@ -82,7 +81,7 @@ public class ProfileHoursCell extends LinearLayout {
                 labelText[i] = new TextView(context);
                 labelText[i].setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
                 labelText[i].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-                ThemeBind.textColor(labelText[i], Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+                labelText[i].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
                 line.addView(labelText[i], LayoutHelper.createFrameRelatively(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.TOP, 0, 33, 0, 10));
 
                 todayTimeTextContainer2 = new LinearLayout(context);
@@ -93,7 +92,7 @@ public class ProfileHoursCell extends LinearLayout {
                 for (int a = 0; a < 2; ++a) {
                     timeText[i][a] = new TextView(context);
                     timeText[i][a].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                    ThemeBind.textColor(timeText[i][a], Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+                    timeText[i][a].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
                     timeText[i][a].setGravity(LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT);
                     todayTimeTextContainer.addView(timeText[i][a], LayoutHelper.createFrameRelatively(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL, 0, 0, 20, 0));
                 }
@@ -101,7 +100,7 @@ public class ProfileHoursCell extends LinearLayout {
                 for (int a = 0; a < 2; ++a) {
                     labelTimeText[a] = new TextView(context);
                     labelTimeText[a].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                    ThemeBind.textColor(labelTimeText[a], Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+                    labelTimeText[a].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
                     labelTimeText[a].setGravity(LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT);
                     todayTimeTextContainer.addView(labelTimeText[a], LayoutHelper.createFrameRelatively(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL, 0, 0, 20, 0));
                 }
@@ -111,7 +110,7 @@ public class ProfileHoursCell extends LinearLayout {
                 arrowView.setScaleX(0.6f);
                 arrowView.setScaleY(0.6f);
                 arrowView.setImageResource(R.drawable.arrow_more);
-                ThemeBind.colorFilter(arrowView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider, PorterDuff.Mode.SRC_IN);
+                arrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider), PorterDuff.Mode.SRC_IN));
                 todayTimeTextContainer.addView(arrowView, LayoutHelper.createFrameRelatively(20, 20, Gravity.CENTER_VERTICAL | Gravity.END));
 
                 todayTimeTextContainer2.addView(todayTimeTextContainer, LayoutHelper.createLinearRelatively(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
@@ -137,7 +136,7 @@ public class ProfileHoursCell extends LinearLayout {
 
                 labelText[i] = new TextView(context);
                 labelText[i].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                ThemeBind.textColor(labelText[i], Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+                labelText[i].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
                 labelText[i].setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
 
                 FrameLayout timeTextContainer = new FrameLayout(context);
@@ -145,7 +144,7 @@ public class ProfileHoursCell extends LinearLayout {
                 for (int a = 0; a < 2; ++a) {
                     timeText[i][a] = new TextView(context);
                     timeText[i][a].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                    ThemeBind.textColor(timeText[i][a], Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+                    timeText[i][a].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
                     timeText[i][a].setGravity(LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT);
                     timeTextContainer.addView(timeText[i][a], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
                 }
@@ -258,7 +257,7 @@ public class ProfileHoursCell extends LinearLayout {
         ArrayList<OpeningHoursActivity.Period>[] myDays = OpeningHoursActivity.getDaysHours(adapted_weekly_open);
 
         textView.setText(getString(open_now ? R.string.BusinessHoursProfileNowOpen : R.string.BusinessHoursProfileNowClosed));
-        ThemeBind.textColor(textView, open_now ? Theme.key_avatar_nameInMessageGreen : Theme.key_text_RedRegular, resourcesProvider);
+        textView.setTextColor(Theme.getColor(open_now ? Theme.key_avatar_nameInMessageGreen : Theme.key_text_RedRegular, resourcesProvider));
 
         int lastTodayLinesHeight = todayLinesHeight;
         int lastTodayLinesCount = todayLinesCount;

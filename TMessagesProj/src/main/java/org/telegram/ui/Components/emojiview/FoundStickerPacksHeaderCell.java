@@ -19,7 +19,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
-import java.util.HashSet;
 
 @SuppressLint("ViewConstructor")
 public class FoundStickerPacksHeaderCell extends FrameLayout implements Theme.Colorable {
@@ -56,28 +55,11 @@ public class FoundStickerPacksHeaderCell extends FrameLayout implements Theme.Co
         backButton.setOnClickListener(listener);
     }
 
-    private int lastGlassIconColor;
-    private boolean glassColorsApplied;
-
     @Override
     public void updateColors() {
         headerText.setTextColor(getGlassIconColor(0.6f));
-        final int glassColor = getGlassIconColor(1f);
-        if (glassColorsApplied && glassColor == lastGlassIconColor) {
-            return; // theme frames: nothing changed, no new filter / drawable
-        }
-        glassColorsApplied = true;
-        lastGlassIconColor = glassColor;
         backButton.setColorFilter(new PorterDuffColorFilter(getGlassIconColor(0.6f), PorterDuff.Mode.MULTIPLY));
-        if (backButton.getBackground() != null) {
-            Theme.setSelectorDrawableColor(backButton.getBackground(), getGlassIconColor(0.1f), true);
-        } else {
-            backButton.setBackground(Theme.createSelectorDrawable(getGlassIconColor(0.1f), 1));
-        }
-    }
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_glass_defaultIcon);
+        backButton.setBackground(Theme.createSelectorDrawable(getGlassIconColor(0.1f), 1));
     }
 
     private int getGlassIconColor(float alpha) {

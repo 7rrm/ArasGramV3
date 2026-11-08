@@ -28,7 +28,6 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,7 +87,7 @@ public class ShareTopView extends FrameLayout implements NotificationCenter.Noti
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.didReceivedWebpagesInUpdates);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didReceivedWebpagesInUpdates);
     }
 
     @Override
@@ -355,7 +354,7 @@ public class ShareTopView extends FrameLayout implements NotificationCenter.Noti
         if (currentAccount == newAccount) {
             this.currentAccount = newAccount;
             if (isAttachedToWindow()) {
-                NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.didReceivedWebpagesInUpdates);
+                NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didReceivedWebpagesInUpdates);
             }
             return;
         }
@@ -364,7 +363,7 @@ public class ShareTopView extends FrameLayout implements NotificationCenter.Noti
         }
         this.currentAccount = newAccount;
         if (isAttachedToWindow()) {
-            NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.didReceivedWebpagesInUpdates);
+            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didReceivedWebpagesInUpdates);
         }
     }
 
@@ -627,7 +626,7 @@ public class ShareTopView extends FrameLayout implements NotificationCenter.Noti
 
             icon = new ImageView(context);
             icon.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(icon, Theme.key_chat_replyPanelIcons, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            icon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_replyPanelIcons, resourcesProvider), PorterDuff.Mode.MULTIPLY));
             container.addView(icon, LayoutHelper.createLinear(40, 38, Gravity.TOP | Gravity.LEFT));
 
             imagesContainer = new FrameLayout(context);
@@ -652,24 +651,24 @@ public class ShareTopView extends FrameLayout implements NotificationCenter.Noti
             name = new SimpleTextView(context);
             name.setTextSize(14);
             name.setTypeface(AndroidUtilities.bold());
-            ThemeBind.textColor(name, Theme.key_chat_replyPanelName, resourcesProvider);
+            name.setTextColor(Theme.getColor(Theme.key_chat_replyPanelName, resourcesProvider));
             textLayout.addView(name, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 18, Gravity.TOP | Gravity.LEFT, 8, 2, 8, 0));
 
             obj = new SimpleTextView(context);
             obj.setTextSize(14);
-            ThemeBind.textColor(obj, Theme.key_glass_defaultText, resourcesProvider);
+            obj.setTextColor(Theme.getColor(Theme.key_glass_defaultText, resourcesProvider));
             textLayout.addView(obj, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 18, Gravity.TOP | Gravity.LEFT, 8, 20, 8, 0));
 
             objHint = new SimpleTextView(context);
             objHint.setTextSize(14);
-            ThemeBind.textColor(objHint, Theme.key_glass_defaultText, resourcesProvider);
+            objHint.setTextColor(Theme.getColor(Theme.key_glass_defaultText, resourcesProvider));
             objHint.setAlpha(0f);
             textLayout.addView(objHint, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 18, Gravity.TOP | Gravity.LEFT, 8, 20, 8, 0));
 
             closeButton = new ImageView(context);
             closeButton.setScaleType(ImageView.ScaleType.CENTER);
             closeButton.setImageResource(R.drawable.input_clear);
-            ThemeBind.colorFilter(closeButton, Theme.key_glass_defaultIcon, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            closeButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider), PorterDuff.Mode.MULTIPLY));
             closeButton.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), 1, dp(18)));
             closeButton.setVisibility(GONE);
             closeButton.setOnClickListener(v -> dismissWebPagePreview());

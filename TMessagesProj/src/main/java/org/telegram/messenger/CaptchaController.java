@@ -8,32 +8,60 @@ import android.app.Activity;
 // import com.google.android.recaptcha.RecaptchaTasksClient;
 
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.ui.LaunchActivity;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
 
 public class CaptchaController {
 
-    private static class Request {
-        private final int currentAccount;
-        private final int requestToken;
-        private final int generation;
-        private boolean completed;
+    public static class Request {
+        public int currentAccount;
+        public String action;
+        public String key_id;
 
-        private Request(int currentAccount, int requestToken, int generation) {
+        public Request(int currentAccount, String action, String key_id) {
             this.currentAccount = currentAccount;
-            this.requestToken = requestToken;
-            this.generation = generation;
+            this.action = action;
+            this.key_id = key_id;
         }
 
-        private void done(String token) {
-            if (completed) {
-                return;
+        @Override
+        public int hashCode() {
+            return Objects.hash(currentAccount, action, key_id);
+        }
+
+        public HashSet<Integer> requestTokens = new HashSet<>();
+
+        public void done(String token) {
+            currentRequests.remove(this.hashCode());
+            int[] requestTokens = new int[this.requestTokens.size()];
+            int i = 0;
+            for (Integer requestTokenI : this.requestTokens) {
+                requestTokens[i++] = requestTokenI;
             }
-            completed = true;
-            ConnectionsManager.native_receivedCaptchaResult(currentAccount, requestToken, generation, token);
+            ConnectionsManager.getInstance(currentAccount)
+                .native_receivedCaptchaResult(currentAccount, requestTokens, token);
         }
     }
 
-    public static void request(int currentAccount, int requestToken, int generation, String action, String key_id) {
-        final Request finalRequest = new Request(currentAccount, requestToken, generation);
+    public static HashMap<Integer, Request> currentRequests;
+
+    public static void request(int currentAccount, int requestToken, String action, String key_id) {
+        if (currentRequests == null) {
+            currentRequests = new HashMap<>();
+        }
+        final int key = Objects.hash(currentAccount, action, key_id);
+        Request r = currentRequests.get(key);
+        if (r != null) {
+            r.requestTokens.add(requestToken);
+            return;
+        }
+        r = new Request(currentAccount, action, key_id);
+        r.requestTokens.add(requestToken);
+        final Request finalRequest = r;
 
         final Activity activity = AndroidUtilities.getActivity();
         if (true || activity == null) {
@@ -46,18 +74,7 @@ public class CaptchaController {
             .addOnSuccessListener(client -> {
                 client.executeTask(getAction(action))
                     .addOnSuccessListener(token -> {
-                        if (BuildVars.LOGS_ENABLED) {
-                            final String tokenPreview = token == null
-                                ? "null"
-                                : token.substring(0, Math.min(24, token.length())) + "...";
-
-                            FileLog.d("CaptchaController: got token for account=" + currentAccount
-                                + ", request=" + requestToken
-                                + ", generation=" + generation
-                                + ", token=" + tokenPreview
-                                + ", length=" + (token == null ? 0 : token.length()));
-                        }
-
+                        FileLog.d("CaptchaController: got token for {action="+action+", key_id="+key_id+"}: " + token);
                         if (token == null) {
                             finalRequest.done("RECAPTCHA_FAILED_TOKEN_NULL");
                         } else {

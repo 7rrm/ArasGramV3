@@ -39,7 +39,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLoader;
@@ -55,17 +54,14 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.SimpleActionBarMenu;
+import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
-import org.telegram.ui.ActionBar.SimpleActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.AlertDialogDecor;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ChatActivity;
-import org.telegram.ui.Components.ForegroundColorSpanThemable;
 import org.telegram.ui.Components.AnimatedColor;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -73,7 +69,7 @@ import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.Text;
 import org.telegram.ui.Components.TypefaceSpan;
@@ -91,20 +87,16 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
 
     public final ArrayList<Integer> selected = new ArrayList<>();
 
-    private SimpleActionBarMenuItem editItem;
+    private NumberTextView countText;
+    private ActionBarMenuItem editItem;
     private ActionBarMenuItem deleteItem;
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
-        simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
-        simpleActionBar.setTitle(getString(R.string.BusinessReplies));
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setBackButtonDrawable(new BackDrawable(false));
+        actionBar.setAllowOverlayTitle(true);
+        actionBar.setTitle(getString(R.string.BusinessReplies));
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -139,7 +131,13 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
             }
         });
 
-        SimpleActionBarMenu actionModeMenu = simpleActionBar.createActionMode();
+        ActionBarMenu actionModeMenu = actionBar.createActionMode();
+        countText = new NumberTextView(getContext());
+        countText.setTextSize(18);
+        countText.setTypeface(AndroidUtilities.bold());
+        countText.setTextColor(Theme.getColor(Theme.key_actionBarActionModeDefaultIcon));
+        actionModeMenu.addView(countText, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 72, 0, 0, 0));
+        countText.setOnTouchListener((v, event) -> true);
         editItem = actionModeMenu.addItem(1, R.drawable.msg_edit);
         editItem.setContentDescription(LocaleController.getString(R.string.Edit));
         deleteItem = actionModeMenu.addItem(2, R.drawable.msg_delete);
@@ -154,13 +152,14 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
                 );
             }
         };
+        contentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
         listView.setSections();
-        listView.setSectionsDrawBackground(true);
         listView.adapter.setApplyBackground(false);
         listView.listenReorder(this::whenReordered);
         contentView.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        actionBar.setAdaptiveBackground(listView, true);
 
         return fragmentView = contentView;
     }
@@ -238,14 +237,14 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
         }
         listView.allowReorder(!selected.isEmpty());
         cell.setChecked(item.checked = selected.contains(quickReply.id), true);
-        if (simpleActionBar.isActionModeShowed() == selected.isEmpty()) {
+        if (actionBar.isActionModeShowed() == selected.isEmpty()) {
             if (selected.isEmpty()) {
-                simpleActionBar.hideActionMode();
+                actionBar.hideActionMode();
             } else {
-                simpleActionBar.showActionMode();
+                actionBar.showActionMode();
             }
         }
-        simpleActionBar.setActionModeCount(Math.max(1, selected.size()), true);
+        countText.setNumber(Math.max(1, selected.size()), true);
         updateEditItem();
     }
 
@@ -258,7 +257,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
         }
         if (shownEditItem != show) {
             shownEditItem = show;
-            editItem.setShown(shownEditItem, true);
+            editItem.animate().alpha(shownEditItem ? 1f : 0f).scaleX(shownEditItem ? 1f : .7f).scaleY(shownEditItem ? 1f : .7f).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).setDuration(340).start();
         }
     }
 
@@ -269,7 +268,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
                 ((QuickReplyView) view).setChecked(false, true);
             }
         });
-        simpleActionBar.hideActionMode();
+        actionBar.hideActionMode();
         listView.allowReorder(false);
     }
 
@@ -344,12 +343,12 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
         MediaDataController.getInstance(currentAccount).fetchNewEmojiKeywords(AndroidUtilities.getCurrentKeyboardLanguage(), true);
         editText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         editText.setText(currentReply == null ? (currentName == null ? "" : currentName) : currentReply.name);
-        ThemeBind.textColor(editText, Theme.key_dialogTextBlack, resourcesProvider);
-        ThemeBind.editHintColor(editText, Theme.key_groupcreate_hintText, resourcesProvider);
+        editText.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        editText.setHintColor(Theme.getColor(Theme.key_groupcreate_hintText, resourcesProvider));
         editText.setHintText(LocaleController.getString(R.string.BusinessRepliesNamePlaceholder));
         editText.setSingleLine(true);
         editText.setFocusable(true);
-        ThemeBind.lineColors(editText, Theme.key_windowBackgroundWhiteInputField, Theme.key_windowBackgroundWhiteInputFieldActivated, Theme.key_text_RedRegular, resourcesProvider);
+        editText.setLineColors(Theme.getColor(Theme.key_windowBackgroundWhiteInputField, resourcesProvider), Theme.getColor(Theme.key_windowBackgroundWhiteInputFieldActivated, resourcesProvider), Theme.getColor(Theme.key_text_RedRegular, resourcesProvider));
         editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
         editText.setBackgroundDrawable(null);
         editText.setPadding(0, 0, dp(42), 0);
@@ -368,13 +367,13 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
         FrameLayout textContainer = new FrameLayout(context);
 
         final TextView textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_dialogTextBlack, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setText(LocaleController.getString(currentReply == null && currentName == null ? R.string.BusinessRepliesNewMessage : R.string.BusinessRepliesEditMessage));
         textContainer.addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM));
 
         final TextView errorTextView = new TextView(context);
-        ThemeBind.textColor(errorTextView, Theme.key_text_RedBold, resourcesProvider);
+        errorTextView.setTextColor(Theme.getColor(Theme.key_text_RedBold, resourcesProvider));
         errorTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         errorTextView.setText(LocaleController.getString(R.string.BusinessRepliesNameBusy));
         errorTextView.setAlpha(0f);
@@ -506,7 +505,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
 
     @Override
     public boolean onFragmentCreate() {
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.quickRepliesUpdated);
+        getNotificationCenter().addObserver(this, NotificationCenter.quickRepliesUpdated);
         QuickRepliesController.getInstance(currentAccount).load();
         return super.onFragmentCreate();
     }
@@ -582,7 +581,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
             textView = new SpoilersTextView(context);
             textView.setLines(2);
             textView.setEllipsize(TextUtils.TruncateAt.END);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, LocaleController.isRTL ? rightpadding : 64, 7, LocaleController.isRTL ? 64 : rightpadding, 0));
 
@@ -590,7 +589,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
                 orderView = new ImageView(context);
                 orderView.setScaleType(ImageView.ScaleType.CENTER);
                 orderView.setImageResource(R.drawable.list_reorder);
-                ThemeBind.colorFilter(orderView, Theme.key_stickers_menu, PorterDuff.Mode.MULTIPLY);
+                orderView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_stickers_menu), PorterDuff.Mode.MULTIPLY));
                 orderView.setAlpha(0f);
                 addView(orderView, LayoutHelper.createFrame(50, 50, Gravity.FILL_VERTICAL | (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT)));
             } else {
@@ -626,9 +625,9 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
             }
             ssb.append("/").append(quickReply.name);
             ssb.setSpan(new TypefaceSpan(AndroidUtilities.bold()), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            ssb.setSpan(new ForegroundColorSpanThemable(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            ssb.setSpan(new ForegroundColorSpan(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider)), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             if (highlight != null) {
-                ssb.setSpan(new ForegroundColorSpanThemable(Theme.key_windowBackgroundWhiteBlueText2, resourcesProvider), 0, Math.min(highlight.length() <= 0 ? 1 : highlight.length(), ssb.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                ssb.setSpan(new ForegroundColorSpan(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText2, resourcesProvider)), 0, Math.min(highlight.length() <= 0 ? 1 : highlight.length(), ssb.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
             if (quickReply.topMessage != null) {
                 ssb.append(" ");
@@ -716,17 +715,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
         }
     }
 
-    public static class LargeQuickReplyView extends FrameLayout implements Theme.Colorable {
-
-        @Override
-        public void updateColors() {
-            try {
-                arrowPaint.setColor(Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider), .85f));
-                invalidate();
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
+    public static class LargeQuickReplyView extends FrameLayout {
 
         private final AvatarDrawable avatarDrawable = new AvatarDrawable();
         private final ImageReceiver imageReceiver = new ImageReceiver(this);
@@ -748,7 +737,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
             titleView = new TextView(context);
             titleView.setSingleLine();
             titleView.setEllipsize(TextUtils.TruncateAt.END);
-            ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             titleView.setTypeface(AndroidUtilities.bold());
             titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, LocaleController.isRTL ? 40 : 78, 10.33f, LocaleController.isRTL ? 78 : 40, 0));
@@ -756,7 +745,7 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
             textView = new TextView(context);
             textView.setLines(2);
             textView.setEllipsize(TextUtils.TruncateAt.END);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, LocaleController.isRTL ? 40 : 78, 32, LocaleController.isRTL ? 78 : 40, 0));
 
@@ -869,10 +858,9 @@ public class QuickRepliesActivity extends BaseFragment implements NotificationCe
     public boolean isSupportEdgeToEdge() {
         return true;
     }
-
-    @Nullable
     @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
+    public void onInsets(int left, int top, int right, int bottom) {
+        listView.setPadding(0, 0, 0, bottom);
+        listView.setClipToPadding(false);
     }
 }

@@ -77,7 +77,6 @@ import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.BubbleActivity;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
@@ -113,7 +112,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.HashSet;
 
 public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPhotoPaintView, PaintToolsView.Delegate, EntityView.EntityViewDelegate, PaintTextOptionsView.Delegate, SizeNotifierFrameLayout.SizeNotifierFrameLayoutDelegate, NotificationCenter.NotificationCenterDelegate {
     public PaintCancelView cancelButton;
@@ -1177,7 +1175,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
 
         drawTab = new TextView(context);
         drawTab.setText(LocaleController.getString(R.string.PhotoEditorDraw).toUpperCase());
-        ThemeBind.selectorBackground(drawTab, Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP), null, ThemeBind.of(Theme.key_listSelector), resourcesProvider);
+        drawTab.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP));
         drawTab.setPadding(0, dp(8), 0, dp(8));
         drawTab.setTextColor(Color.WHITE);
         drawTab.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
@@ -1195,7 +1193,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
 
         stickerTab = new TextView(context);
         stickerTab.setText(LocaleController.getString(R.string.PhotoEditorSticker).toUpperCase());
-        ThemeBind.selectorBackground(stickerTab, Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP), null, ThemeBind.of(Theme.key_listSelector), resourcesProvider);
+        stickerTab.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP));
         stickerTab.setPadding(0, dp(8), 0, dp(8));
         stickerTab.setOnClickListener(v -> openStickersView());
         stickerTab.setTextColor(Color.WHITE);
@@ -1208,7 +1206,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
 
         textTab = new TextView(context);
         textTab.setText(LocaleController.getString(R.string.PhotoEditorText).toUpperCase());
-        ThemeBind.selectorBackground(textTab, Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP), null, ThemeBind.of(Theme.key_listSelector), resourcesProvider);
+        textTab.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP));
         textTab.setPadding(0, dp(8), 0, dp(8));
         textTab.setTextColor(Color.WHITE);
         textTab.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
@@ -1743,32 +1741,6 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
     @Override
     public void updateColors() {
         toolsPaint.setColor(0xff191919);
-    }
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_actionBarDefaultSubmenuBackground);
-        colors.add(Theme.key_dialogBackground);
-        colors.add(Theme.key_dialogTextBlack);
-        colors.add(Theme.key_dialogTextGray3);
-        colors.add(Theme.key_chat_emojiPanelBackground);
-        colors.add(Theme.key_chat_emojiPanelShadowLine);
-        colors.add(Theme.key_chat_emojiBottomPanelIcon);
-        colors.add(Theme.key_chat_emojiPanelBackspace);
-        colors.add(Theme.key_chat_emojiPanelIcon);
-        colors.add(Theme.key_windowBackgroundWhiteBlackText);
-        colors.add(Theme.key_featuredStickers_addedIcon);
-        colors.add(Theme.key_profile_tabSelectedText);
-        colors.add(Theme.key_profile_tabText);
-        colors.add(Theme.key_profile_tabSelectedLine);
-        colors.add(Theme.key_profile_tabSelector);
-        colors.add(Theme.key_chat_emojiSearchIcon);
-        colors.add(Theme.key_chat_emojiSearchBackground);
-        colors.add(Theme.key_windowBackgroundGray);
-        colors.add(Theme.key_fastScrollInactive);
-        colors.add(Theme.key_fastScrollActive);
-        colors.add(Theme.key_fastScrollText);
-        colors.add(Theme.key_windowBackgroundWhite);
-        colors.add(Theme.key_divider);
     }
 
     private BlurredBackgroundDrawable blurredBackgroundDrawableForTools;
@@ -2434,23 +2406,23 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
 
             imageView = new ImageView(context);
             imageView.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(imageView, Theme.key_actionBarDefaultSubmenuItem, LPhotoPaintView.this.resourcesProvider, PorterDuff.Mode.SRC_ATOP);
+            imageView.setColorFilter(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
             imagesView.addView(imageView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
             image2View = new ImageView(context);
             image2View.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(image2View, Theme.key_actionBarDefaultSubmenuItem, LPhotoPaintView.this.resourcesProvider, PorterDuff.Mode.SRC_ATOP);
+            image2View.setColorFilter(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
             image2View.setVisibility(View.GONE);
             imagesView.addView(image2View, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
 
             textView = new TextView(context);
-            ThemeBind.textColor(textView, Theme.key_actionBarDefaultSubmenuItem, LPhotoPaintView.this.resourcesProvider);
+            textView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             addView(textView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 0, 0, 16, 0));
 
             checkView = new ImageView(context);
             checkView.setImageResource(R.drawable.msg_text_check);
             checkView.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(checkView, Theme.key_radioBackgroundChecked, LPhotoPaintView.this.resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            checkView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_radioBackgroundChecked), PorterDuff.Mode.MULTIPLY));
             checkView.setVisibility(View.GONE);
             addView(checkView, LayoutHelper.createLinear(50, LayoutHelper.MATCH_PARENT));
         }
@@ -2640,7 +2612,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
             parent.setOrientation(LinearLayout.HORIZONTAL);
 
             TextView deleteView = new TextView(getContext());
-            ThemeBind.textColor(deleteView, Theme.key_actionBarDefaultSubmenuItem, resourcesProvider);
+            deleteView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
             deleteView.setBackground(Theme.getSelectorDrawable(false));
             deleteView.setGravity(Gravity.CENTER_VERTICAL);
             deleteView.setPadding(dp(16), 0, dp(14), 0);
@@ -2659,7 +2631,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
 
             if (entityView instanceof TextPaintView) {
                 TextView editView = new TextView(getContext());
-                ThemeBind.textColor(editView, Theme.key_actionBarDefaultSubmenuItem, resourcesProvider);
+                editView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
                 editView.setBackground(Theme.getSelectorDrawable(false));
                 editView.setGravity(Gravity.CENTER_VERTICAL);
                 editView.setPadding(dp(16), 0, dp(16), 0);
@@ -2679,7 +2651,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
 
             if (entityView instanceof StickerView) {
                 TextView flipView = new TextView(getContext());
-                ThemeBind.textColor(flipView, Theme.key_actionBarDefaultSubmenuItem, resourcesProvider);
+                flipView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
                 flipView.setBackgroundDrawable(Theme.getSelectorDrawable(false));
                 flipView.setGravity(Gravity.CENTER_VERTICAL);
                 flipView.setEllipsize(TextUtils.TruncateAt.END);
@@ -2699,7 +2671,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
 
             if (!(entityView instanceof PhotoView)) {
                 TextView duplicateView = new TextView(getContext());
-                ThemeBind.textColor(duplicateView, Theme.key_actionBarDefaultSubmenuItem, resourcesProvider);
+                duplicateView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
                 duplicateView.setBackgroundDrawable(Theme.getSelectorDrawable(false));
                 duplicateView.setGravity(Gravity.CENTER_VERTICAL);
                 duplicateView.setEllipsize(TextUtils.TruncateAt.END);
@@ -2720,7 +2692,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
             if (entityView instanceof PhotoView && ((PhotoView) entityView).hasSegmentedImage()) {
                 PhotoView photoView = (PhotoView) entityView;
                 TextView cutView = new TextView(getContext());
-                ThemeBind.textColor(cutView, Theme.key_actionBarDefaultSubmenuItem, resourcesProvider);
+                cutView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
                 cutView.setBackgroundDrawable(Theme.getSelectorDrawable(false));
                 cutView.setGravity(Gravity.CENTER_VERTICAL);
                 cutView.setEllipsize(TextUtils.TruncateAt.END);
@@ -3637,7 +3609,7 @@ public class LPhotoPaintView extends SizeNotifierFrameLayoutPhoto implements IPh
     protected void onAttachedToWindow() {
         destroyed = false;
         super.onAttachedToWindow();
-        NotificationCenter.getGlobalInstance().addWeakObserver(this, NotificationCenter.customTypefacesLoaded);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.customTypefacesLoaded);
     }
 
     @Override

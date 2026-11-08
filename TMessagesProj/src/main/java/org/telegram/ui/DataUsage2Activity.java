@@ -2,7 +2,6 @@ package org.telegram.ui;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
 
-import org.telegram.messenger.FileLog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
@@ -11,7 +10,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -45,7 +43,6 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
@@ -56,16 +53,9 @@ import org.telegram.ui.Components.ListView.AdapterWithDiffUtils;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.Components.ViewPagerFixed;
-import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
-import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.ui.Components.blur3.utils.Blur3Utils;
-import org.telegram.utils.glass.BaseFragmentSimpleGlass;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import me.vkryl.core.reference.ReferenceList;
 
 public class DataUsage2Activity extends BaseFragment {
 
@@ -88,19 +78,17 @@ public class DataUsage2Activity extends BaseFragment {
     private ViewPagerFixed pager;
     private ViewPagerFixed.Adapter pageAdapter;
     private ViewPagerFixed.TabsView tabsView;
-    private FrameLayout tabsContainer;
-    private View listTopOverlay;
-
-    @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
 
     @Override
     public View createView(Context context) {
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        simpleActionBar.setTitle(LocaleController.getString(R.string.NetworkUsage));
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setTitle(LocaleController.getString(R.string.NetworkUsage));
+        actionBar.setBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefault));
+        actionBar.setTitleColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
+        actionBar.setItemsColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), false);
+        actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_listSelector), false);
+        actionBar.setCastShadows(false);
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -114,45 +102,26 @@ public class DataUsage2Activity extends BaseFragment {
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(heightMeasureSpec), MeasureSpec.EXACTLY));
             }
+
+            @Override
+            protected void dispatchDraw(Canvas canvas) {
+                super.dispatchDraw(canvas);
+                if (getParentLayout() != null && tabsView != null) {
+                    float y = tabsView.getMeasuredHeight();
+                    canvas.drawLine(0, y, getWidth(), y, Theme.dividerPaint);
+                }
+            }
         };
-        ThemeBind.backgroundColor(frameLayout, Theme.key_windowBackgroundGray, getResourceProvider());
+        frameLayout.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
 
         pager = new ViewPagerFixed(context);
         pager.setAdapter(pageAdapter = new PageAdapter());
 
-        tabsContainer = new FrameLayout(context);
-        tabsView = pager.createTabsView(true, ViewPagerFixed.SELECTOR_TYPE_BUBBLE_STYLE);
-        frameLayout.addView(pager, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
+        tabsView = pager.createTabsView(true, 8);
+        tabsView.setBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefault));
+        frameLayout.addView(tabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.FILL_HORIZONTAL));
 
-        listTopOverlay = new View(context);
-        frameLayout.addView(listTopOverlay, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.TOP));
-        ViewGroup.LayoutParams layoutParams = listTopOverlay.getLayoutParams();
-        layoutParams.height = insetTop + ActionBar.getCurrentActionBarHeight() + dp(44);
-
-        tabsContainer.setTranslationY(BaseFragmentSimpleGlass.getPillGlassTop(insetTop) - dp(9.66f));
-        tabsContainer.addView(tabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 6 + 6));
-        tabsContainer.setPadding(dp(4), dp(4), dp(4), dp(4));
-        tabsContainer.setBackground(getBaseSimpleGlass().factory
-            .create(tabsContainer)
-            .setColorProvider(BlurredBackgroundProviderImpl.simpleActionBar(resourceProvider))
-            .setPadding(dp(9.66f))
-            .setRadius(dp(18))
-        );
-
-        getBaseSimpleGlass().setViews(frameLayout, pager, simpleActionBar, resourceProvider);
-        getBaseSimpleGlass().setCapture((canvas, position) -> {
-            for (int a = 0, N = pager.getChildCount(); a < N; a++) {
-                final View v = pager.getChildAt(a);
-                if (v instanceof RecyclerListView) {
-                    final RecyclerListView listView = (RecyclerListView) v;
-                    Blur3Utils.captureRelativeParent(listView, canvas, position, listView, frameLayout);
-                }
-            }
-        });
-        getBaseSimpleGlass().setClipView(null);
-        frameLayout.addView(tabsContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, -4, 0, -4, 0));
-        listTopOverlay.setBackground(getBaseSimpleGlass().createActionBarFadeDrawable(listTopOverlay));
-        simpleActionBar.setBackground(null);
+        frameLayout.addView(pager, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL, 0, 48, 0, 0));
 
         return fragmentView = frameLayout;
     }
@@ -173,8 +142,6 @@ public class DataUsage2Activity extends BaseFragment {
         return resourcesProvider;
     }
 
-    private final ReferenceList<ListView> listViews = new ReferenceList<>();
-
     private class PageAdapter extends ViewPagerFixed.Adapter {
 
         @Override
@@ -184,9 +151,7 @@ public class DataUsage2Activity extends BaseFragment {
 
         @Override
         public View createView(int viewType) {
-            final ListView listView = new ListView(getContext());
-            listViews.add(listView);
-            return listView;
+            return new ListView(getContext());
         }
 
         @Override
@@ -269,9 +234,6 @@ public class DataUsage2Activity extends BaseFragment {
 
         public ListView(Context context) {
             super(context);
-            glassEngine.addScrolledView(this);
-            setClipToPadding(false);
-            setCaptureSectionsDecoratorAllowed(true);
             setLayoutManager(layoutManager = new LinearLayoutManager(context));
             setAdapter(adapter = new Adapter());
             setSections();
@@ -312,7 +274,7 @@ public class DataUsage2Activity extends BaseFragment {
                     showDialog(dialog);
                     TextView button = (TextView) dialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     if (button != null) {
-                        ThemeBind.textColor(button, Theme.key_text_RedBold);
+                        button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     }
                 }
             });
@@ -323,8 +285,6 @@ public class DataUsage2Activity extends BaseFragment {
             itemAnimator.setDelayAnimations(false);
             itemAnimator.setSupportsChangeAnimations(false);
             setItemAnimator(itemAnimator);
-
-            checkInsets();
         }
 
         public void setType(int type) {
@@ -376,10 +336,6 @@ public class DataUsage2Activity extends BaseFragment {
         private boolean empty;
 
         private CacheChart chart;
-
-        public void checkInsets() {
-            BaseFragmentSimpleGlass.setListViewParams(this, insetTop, insetBottom, ActionBar.getCurrentActionBarHeight() + dp(42), 0);
-        }
 
         private String formatPercent(int percent) {
             return percent <= 0 ? String.format("<%d%%", 1) : String.format("%d%%", percent);
@@ -444,13 +400,13 @@ public class DataUsage2Activity extends BaseFragment {
 
                 SpannableString sentIcon = new SpannableString("^");
                 Drawable sentIconDrawable = getContext().getResources().getDrawable(R.drawable.msg_mini_upload).mutate();
-                ThemeBind.drawableColorFilter(this, sentIconDrawable, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+                sentIconDrawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), PorterDuff.Mode.MULTIPLY));
                 sentIconDrawable.setBounds(0, AndroidUtilities.dp(2), AndroidUtilities.dp(16), AndroidUtilities.dp(2 + 16));
                 sentIcon.setSpan(new ImageSpan(sentIconDrawable, DynamicDrawableSpan.ALIGN_CENTER), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
                 SpannableString receivedIcon = new SpannableString("v");
                 Drawable receivedIconDrawable = getContext().getResources().getDrawable(R.drawable.msg_mini_download).mutate();
-                ThemeBind.drawableColorFilter(this, receivedIconDrawable, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+                receivedIconDrawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), PorterDuff.Mode.MULTIPLY));
                 receivedIconDrawable.setBounds(0, AndroidUtilities.dp(2), AndroidUtilities.dp(16), AndroidUtilities.dp(2 + 16));
                 receivedIcon.setSpan(new ImageSpan(receivedIconDrawable, DynamicDrawableSpan.ALIGN_CENTER), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
@@ -664,17 +620,17 @@ public class DataUsage2Activity extends BaseFragment {
                         break;
                     case VIEW_TYPE_HEADER:
                         view = new HeaderCell(getContext());
-                        ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, ListView.this.resourcesProvider);
+                        view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                         break;
                     case VIEW_TYPE_RESET_BUTTON:
                         TextCell textCell = new TextCell(getContext());
-                        ThemeBind.textColor(textCell.getTextView(), Theme.key_text_RedRegular, ListView.this.resourcesProvider);
-                        ThemeBind.backgroundColor(textCell, Theme.key_windowBackgroundWhite, ListView.this.resourcesProvider);
+                        textCell.setTextColor(getThemedColor(Theme.key_text_RedRegular));
+                        textCell.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                         view = textCell;
                         break;
                     case VIEW_TYPE_END:
                         view = new View(getContext()) {
-                            { ThemeBind.backgroundColor(this, Theme.key_windowBackgroundWhite, ListView.this.resourcesProvider); }
+                            { setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite)); }
                             @Override
                             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                                 super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(4), MeasureSpec.EXACTLY));
@@ -955,7 +911,7 @@ public class DataUsage2Activity extends BaseFragment {
             textView = new TextView(context);
             textView.setGravity(Gravity.CENTER);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText, DataUsage2Activity.this.getResourceProvider());
+            textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText));
 
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL, 24, 0, 24, 14));
         }
@@ -970,7 +926,7 @@ public class DataUsage2Activity extends BaseFragment {
         }
     }
 
-    public static class RoundingCell extends View implements Theme.Colorable {
+    public static class RoundingCell extends View {
         Path path = new Path();
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -1013,16 +969,6 @@ public class DataUsage2Activity extends BaseFragment {
             super.onConfigurationChanged(newConfig);
             requestLayout();
         }
-
-        @Override
-        public void updateColors() {
-            try {
-                paint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-                invalidate();
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
     }
 
     class Cell extends FrameLayout {
@@ -1037,7 +983,7 @@ public class DataUsage2Activity extends BaseFragment {
         public Cell(Context context) {
             super(context);
 
-            ThemeBind.backgroundColor(this, Theme.key_windowBackgroundWhite, DataUsage2Activity.this.getResourceProvider());
+            setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
 
             imageView = new ImageView(context);
             imageView.setScaleType(ImageView.ScaleType.CENTER);
@@ -1058,7 +1004,7 @@ public class DataUsage2Activity extends BaseFragment {
 
             textView = new TextView(context);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, DataUsage2Activity.this.getResourceProvider());
+            textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
             textView.setEllipsize(TextUtils.TruncateAt.END);
             textView.setSingleLine();
             textView.setLines(1);
@@ -1066,7 +1012,7 @@ public class DataUsage2Activity extends BaseFragment {
             arrowView = new ImageView(context);
             arrowView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             arrowView.setImageResource(R.drawable.arrow_more);
-            ThemeBind.colorFilter(arrowView, Theme.key_windowBackgroundWhiteBlackText, DataUsage2Activity.this.getResourceProvider(), PorterDuff.Mode.MULTIPLY);
+            arrowView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), PorterDuff.Mode.MULTIPLY));
             arrowView.setTranslationY(AndroidUtilities.dp(1));
             arrowView.setVisibility(View.GONE);
 
@@ -1080,7 +1026,7 @@ public class DataUsage2Activity extends BaseFragment {
 
             valueTextView = new TextView(context);
             valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-            ThemeBind.textColor(valueTextView, Theme.key_windowBackgroundWhiteBlueText2, DataUsage2Activity.this.getResourceProvider());
+            valueTextView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueText2));
             valueTextView.setGravity(LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT);
 
             if (LocaleController.isRTL) {
@@ -1192,27 +1138,5 @@ public class DataUsage2Activity extends BaseFragment {
             return true;
         }
         return pager.getCurrentPosition() == 0;
-    }
-
-    @Override
-    public boolean isSupportEdgeToEdge() {
-        return true;
-    }
-
-    private int insetTop;
-    private int insetBottom;
-
-    @Override
-    public void onInsets(int left, int top, int right, int bottom) {
-        this.insetTop = top;
-        this.insetBottom = bottom;
-
-        tabsContainer.setTranslationY(BaseFragmentSimpleGlass.getPillGlassTop(insetTop) - dp(9.66f));
-        ViewGroup.LayoutParams layoutParams = listTopOverlay.getLayoutParams();
-        layoutParams.height = insetTop + ActionBar.getCurrentActionBarHeight() + dp(44);
-
-        for (ListView listView : listViews) {
-            listView.checkInsets();
-        }
     }
 }

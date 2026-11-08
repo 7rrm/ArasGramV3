@@ -32,7 +32,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.DialogCell;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.AlertsCreator;
@@ -395,7 +394,7 @@ public class CommunityUtils {
                 if (!add) {
                     TextView button = (TextView) dialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     if (button != null) {
-                        ThemeBind.textColor(button, Theme.key_text_RedBold);
+                        button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     }
                 }
                 return;

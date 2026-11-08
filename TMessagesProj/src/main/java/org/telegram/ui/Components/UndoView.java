@@ -65,23 +65,19 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.Components.Premium.boosts.BoostRepository;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PaymentFormActivity;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
 
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.helpers.AppRestartHelper;
 
 @SuppressWarnings("FieldCanBeLocal")
 // @Deprecated // use Bulletin instead
-public class UndoView extends FrameLayout implements Theme.Colorable {
+public class UndoView extends FrameLayout {
 
     private int infoTextViewEmojiCacheType = AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES;
     private LinkSpanDrawable.LinksTextView infoTextView;
@@ -91,10 +87,6 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
     private RLottieImageView leftImageView;
     private BackupImageView avatarImageView;
     private LinearLayout undoButton;
-
-    public View getUndoButton() {
-        return undoButton;
-    }
     private int undoViewHeight;
 
     private BaseFragment parentFragment;
@@ -275,15 +267,15 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
             }
         };
         infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-        ThemeBind.textColor(infoTextView, Theme.key_undo_infoColor, resourcesProvider);
-        ThemeBind.linkTextColor(infoTextView, Theme.key_undo_cancelColor, resourcesProvider);
+        infoTextView.setTextColor(getThemedColor(Theme.key_undo_infoColor));
+        infoTextView.setLinkTextColor(getThemedColor(Theme.key_undo_cancelColor));
         infoTextView.setMovementMethod(new LinkMovementMethodMy());
         addView(infoTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 45, 13, 0, 0));
 
         subinfoTextView = new TextView(context);
         subinfoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        ThemeBind.textColor(subinfoTextView, Theme.key_undo_infoColor, resourcesProvider);
-        ThemeBind.linkTextColor(subinfoTextView, Theme.key_undo_cancelColor, resourcesProvider);
+        subinfoTextView.setTextColor(getThemedColor(Theme.key_undo_infoColor));
+        subinfoTextView.setLinkTextColor(getThemedColor(Theme.key_undo_cancelColor));
         subinfoTextView.setHighlightColor(0);
         subinfoTextView.setSingleLine(true);
         subinfoTextView.setEllipsize(TextUtils.TruncateAt.END);
@@ -292,7 +284,21 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
 
         leftImageView = new RLottieImageView(context);
         leftImageView.setScaleType(ImageView.ScaleType.CENTER);
-        applyDefaultLayerColors();
+        leftImageView.setLayerColor("info1", getThemedColor(Theme.key_undo_background) | 0xff000000);
+        leftImageView.setLayerColor("info2", getThemedColor(Theme.key_undo_background) | 0xff000000);
+        leftImageView.setLayerColor("luc12", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc11", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc10", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc9", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc8", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc7", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc6", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc5", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc4", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc3", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc2", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("luc1", getThemedColor(Theme.key_undo_infoColor));
+        leftImageView.setLayerColor("Oval", getThemedColor(Theme.key_undo_infoColor));
         addView(leftImageView, LayoutHelper.createFrame(54, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.LEFT, 3, 0, 0, 0));
 
         avatarImageView = new BackupImageView(context);
@@ -312,13 +318,13 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
 
         undoImageView = new ImageView(context);
         undoImageView.setImageResource(R.drawable.chats_undo);
-        ThemeBind.colorFilter(undoImageView, Theme.key_undo_cancelColor, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+        undoImageView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_undo_cancelColor), PorterDuff.Mode.MULTIPLY));
         undoButton.addView(undoImageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.LEFT, 4, 4, 0, 4));
 
         undoTextView = new TextView(context);
         undoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         undoTextView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(undoTextView, Theme.key_undo_cancelColor, resourcesProvider);
+        undoTextView.setTextColor(getThemedColor(Theme.key_undo_cancelColor));
         undoTextView.setText(LocaleController.getString(R.string.UndoNoCaps));
         undoButton.addView(undoTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.LEFT, 6, 4, 8, 4));
 
@@ -419,80 +425,6 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
         }
     }
 
-    private boolean customColors;
-
-    private void applyDefaultLayerColors() {
-        setLayerColorKey("info1", Theme.key_undo_background, true);
-        setLayerColorKey("info2", Theme.key_undo_background, true);
-        setLayerColorKey("luc12", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc11", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc10", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc9", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc8", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc7", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc6", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc5", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc4", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc3", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc2", Theme.key_undo_infoColor, false);
-        setLayerColorKey("luc1", Theme.key_undo_infoColor, false);
-        setLayerColorKey("Oval", Theme.key_undo_infoColor, false);
-    }
-
-    // parallel lists (indexed loops: no iterator allocation in the per-frame updateColors)
-    private final ArrayList<String> layerColorNames = new ArrayList<>();
-    private final ArrayList<Integer> layerColorKeys = new ArrayList<>();
-    private final ArrayList<Boolean> layerColorOpaque = new ArrayList<>();
-
-    private void removeLayerColorKey(String layer) {
-        final int index = layerColorNames.indexOf(layer);
-        if (index >= 0) {
-            layerColorNames.remove(index);
-            layerColorKeys.remove(index);
-            layerColorOpaque.remove(index);
-        }
-    }
-
-    private void setLayerColorKey(String layer, int key, boolean opaque) {
-        final int index = layerColorNames.indexOf(layer);
-        if (index >= 0) {
-            layerColorKeys.set(index, key);
-            layerColorOpaque.set(index, opaque);
-        } else {
-            layerColorNames.add(layer);
-            layerColorKeys.add(key);
-            layerColorOpaque.add(opaque);
-        }
-        leftImageView.setLayerColor(layer, opaque ? getThemedColor(key) | 0xff000000 : getThemedColor(key));
-    }
-
-    @Override
-    public void updateColors() {
-        try {
-            if (customColors) {
-                return;
-            }
-            for (int i = 0; i < layerColorNames.size(); ++i) {
-                final int color = getThemedColor(layerColorKeys.get(i));
-                leftImageView.setLayerColor(layerColorNames.get(i), layerColorOpaque.get(i) ? color | 0xff000000 : color);
-            }
-            progressPaint.setColor(getThemedColor(Theme.key_undo_infoColor));
-            textPaint.setColor(getThemedColor(Theme.key_undo_infoColor));
-            Theme.setDrawableColor(backgroundDrawable, getThemedColor(Theme.key_undo_background));
-            invalidate();
-            if (undoButton != null) {
-                Theme.setSelectorDrawableColor(undoButton.getBackground(), getThemedColor(Theme.key_undo_cancelColor) & 0x22ffffff, true);
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_undo_background);
-    }
-
     public void setColors(int background, int text) {
         // The capsule is not a shape Theme.setDrawableColor knows, so it would
         // be handed a MULTIPLY filter rather than the colour itself.
@@ -503,8 +435,6 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
         }
         infoTextView.setTextColor(text);
         subinfoTextView.setTextColor(text);
-        removeLayerColorKey("info1");
-        removeLayerColorKey("info2");
         leftImageView.setLayerColor("info1", background | 0xff000000);
         leftImageView.setLayerColor("info2", background | 0xff000000);
     }
@@ -1317,7 +1247,7 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
                 timeLeft = 3000;
             }
             subinfoTextView.setVisibility(GONE);
-            ThemeBind.textColor(undoTextView, Theme.key_undo_cancelColor, resourcesProvider);
+            undoTextView.setTextColor(getThemedColor(Theme.key_undo_cancelColor));
             undoButton.setVisibility(GONE);
 
             layoutParams.leftMargin = AndroidUtilities.dp(58);
@@ -1343,10 +1273,10 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
                 infoTextView.setTypeface(AndroidUtilities.bold());
                 infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
                 leftImageView.clearLayerColors();
-                setLayerColorKey("BODY", Theme.key_undo_infoColor, false);
-                setLayerColorKey("Wibe Big", Theme.key_undo_infoColor, false);
-                setLayerColorKey("Wibe Big 3", Theme.key_undo_infoColor, false);
-                setLayerColorKey("Wibe Small", Theme.key_undo_infoColor, false);
+                leftImageView.setLayerColor("BODY", getThemedColor(Theme.key_undo_infoColor));
+                leftImageView.setLayerColor("Wibe Big", getThemedColor(Theme.key_undo_infoColor));
+                leftImageView.setLayerColor("Wibe Big 3", getThemedColor(Theme.key_undo_infoColor));
+                leftImageView.setLayerColor("Wibe Small", getThemedColor(Theme.key_undo_infoColor));
 
                 infoTextView.setText(LocaleController.getString(R.string.ProximityAlertSet));
                 leftImageView.setAnimation(R.raw.ic_unmute, 28, 28);
@@ -1366,18 +1296,18 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
                 infoTextView.setTypeface(Typeface.DEFAULT);
                 infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
                 leftImageView.clearLayerColors();
-                setLayerColorKey("Body Main", Theme.key_undo_infoColor, false);
-                setLayerColorKey("Body Top", Theme.key_undo_infoColor, false);
-                setLayerColorKey("Line", Theme.key_undo_infoColor, false);
-                setLayerColorKey("Curve Big", Theme.key_undo_infoColor, false);
-                setLayerColorKey("Curve Small", Theme.key_undo_infoColor, false);
+                leftImageView.setLayerColor("Body Main", getThemedColor(Theme.key_undo_infoColor));
+                leftImageView.setLayerColor("Body Top", getThemedColor(Theme.key_undo_infoColor));
+                leftImageView.setLayerColor("Line", getThemedColor(Theme.key_undo_infoColor));
+                leftImageView.setLayerColor("Curve Big", getThemedColor(Theme.key_undo_infoColor));
+                leftImageView.setLayerColor("Curve Small", getThemedColor(Theme.key_undo_infoColor));
 
                 layoutParams.topMargin = AndroidUtilities.dp(14);
 
                 infoTextView.setText(LocaleController.getString(R.string.ProximityAlertCancelled));
                 leftImageView.setAnimation(R.raw.ic_mute, 28, 28);
                 subinfoTextView.setVisibility(GONE);
-                ThemeBind.textColor(undoTextView, Theme.key_undo_cancelColor, resourcesProvider);
+                undoTextView.setTextColor(getThemedColor(Theme.key_undo_cancelColor));
                 undoButton.setVisibility(VISIBLE);
             }
 
@@ -1398,7 +1328,7 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
             infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             infoTextView.setTypeface(AndroidUtilities.bold());
 
-            ThemeBind.textColor(undoTextView, Theme.key_text_RedRegular, resourcesProvider);
+            undoTextView.setTextColor(getThemedColor(Theme.key_text_RedRegular));
             undoImageView.setVisibility(GONE);
             undoButton.setVisibility(VISIBLE);
             leftImageView.setVisibility(VISIBLE);
@@ -1472,7 +1402,7 @@ public class UndoView extends FrameLayout implements Theme.Colorable {
             if (currentAction == ACTION_DICE_INFO) {
                 margin = (int) Math.ceil(undoTextView.getPaint().measureText(undoTextView.getText().toString())) + AndroidUtilities.dp(26);
                 undoTextView.setVisibility(VISIBLE);
-                ThemeBind.textColor(undoTextView, Theme.key_undo_cancelColor, resourcesProvider);
+                undoTextView.setTextColor(getThemedColor(Theme.key_undo_cancelColor));
                 undoImageView.setVisibility(GONE);
                 undoButton.setVisibility(VISIBLE);
             } else {

@@ -4,6 +4,7 @@ import static org.telegram.messenger.AndroidUtilities.distance;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.dpf2;
 import static org.telegram.messenger.AndroidUtilities.lerp;
+import static org.telegram.messenger.AndroidUtilities.pack;
 import static org.telegram.messenger.LocaleController.formatPluralStringComma;
 import static org.telegram.messenger.LocaleController.getString;
 import static org.telegram.ui.Stars.StarsController.findAttribute;
@@ -32,17 +33,20 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.style.ReplacementSpan;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -68,19 +72,23 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.DocumentObject;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLoader;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
+import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.utils.DrawableUtils;
+import org.telegram.messenger.utils.GradientProtectionDrawable;
+import org.telegram.messenger.utils.OnPostDrawView;
+import org.telegram.messenger.utils.RectFMergeBounding;
 import org.telegram.messenger.utils.ViewOutlineProviderImpl;
 import org.telegram.messenger.utils.tlutils.AmountUtils;
 import org.telegram.tgnet.TLRPC;
@@ -93,7 +101,6 @@ import org.telegram.ui.ActionBar.EdgeToEdgeSupportMode;
 import org.telegram.ui.ActionBar.MessageDrawable;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Cells.HeaderCell;
@@ -130,9 +137,15 @@ import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.Components.ViewPagerFixed;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.BlurredBackgroundWithFadeDrawable;
+import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
+import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceWrapped;
+import org.telegram.ui.Components.blur3.utils.Blur3Utils;
+import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.Gifts.GiftSheet;
 import org.telegram.ui.Gifts.ResaleGiftsFragment;
 import org.telegram.ui.Stars.StarGiftPatterns;
@@ -141,14 +154,15 @@ import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.StoriesUtilities;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import org.telegram.ui.iv.RichCommand;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import xyz.nextalone.nagram.helper.LocalPeerColorHelper;
+import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.reference.ReferenceList;
 
 public class PeerColorActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
@@ -369,7 +383,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                     switch (viewType) {
                         case VIEW_TYPE_HEADER:
                             HeaderCell headerCell = new HeaderCell(getContext(), resourceProvider);
-                            ThemeBind.backgroundColor(headerCell, Theme.key_windowBackgroundWhite, PeerColorActivity.this.getResourceProvider());
+                            headerCell.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                             view = headerCell;
                             break;
                         case VIEW_TYPE_GIFT:
@@ -396,7 +410,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                             break;
                         case VIEW_TYPE_COLOR_PICKER:
                             PeerColorGrid colorPicker = peerColorPicker = new PeerColorGrid(getContext(), type, currentAccount, resourceProvider);
-                            ThemeBind.backgroundColor(colorPicker, Theme.key_windowBackgroundWhite, PeerColorActivity.this.getResourceProvider());
+                            colorPicker.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                             colorPicker.setSelected(selectedColor, false);
                             colorPicker.setOnColorClick(colorId -> {
                                 selectedColor = colorId;
@@ -426,7 +440,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                             break;
                         case VIEW_TYPE_TEXT:
                             TextCell textCell = new TextCell(getContext(), getResourceProvider());
-                            ThemeBind.backgroundColor(textCell, Theme.key_windowBackgroundWhite, PeerColorActivity.this.getResourceProvider());
+                            textCell.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                             view = textCell;
                             break;
                         case 4:
@@ -483,7 +497,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                         case VIEW_TYPE_TEXT:
                             TextCell textCell = (TextCell) holder.itemView;
                             textCell.updateColors();
-                            ThemeBind.backgroundColor(textCell, Theme.key_windowBackgroundWhite, PeerColorActivity.this.getResourceProvider());
+                            textCell.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                             textCell.updateColors();
                             if (position == clearRow) {
                                 textCell.setText(getString(isChannel ? R.string.ChannelProfileColorReset : R.string.UserProfileColorReset), false);
@@ -494,7 +508,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                             if (position == giftsHeaderRow) {
                                 headerCell.setText(getString(R.string.UserProfileCollectibleHeader), false);
                             }
-                            ThemeBind.backgroundColor(headerCell, Theme.key_windowBackgroundWhite, PeerColorActivity.this.getResourceProvider());
+                            headerCell.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                             break;
                         case VIEW_TYPE_GIFT:
                             GiftCell giftCell = (GiftCell) holder.itemView;
@@ -566,7 +580,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                             holder.itemView.post(Page.this::updateGiftTabsPosition);
                             break;
                         case VIEW_TYPE_COLOR_PICKER:
-                            ThemeBind.backgroundColor(holder.itemView, Theme.key_windowBackgroundWhite, PeerColorActivity.this.getResourceProvider());
+                            holder.itemView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                             ((PeerColorGrid) holder.itemView).updateColors();
                             break;
                         case VIEW_TYPE_ICON:
@@ -733,6 +747,13 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                 public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
 
+                    if (dy != 0) {
+                        invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_SCROLL);
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && scrollableViewNoiseSuppressor != null) {
+                        scrollableViewNoiseSuppressor.onScrolled(dx, dy);
+                    }
+
                     updateGiftTabsPosition();
                     if (selectedTabGift != null) {
                         if (resaleGifts != null && seesLoading()) {
@@ -826,7 +847,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             setWillNotDraw(false);
         }
 
-        public class EmptyView extends LinearLayout implements Theme.Colorable {
+        public class EmptyView extends LinearLayout {
 
             private final BackupImageView imageView;
             private final TextView title;
@@ -836,7 +857,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                 super(context);
 
                 setOrientation(LinearLayout.VERTICAL);
-                ThemeBind.backgroundColor(this, Theme.key_windowBackgroundWhite, PeerColorActivity.this.getResourceProvider());
+                setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
 
                 imageView = new BackupImageView(getContext());
                 imageView.setImageDrawable(new RLottieDrawable(R.raw.utyan_draw, dp(120), dp(120)));
@@ -870,7 +891,6 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                 addView(subtitle, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 4, 32, 24));
             }
 
-            @Override
             public void updateColors() {
                 setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                 title.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText));
@@ -926,7 +946,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             }
         }
 
-        private class SetReplyIconCell extends FrameLayout implements Theme.Colorable {
+        private class SetReplyIconCell extends FrameLayout {
 
             private TextView textView;
             private Text offText;
@@ -935,11 +955,11 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             public SetReplyIconCell(Context context) {
                 super(context);
 
-                ThemeBind.backgroundColor(this, Theme.key_windowBackgroundWhite, PeerColorActivity.this.getResourceProvider());
+                setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
 
                 textView = new TextView(context);
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-                ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, PeerColorActivity.this.getResourceProvider());
+                textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
                 if (type == PAGE_NAME) {
                     textView.setText(getString(isChannel ? R.string.ChannelReplyIcon : R.string.UserReplyIcon));
                 } else {
@@ -950,7 +970,6 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                 imageDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(this, false, dp(24), AnimatedEmojiDrawable.CACHE_TYPE_ALERT_PREVIEW_STATIC);
             }
 
-            @Override
             public void updateColors() {
                 setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                 textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
@@ -1484,24 +1503,42 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         }
     }
 
-    private final GlassSourceColor iBlur3SourceButtonColor;
+    private final BlurredBackgroundSourceColor iBlur3SourceButtonColor;
     private final BlurredBackgroundDrawableViewFactory iBlur3ButtonFactory;
 
-    private final GlassSourceColor iBlur3SourceBackgroundColor;
+    private final BlurredBackgroundSourceColor iBlur3SourceBackgroundColor;
     private final BlurredBackgroundDrawableViewFactory iBlur3BackgroundFactory;
 
     public PeerColorActivity(long dialogId) {
         super();
 
-        iBlur3SourceButtonColor = new GlassSourceColor();
+        iBlur3SourceButtonColor = new BlurredBackgroundSourceColor();
         iBlur3ButtonFactory = new BlurredBackgroundDrawableViewFactory(iBlur3SourceButtonColor);
-        iBlur3SourceBackgroundColor = new GlassSourceColor();
+        iBlur3SourceBackgroundColor = new BlurredBackgroundSourceColor();
         iBlur3BackgroundFactory = new BlurredBackgroundDrawableViewFactory(iBlur3SourceBackgroundColor);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.chatBlurEnabled()) {
+            scrollableViewNoiseSuppressor = new DownscaleScrollableNoiseSuppressor();
+
+            glassBackgroundSourceRenderNode = new BlurredBackgroundSourceRenderNode(iBlur3SourceButtonColor);
+            glassBackgroundSourceRenderNode.setOnDrawablesRelativePositionChangeListener(this::invalidateMergedVisibleBlurredPositionsAndSourcesPositions);
+            glassBackgroundSourceRenderNode.setScrollableNoiseSuppressor(scrollableViewNoiseSuppressor, DownscaleScrollableNoiseSuppressor.DRAW_GLASS);
+            glassBackgroundSourceRenderNode.setUnderSource(iBlur3SourceButtonColor);
+            glassBackgroundDrawableFactory = new BlurredBackgroundDrawableViewFactory(glassBackgroundSourceRenderNode);
+            glassBackgroundDrawableFactory.setLiquidGlassEffectAllowed(LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS));
+        } else {
+            scrollableViewNoiseSuppressor = null;
+            glassBackgroundSourceRenderNode = null;
+            glassBackgroundDrawableFactory = new BlurredBackgroundDrawableViewFactory(iBlur3SourceButtonColor);
+        }
         iBlur3ButtonFactory.setLinkedViewsRef(glassAttachedViews);
         iBlur3ButtonFactory.setLinkedDrawablesRef(glassAttachedDrawables);
         iBlur3BackgroundFactory.setLinkedViewsRef(glassAttachedViews);
         iBlur3BackgroundFactory.setLinkedDrawablesRef(glassAttachedDrawables);
+        glassBackgroundDrawableFactory.setLinkedViewsRef(glassAttachedViews);
+        glassBackgroundDrawableFactory.setLinkedDrawablesRef(glassAttachedDrawables);
+
+
 
         this.dialogId = dialogId;
         this.isChannel = dialogId != 0;
@@ -1581,9 +1618,9 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
 
     @Override
     public boolean onFragmentCreate() {
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.starUserGiftsLoaded);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.starGiftsLoaded);
+        getNotificationCenter().addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
+        getNotificationCenter().addObserver(this, NotificationCenter.starUserGiftsLoaded);
+        getNotificationCenter().addObserver(this, NotificationCenter.starGiftsLoaded);
         Bulletin.addDelegate(this, new Bulletin.Delegate() {
             @Override
             public int getBottomOffset(int tag) {
@@ -1635,6 +1672,11 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             }
         };
         fragmentView = contentView = frameLayout;
+
+        invalidateBlurredSourcesView = new OnPostDrawView(context, true, this::invalidateMergedVisibleBlurredPositionsAndSourcesImpl);
+        ViewPositionWatcher viewPositionWatcher = new ViewPositionWatcher(contentView);
+        glassBackgroundDrawableFactory.setSourceRootView(viewPositionWatcher, contentView);
+
         namePage = new Page(context, PAGE_NAME);
         profilePage = new Page(context, PAGE_PROFILE);
 
@@ -1674,6 +1716,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                 colorBar.setProgressToGradient(1 - getTabProgressFromPageProgress(position));
                 updateTabColors();
                 updateButtonState(true);
+                invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_SCROLL);
             }
         };
         viewPager.setAdapter(new ViewPagerFixed.Adapter() {
@@ -1724,7 +1767,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             titleView.setText(getString(R.string.ChannelColorTitle2));
             titleView.setEllipsizeByGradient(true);
             titleView.setTextSize(20);
-            ThemeBind.textColor(titleView, Theme.key_actionBarDefaultTitle, getResourceProvider());
+            titleView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
             titleView.setTypeface(AndroidUtilities.bold());
             actionBarContainer.addView(titleView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.LEFT, 72, 0, 72, 0));
         }
@@ -1736,7 +1779,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
 
         backButton = new ImageView(context);
         backButton.setScaleType(ImageView.ScaleType.CENTER);
-        ThemeBind.selectorBackground(backButton, Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarWhiteSelector), Theme.RIPPLE_MASK_CIRCLE_20DP), null, ThemeBind.of(Theme.key_actionBarWhiteSelector), getResourceProvider());
+        backButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarWhiteSelector), Theme.RIPPLE_MASK_CIRCLE_20DP));
         backButton.setImageResource(R.drawable.ic_ab_back);
         backButton.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
         backButton.setOnClickListener(v -> {
@@ -1767,7 +1810,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
 
         dayNightItem = new ImageView(context);
         dayNightItem.setScaleType(ImageView.ScaleType.CENTER);
-        ThemeBind.selectorBackground(dayNightItem, Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarWhiteSelector), Theme.RIPPLE_MASK_CIRCLE_20DP), null, ThemeBind.of(Theme.key_actionBarWhiteSelector), getResourceProvider());
+        dayNightItem.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarWhiteSelector), Theme.RIPPLE_MASK_CIRCLE_20DP));
         dayNightItem.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
         dayNightItem.setOnClickListener(v -> {
             toggleTheme();
@@ -1778,6 +1821,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         colorBar.updateColors();
 
         checkColors();
+        contentView.addView(invalidateBlurredSourcesView);
         checkPagesColors();
 
         ViewCompat.setOnApplyWindowInsetsListener(fragmentView, this::onApplyWindowInsets);
@@ -1873,7 +1917,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                 })
                 .create();
         showDialog(alertDialog);
-        ThemeBind.textColor((TextView) alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE), Theme.key_text_RedBold, getResourceProvider());
+        ((TextView) alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE)).setTextColor(getThemedColor(Theme.key_text_RedBold));
     }
 
     private void buttonClick() {
@@ -2141,17 +2185,6 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         );
     }
 
-    @Override
-    public void onThemeColorsChanged() {
-        try {
-            if (namePage != null && profilePage != null) {
-                updateColors();
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
     private void updateColors() {
         if (titleView != null) {
             titleView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
@@ -2297,7 +2330,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         return ssb;
     }
 
-    public static class ChangeNameColorCell extends View implements Theme.Colorable {
+    public static class ChangeNameColorCell extends View {
         private final int currentAccount;
         private final boolean isChannelOrGroup;
         private final boolean isGroup;
@@ -2326,7 +2359,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             this.resourcesProvider = resourcesProvider;
 
             drawable = context.getResources().getDrawable(R.drawable.menu_edit_appearance).mutate();
-            ThemeBind.drawableColorFilter(this, drawable, Theme.key_windowBackgroundWhiteBlueText4, resourcesProvider, PorterDuff.Mode.SRC_IN);
+            drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4, resourcesProvider), PorterDuff.Mode.SRC_IN));
             CharSequence button = getString(isChannelOrGroup ? (isGroup ? R.string.ChangeGroupAppearance : R.string.ChangeChannelNameColor2) : R.string.ChangeUserNameColor);
             if (isChannelOrGroup && !isGroup && MessagesController.getInstance(currentAccount).getMainSettings().getInt("boostingappearance", 0) < 3) {
                 int minlvl = Integer.MAX_VALUE, maxlvl = 0;
@@ -2362,18 +2395,8 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             updateColors();
         }
 
-        private boolean drawableColorSet;
-        private int drawableColor;
-
-        /** also called on every theme update (Theme.Colorable) */
-        @Override
         public void updateColors() {
-            final int iconColor = Theme.getColor(isChannelOrGroup ? Theme.key_windowBackgroundWhiteGrayIcon : Theme.key_windowBackgroundWhiteBlueText4, resourcesProvider);
-            if (!drawableColorSet || drawableColor != iconColor) {
-                drawableColorSet = true;
-                drawableColor = iconColor;
-                drawable.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
-            }
+            drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(isChannelOrGroup ? Theme.key_windowBackgroundWhiteGrayIcon : Theme.key_windowBackgroundWhiteBlueText4, resourcesProvider), PorterDuff.Mode.SRC_IN));
             buttonText.setColor(Theme.getColor(isChannelOrGroup ? Theme.key_windowBackgroundWhiteBlackText : Theme.key_windowBackgroundWhiteBlueText4, resourcesProvider));
 
             if (userText != null && userTextBackgroundPaint != null && userTextColorKey != -1) {
@@ -2514,10 +2537,10 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
 
         @Override
         protected void dispatchDraw(Canvas canvas) {
-            DrawableUtils.setBounds(drawable, rtl(dp(64) / 2), getMeasuredHeight() / 2f, Gravity.CENTER);
+            DrawableUtils.setBounds(drawable, rtl(dp(28)), getMeasuredHeight() / 2f, Gravity.CENTER);
             drawable.draw(canvas);
             buttonText.ellipsize(getMeasuredWidth() - dp(64 + 7 + 100) - (lock != null ? lock.getIntrinsicWidth() + dp(8) : 0));
-            float textX = LocaleController.isRTL ? getMeasuredWidth() - buttonText.getWidth() - dp(64 + 7) : dp(64 + 7);
+            float textX = LocaleController.isRTL ? getMeasuredWidth() - buttonText.getWidth() - dp(58) : dp(58);
             buttonText.draw(canvas, textX, getMeasuredHeight() / 2f);
             if (lock != null) {
                 int x = (int) (textX + buttonText.getWidth() + dp(6));
@@ -2564,12 +2587,12 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                 if (paint == null) {
                     paint = Theme.dividerPaint;
                 }
-                canvas.drawLine(LocaleController.isRTL ? 0 : AndroidUtilities.dp(64 + 7), getMeasuredHeight() - 1, getMeasuredWidth() - (LocaleController.isRTL ? AndroidUtilities.dp(64 + 7) : 0), getMeasuredHeight() - 1, paint);
+                canvas.drawLine(LocaleController.isRTL ? 0 : AndroidUtilities.dp(58), getMeasuredHeight() - 1, getMeasuredWidth() - (LocaleController.isRTL ? AndroidUtilities.dp(58) : 0), getMeasuredHeight() - 1, paint);
             }
         }
     }
 
-    public static class PeerColorGrid extends View implements Theme.Colorable {
+    public static class PeerColorGrid extends View {
         private final Theme.ResourcesProvider resourcesProvider;
         private final Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         { backgroundPaint.setStyle(Paint.Style.STROKE); }
@@ -2763,8 +2786,6 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             this.lock = lock;
         }
 
-        /** also called on every theme update (Theme.Colorable) */
-        @Override
         public void updateColors() {
             if (buttons == null) return;
             final MessagesController mc = MessagesController.getInstance(currentAccount);
@@ -3221,15 +3242,6 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
 
         @Override
         protected void dispatchDraw(Canvas canvas) {
-            if (isDefault) {
-                // follow theme switches while showing the default color
-                final int defColor = Theme.getColor(Theme.key_actionBarDefault, resourcesProvider);
-                if (this.color1 != defColor || this.color2 != defColor) {
-                    this.color1 = this.color2 = defColor;
-                    color1Animated.set(defColor, true);
-                    color2Animated.set(defColor, true);
-                }
-            }
             final int color1 = color1Animated.set(this.color1);
             final int color2 = color2Animated.set(this.color2);
             if (backgroundGradient == null || backgroundGradientColor1 != color1 || backgroundGradientColor2 != color2 || backgroundGradientWidth != getWidth() || backgroundGradientHeight != getHeight()) {
@@ -3289,7 +3301,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         }
     }
 
-    public static class ProfilePreview extends FrameLayout implements Theme.Colorable {
+    public static class ProfilePreview extends FrameLayout {
 
         private final Theme.ResourcesProvider resourcesProvider;
         private final int currentAccount;
@@ -3494,70 +3506,9 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
                 subtitleView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
                 titleView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
             }
-            statusColorSource = 0;
 
             storyGradient.setColor(peerColor, animated);
             invalidate();
-        }
-
-        // 0: status emoji color last set by setColor, 1: by setEmoji, 2: by setStatusEmoji
-        private int statusColorSource;
-
-        @Override
-        public void updateColors() {
-            try {
-                if (emoji == null || statusEmoji == null || botVerificationEmoji == null || titleView == null || subtitleView == null) {
-                    return;
-                }
-                final boolean isDark = resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark();
-                if (peerColor != null) {
-                    if (peerColor.patternColor != 0) {
-                        emoji.setColor(peerColor.patternColor);
-                    } else {
-                        emoji.setColor(adaptProfileEmojiColor(peerColor.getBgColor1(isDark)));
-                    }
-                    botVerificationEmoji.setColor(ColorUtils.blendARGB(peerColor.getStoryColor1(Theme.isCurrentThemeDark()), 0xFFFFFFFF, 0.25f));
-                    if (statusColorSource == 1) {
-                        statusEmoji.setColor(ColorUtils.blendARGB(peerColor.getColor(1, resourcesProvider), peerColor.hasColor6(isDark) ? peerColor.getColor(4, resourcesProvider) : peerColor.getColor(2, resourcesProvider), .5f));
-                    } else if (statusColorSource == 2) {
-                        statusEmoji.setColor(ColorUtils.blendARGB(peerColor.getColor2(isDark), peerColor.hasColor6(isDark) ? peerColor.getColor5(isDark) : peerColor.getColor3(isDark), .5f));
-                    } else {
-                        statusEmoji.setColor(ColorUtils.blendARGB(peerColor.getStoryColor1(Theme.isCurrentThemeDark()), 0xFFFFFFFF, 0.25f));
-                    }
-                    final int accentColor = ColorUtils.blendARGB(peerColor.getStoryColor1(isDark), peerColor.getStoryColor2(isDark), .5f);
-                    if (!Theme.hasHue(getThemedColor(Theme.key_actionBarDefault))) {
-                        subtitleView.setTextColor(accentColor);
-                    } else {
-                        subtitleView.setTextColor(Theme.changeColorAccent(getThemedColor(Theme.key_actionBarDefault), accentColor, getThemedColor(Theme.key_avatar_subtitleInProfileBlue), isDark, accentColor));
-                    }
-                    titleView.setTextColor(Color.WHITE);
-                } else {
-                    if (AndroidUtilities.computePerceivedBrightness(getThemedColor(Theme.key_actionBarDefault)) > .8f) {
-                        emoji.setColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueText));
-                    } else if (AndroidUtilities.computePerceivedBrightness(getThemedColor(Theme.key_actionBarDefault)) < .2f) {
-                        emoji.setColor(Theme.multAlpha(getThemedColor(Theme.key_actionBarDefaultTitle), .5f));
-                    } else {
-                        emoji.setColor(adaptProfileEmojiColor(getThemedColor(Theme.key_actionBarDefault)));
-                    }
-                    statusEmoji.setColor(getThemedColor(Theme.key_profile_verifiedBackground));
-                    botVerificationEmoji.setColor(getThemedColor(Theme.key_profile_verifiedBackground));
-                    subtitleView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
-                    titleView.setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
-                }
-                invalidate();
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
-
-        @Override
-        public void addColorKeys(HashSet<Integer> colors) {
-            colors.add(Theme.key_actionBarDefault);
-            colors.add(Theme.key_actionBarDefaultTitle);
-            colors.add(Theme.key_actionBarDefaultSubtitle);
-            colors.add(Theme.key_windowBackgroundWhiteBlueText);
-            colors.add(Theme.key_profile_verifiedBackground);
-            colors.add(Theme.key_avatar_subtitleInProfileBlue);
         }
 
         public void setEmoji(long docId, boolean isCollectible, boolean animated) {
@@ -3585,7 +3536,6 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             } else {
                 statusEmoji.setColor(Theme.getColor(Theme.key_profile_verifiedBackground, resourcesProvider));
             }
-            statusColorSource = 1;
             isEmojiCollectible = isCollectible;
             if (!animated) {
                 emojiCollectible.force(isEmojiCollectible);
@@ -3602,7 +3552,6 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             } else {
                 statusEmoji.setColor(Theme.getColor(Theme.key_profile_verifiedBackground, resourcesProvider));
             }
-            statusColorSource = 2;
         }
 
         private final RectF rectF = new RectF();
@@ -4045,6 +3994,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         public void setDrawInList(boolean drawInList) {
             if (this.drawInList != drawInList) {
                 this.drawInList = drawInList;
+                invalidateMergedVisibleBlurredPositionsAndSourcesPositions();
                 invalidate();
             }
         }
@@ -4202,12 +4152,100 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         return WindowInsetsCompat.CONSUMED;
     }
 
+    private void drawList(Canvas blurCanvas, RectF position) {
+        final ViewGroup parent = contentView;
+        Blur3Utils.captureRelativeParent(namePage.listView, blurCanvas, position, namePage.listView, parent);
+        Blur3Utils.captureRelativeParent(profilePage.listView, blurCanvas, position, profilePage.listView, parent);
+    }
+
+    private OnPostDrawView invalidateBlurredSourcesView;
+
+    private static final int BLUR_INVALIDATE_FLAG_SCROLL = 1;
+    private static final int BLUR_INVALIDATE_FLAG_POSITIONS = 1 << 1;
+    private static final int BLUR_INVALIDATE_FLAG_CLIP = 1 << 2;
+
+    private void invalidateMergedVisibleBlurredPositionsAndSourcesPositions() {
+        invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS);
+    }
+
+    private void invalidateMergedVisibleBlurredPositionsAndSources(int flags) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || scrollableViewNoiseSuppressor == null) {
+            return;
+        }
+
+        invalidateBlurredSourcesView.invalidate(flags);
+    }
+
     private final ReferenceList<View> glassAttachedViews = new ReferenceList<>();
     private final ReferenceList<BlurredBackgroundDrawable> glassAttachedDrawables = new ReferenceList<>();
+    private final @Nullable DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
+    private final @Nullable BlurredBackgroundSourceRenderNode glassBackgroundSourceRenderNode;
+    private final @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactory;
+    private IBlur3Capture iBlur3Capture = this::drawList;
+
+    private final ArrayList<RectF> glassDrawablesPositions = new ArrayList<>();
+    private final ArrayList<RectF> glassDrawablesPositionsMerged = new ArrayList<>();
+    private int glassDrawablesPositionsCount;
+
+    private void invalidateMergedVisibleBlurredPositionsAndSourcesImpl(int flags) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || scrollableViewNoiseSuppressor == null) {
+            return;
+        }
+
+        if (BitwiseUtils.hasFlag(flags, BLUR_INVALIDATE_FLAG_CLIP)) {
+            // invalidateClipRectForBackgroundAndChatList();
+        }
+
+        //if (BitwiseUtils.hasFlag(flags, BLUR_INVALIDATE_FLAG_POSITIONS)) {
+            glassDrawablesPositionsCount = getMergedVisibleBlurredPositions(glassDrawablesPositionsMerged);
+            scrollableViewNoiseSuppressor.setupRenderNodes(glassDrawablesPositionsMerged, glassDrawablesPositionsCount);
+        //}
+
+        final boolean hasChanges = scrollableViewNoiseSuppressor.invalidateResultRenderNodes(iBlur3Capture, contentView.getWidth(), contentView.getHeight());
+        if (hasChanges) {
+            if (glassBackgroundSourceRenderNode != null) {
+                glassBackgroundSourceRenderNode.invalidateDisplayListForDrawables();
+            }
+            invalidateAllGlassAttachedViews();
+        }
+    }
 
     private void invalidateAllGlassAttachedViews() {
         for (View v: glassAttachedViews) {
             v.invalidate();
+        }
+    }
+
+
+    private int getMergedVisibleBlurredPositions(List<RectF> positions) {
+        final int positionsCount = getVisibleBlurredPositions(glassDrawablesPositions);
+        final int mergedPositionsCount = RectFMergeBounding.mergeOverlapping(glassDrawablesPositions, positionsCount, positions);
+        final int maxX = contentView.getMeasuredWidth();
+        for (int a = 0; a < mergedPositionsCount; a++) {
+            final RectF position = positions.get(a);
+            position.left = androidx.core.math.MathUtils.clamp(position.left, 0, maxX);
+            position.top = Math.max(0, position.top);
+            position.right = androidx.core.math.MathUtils.clamp(position.right, 0, maxX);
+            position.bottom = Math.min(contentView.getHeight(), position.bottom);
+            /*if (drawDebug) {
+                ((Canvas) null).drawRect(position, Theme.DEBUG_GREEN_STROKE);
+            }*/
+        }
+
+        return mergedPositionsCount;
+    }
+
+    private int getVisibleBlurredPositions(List<RectF> positions) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            int count = 0;
+
+            if (glassBackgroundSourceRenderNode != null) {
+                count += glassBackgroundSourceRenderNode.getVisiblePositions(positions, count, dp(8));
+            }
+
+            return count;
+        } else {
+            return 0;
         }
     }
 }

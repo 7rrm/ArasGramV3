@@ -105,7 +105,6 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.MessageDrawable;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.QrShare.QrCodeLayer;
 import org.telegram.ui.QrShare.QrScanOverlay;
 import org.telegram.ui.ChatActivity;
@@ -296,7 +295,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         nestedLayout.addView(content, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         fragmentView = nestedLayout;
 
-        ThemeBind.backgroundColor(actionBar, Theme.key_windowBackgroundGray, getResourceProvider());
+        actionBar.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
         actionBar.setCastShadows(false);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setClipChildren(false);
@@ -436,14 +435,13 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         walletTopPanelContainer.setClipChildren(false);
         walletTopPanelContainer.setPadding(dp(16), 0, dp(16), dp(4));
         walletTopPanel = new DialogsActivityTopPanelLayout(context) {
-            private final ShapeDrawable solidBackground =
+            private final Drawable solidBackground =
                     Theme.createRoundRectDrawable(dp(22), getThemedColor(Theme.key_windowBackgroundWhite));
 
             @Override
             protected void dispatchDraw(@NonNull Canvas canvas) {
                 final int height = (int) Math.ceil(getMetadata().getTotalHeight());
                 if (height > 0) {
-                    solidBackground.getPaint().setColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     solidBackground.setBounds(0, 0, getWidth(), height);
                     solidBackground.setAlpha((int) (255 * getMetadata().getTotalVisibility()));
                     solidBackground.draw(canvas);
@@ -476,10 +474,10 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         tosText = new LinkSpanDrawable.LinksTextView(context);
         termsVisible = false;
         tosText.setAlpha(0.0f);
-        ThemeBind.textColor(tosText, Theme.key_windowBackgroundWhiteGrayText2, resourceProvider);
+        tosText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider));
         tosText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         tosText.setGravity(Gravity.CENTER);
-        tosText.setText(themedSingleLink(LocaleController.getString(R.string.WalletTermsOfService), Theme.key_chat_messageLinkIn, resourceProvider, () -> {
+        tosText.setText(AndroidUtilities.replaceSingleLink(LocaleController.getString(R.string.WalletTermsOfService), Theme.getColor(Theme.key_chat_messageLinkIn, resourceProvider), () -> {
             Browser.openUrlInSystemBrowser(context, getString(R.string.TermsOfServiceUrl));
         }));
         tosText.setVisibility(View.INVISIBLE);
@@ -500,11 +498,11 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
         protectAccountContainer = new FrameLayout(context);
         protectAccountButton = new FrameLayout(context);
-        ThemeBind.selectorBackground(protectAccountButton, Theme.createRadSelectorDrawable(
+        protectAccountButton.setBackground(Theme.createRadSelectorDrawable(
             getThemedColor(Theme.key_windowBackgroundWhite),
             Theme.blendOver(getThemedColor(Theme.key_windowBackgroundWhite), getThemedColor(Theme.key_listSelector)),
             16, 16
-        ), ThemeBind.of(Theme.key_windowBackgroundWhite), ThemeBind.blendOver(Theme.key_windowBackgroundWhite, Theme.key_listSelector), getResourceProvider());
+        ));
         protectAccountContainer.addView(protectAccountButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP, 12, 0, 12, 12));
         final ImageView protectAccountIcon = new ImageView(context);
         final float rad = dpf2(10);
@@ -524,7 +522,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         protectAccountIcon.setImageResource(R.drawable.wallet_protect);
         protectAccountButton.addView(protectAccountIcon, LayoutHelper.createFrame(28, 28, Gravity.LEFT | Gravity.CENTER_VERTICAL, 14, 11, 16, 11));
         final TextView protectAccountText = new TextView(context);
-        ThemeBind.textColor(protectAccountText, Theme.key_text_RedBold, resourceProvider);
+        protectAccountText.setTextColor(Theme.getColor(Theme.key_text_RedBold, resourceProvider));
         protectAccountText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         protectAccountText.setText(LocaleController.getString(R.string.WalletProtectAccount));
         protectAccountButton.addView(protectAccountText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 58, 0, 32, 0));
@@ -889,7 +887,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             }
         };
         historyLayout.setOrientation(LinearLayout.VERTICAL);
-        ThemeBind.backgroundColor(historyLayout, Theme.key_windowBackgroundGray, getResourceProvider());
+        historyLayout.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
         historyPager = new ViewPagerFixed(context, resourceProvider) {
             @Override
             protected void onTabPageSelected(int position) {
@@ -987,8 +985,8 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         historyTabs.setColors(Theme.key_windowBackgroundWhiteGrayText2,
                 Theme.key_windowBackgroundWhiteBlackText, Theme.key_windowBackgroundWhiteGrayText2,
                 Theme.key_listSelector, Theme.key_windowBackgroundWhite);
-        ThemeBind.fillBackground(historyTabs, Theme.createRoundRectDrawable(dp(20),
-                getThemedColor(Theme.key_windowBackgroundWhite)), ThemeBind.of(Theme.key_windowBackgroundWhite), getResourceProvider());
+        historyTabs.setBackground(Theme.createRoundRectDrawable(dp(20),
+                getThemedColor(Theme.key_windowBackgroundWhite)));
         historyTabsContainer = new FrameLayout(context);
         historySearchTabs = new WalletSearchTabs(context, historyTabs, resourceProvider, open -> {
             addFundsButton.setClickable(!open);
@@ -1611,7 +1609,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                     }
                 })
                 .setNegativeButton(getString(R.string.ContactsPermissionAlertNotNow), null)
-                .setTopAnimation(R.raw.permission_request_camera, 72, false, Theme.getColor(Theme.key_dialogTopBackground)).setTopBackgroundColorKey(Theme.key_dialogTopBackground, null)
+                .setTopAnimation(R.raw.permission_request_camera, 72, false, Theme.getColor(Theme.key_dialogTopBackground))
                 .show();
     }
 
@@ -2031,7 +2029,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         final BottomSheet[] sheet = new BottomSheet[1];
 
         final FrameLayout content = new FrameLayout(context);
-        ThemeBind.fillBackground(content, Theme.createRoundRectDrawable(dp(16), Theme.getColor(Theme.key_dialogBackground, resourceProvider)), ThemeBind.of(Theme.key_dialogBackground), resourceProvider);
+        content.setBackground(Theme.createRoundRectDrawable(dp(16), Theme.getColor(Theme.key_dialogBackground, resourceProvider)));
         content.setPadding(dp(36), 0, dp(36), dp(14));
 
         final LinearLayout layout = new LinearLayout(context);
@@ -2047,7 +2045,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
         final TextView title = new TextView(context);
         title.setText(LocaleController.getString(R.string.WalletHowItWorks));
-        ThemeBind.textColor(title, Theme.key_dialogTextBlack, resourceProvider);
+        title.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourceProvider));
         title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
         title.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         title.setGravity(Gravity.CENTER);
@@ -2060,7 +2058,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
         final TextView subtitle = new TextView(context);
         subtitle.setText(LocaleController.getString(R.string.WalletHowItWorksInfo));
-        ThemeBind.textColor(subtitle, Theme.key_windowBackgroundWhiteGrayText2, resourceProvider);
+        subtitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider));
         subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         subtitle.setGravity(Gravity.CENTER);
         subtitle.setLineSpacing(dp(1), 1.0f);
@@ -2121,10 +2119,10 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         ScaleStateListAnimator.apply(gotIt, 0.02f, 1.1f);
 
         final LinkSpanDrawable.LinksTextView tosText = new LinkSpanDrawable.LinksTextView(context);
-        ThemeBind.textColor(tosText, Theme.key_windowBackgroundWhiteGrayText2, resourceProvider);
+        tosText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider));
         tosText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         tosText.setGravity(Gravity.CENTER);
-        tosText.setText(themedSingleLink(LocaleController.getString(R.string.WalletTermsOfService), Theme.key_chat_messageLinkIn, resourceProvider, () -> {
+        tosText.setText(AndroidUtilities.replaceSingleLink(LocaleController.getString(R.string.WalletTermsOfService), Theme.getColor(Theme.key_chat_messageLinkIn, resourceProvider), () -> {
             Browser.openUrlInSystemBrowser(context, getString(R.string.TermsOfServiceUrl));
         }));
         layout.addView(tosText, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 12, 0, 6));
@@ -2144,7 +2142,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         final BottomSheet[] sheet = new BottomSheet[1];
 
         final FrameLayout content = new FrameLayout(context);
-        ThemeBind.fillBackground(content, Theme.createRoundRectDrawable(dp(16), Theme.getColor(Theme.key_dialogBackground, resourceProvider)), ThemeBind.of(Theme.key_dialogBackground), resourceProvider);
+        content.setBackground(Theme.createRoundRectDrawable(dp(16), Theme.getColor(Theme.key_dialogBackground, resourceProvider)));
         content.setPadding(dp(36), 0, dp(36), dp(14));
 
         final LinearLayout layout = new LinearLayout(context);
@@ -2160,7 +2158,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
         final TextView title = new TextView(context);
         title.setText(LocaleController.getString(R.string.WalletFirstGrams));
-        ThemeBind.textColor(title, Theme.key_dialogTextBlack, resourceProvider);
+        title.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourceProvider));
         title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
         title.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         title.setGravity(Gravity.CENTER);
@@ -2176,7 +2174,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         subtitle.setText(usdRate > 0 && !Double.isNaN(usdRate) && !Double.isInfinite(usdRate)
                 ? LocaleController.formatString(R.string.WalletFirstGramsRate, GramWallet.formatGramsWithUnit(1_000_000_000L), String.format(LocaleController.getInstance().getCurrentLocale(), "%.2f", usdRate))
                 : LocaleController.getString(R.string.WalletFirstGramsActions));
-        ThemeBind.textColor(subtitle, Theme.key_dialogTextGray3, resourceProvider);
+        subtitle.setTextColor(Theme.getColor(Theme.key_dialogTextGray3, resourceProvider));
         subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         subtitle.setGravity(Gravity.CENTER);
         subtitle.setLineSpacing(dp(1), 1.0f);
@@ -2201,7 +2199,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                 LocaleController.getString(R.string.WalletSend),
                 sendText
         );
-        ThemeBind.colorFilter(sendCell.icon, Theme.key_windowBackgroundWhiteBlueText, resourceProvider, PorterDuff.Mode.SRC_IN);
+        sendCell.icon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, resourceProvider), PorterDuff.Mode.SRC_IN));
         layout.addView(sendCell, LayoutHelper.createLinear(
                 LayoutHelper.MATCH_PARENT,
                 LayoutHelper.WRAP_CONTENT,
@@ -2215,7 +2213,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                 LocaleController.getString(R.string.WalletTrade),
                 LocaleController.getString(R.string.WalletFirstGramsTradeInfo)
         );
-        ThemeBind.colorFilter(tradeCell.icon, Theme.key_windowBackgroundWhiteBlueText, resourceProvider, PorterDuff.Mode.SRC_IN);
+        tradeCell.icon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, resourceProvider), PorterDuff.Mode.SRC_IN));
         layout.addView(tradeCell, LayoutHelper.createLinear(
                 LayoutHelper.MATCH_PARENT,
                 LayoutHelper.WRAP_CONTENT,
@@ -2238,7 +2236,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                 LocaleController.getString(R.string.WalletStore),
                 storeText
         );
-        ThemeBind.colorFilter(storeCell.icon, Theme.key_windowBackgroundWhiteBlueText, resourceProvider, PorterDuff.Mode.SRC_IN);
+        storeCell.icon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, resourceProvider), PorterDuff.Mode.SRC_IN));
         layout.addView(storeCell, LayoutHelper.createLinear(
                 LayoutHelper.MATCH_PARENT,
                 LayoutHelper.WRAP_CONTENT,
@@ -2279,20 +2277,6 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             {
                 behindKeyboardColorKey = Theme.key_windowBackgroundGray;
             }
-
-            @Override
-            public void onThemeColorsChanged() {
-                super.onThemeColorsChanged();
-                try {
-                    final int color = getThemedColor(Theme.key_windowBackgroundGray);
-                    setBackgroundColor(color);
-                    if (navBarColor != color) {
-                        fixNavigationBar(color);
-                    }
-                } catch (Exception e) {
-                    FileLog.e(e);
-                }
-            }
         };
         sheet.setBackgroundColor(backgroundColor);
         sheet.fixNavigationBar(backgroundColor);
@@ -2310,7 +2294,8 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         imageView.setRoundRadius(dp(12));
         imageView.setContentDescription(collectible.name);
         final Drawable placeholder = context.getResources().getDrawable(R.drawable.wallet_nft_placeholder).mutate();
-        ThemeBind.drawableColorFilter(imageView, placeholder, Theme.key_windowBackgroundWhiteGrayText2, resourceProvider, PorterDuff.Mode.SRC_IN);
+        placeholder.setColorFilter(new PorterDuffColorFilter(
+                Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider), PorterDuff.Mode.SRC_IN));
         final org.telegram.messenger.ImageLocation image = CollectibleCell.getImage(collectible, false);
         if (image != null) {
             imageView.setImage(image, "120_120", placeholder, collectible);
@@ -2321,7 +2306,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
         final TextView nameView = new TextView(context);
         nameView.setText(TextUtils.isEmpty(collectible.name) ? LocaleController.getString(R.string.WalletCollectible) : collectible.name);
-        ThemeBind.textColor(nameView, Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
+        nameView.setTextColor(textColor);
         nameView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
         nameView.setTypeface(AndroidUtilities.bold());
         nameView.setGravity(Gravity.CENTER);
@@ -2329,7 +2314,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
         final TextView descriptionView = new TextView(context);
         descriptionView.setText(collectible.description);
-        ThemeBind.textColor(descriptionView, Theme.key_windowBackgroundWhiteGrayText2, resourceProvider);
+        descriptionView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider));
         descriptionView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         descriptionView.setGravity(Gravity.CENTER);
         descriptionView.setVisibility(TextUtils.isEmpty(collectible.description) ? View.GONE : View.VISIBLE);
@@ -2342,9 +2327,9 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             final LinearLayout action = new LinearLayout(context);
             action.setOrientation(LinearLayout.VERTICAL);
             action.setGravity(Gravity.CENTER);
-            ThemeBind.selectorBackground(action, Theme.createSimpleSelectorRoundRectDrawable(dp(16),
+            action.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(16),
                     Theme.getColor(Theme.key_windowBackgroundWhite, resourceProvider),
-                    Theme.getColor(Theme.key_listSelector, resourceProvider)), ThemeBind.of(Theme.key_windowBackgroundWhite), ThemeBind.of(Theme.key_listSelector), resourceProvider);
+                    Theme.getColor(Theme.key_listSelector, resourceProvider)));
             action.setClickable(true);
             action.setFocusable(true);
             final String label = i == 0 ? LocaleController.getString(R.string.WalletTransfer) : LocaleController.getString(R.string.WalletSell);
@@ -2353,11 +2338,11 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             final ImageView icon = new ImageView(context);
             icon.setImageResource(i == 0 ? R.drawable.wallet_transfer : R.drawable.wallet_sell);
             icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            ThemeBind.colorFilter(icon, Theme.key_windowBackgroundWhiteBlackText, resourceProvider, PorterDuff.Mode.SRC_IN);
+            icon.setColorFilter(new PorterDuffColorFilter(textColor, PorterDuff.Mode.SRC_IN));
             action.addView(icon, LayoutHelper.createLinear(24, 24));
             final TextView text = new TextView(context);
             text.setText(label);
-            ThemeBind.textColor(text, Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
+            text.setTextColor(textColor);
             text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
             text.setTypeface(AndroidUtilities.bold());
             text.setGravity(Gravity.CENTER);
@@ -2367,7 +2352,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
         if (collectible.attributes != null && !collectible.attributes.isEmpty()) {
             final TableView table = new TableView(context, resourceProvider);
-            ThemeBind.fillBackground(table, Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_windowBackgroundWhite, resourceProvider)), ThemeBind.of(Theme.key_windowBackgroundWhite), resourceProvider);
+            table.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_windowBackgroundWhite, resourceProvider)));
             for (TL_wallet.nftAttribute attr : collectible.attributes) {
                 table.addRow(attr.trait_type, attr.value);
             }
@@ -2454,13 +2439,23 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                 }
 
                 private final NotificationCenter.NotificationCenterDelegate listener = (id, account, args) -> {
-                    GramWallet.mergeTransactions(transactions, history.allTransactions);
+                    for (TL_wallet.walletTransaction transaction : history.allTransactions) {
+                        boolean found = false;
+                        for (int i = 0; i < transactions.size(); i++) {
+                            if (transactions.get(i) == transaction || GramWallet.transactionMatches(transactions.get(i), transaction)) {
+                                transactions.set(i, transaction);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) transactions.add(transaction);
+                    }
                 };
 
                 @Override
                 protected void onAttachedToWindow() {
                     super.onAttachedToWindow();
-                    NotificationCenter.getInstance(currentAccount).addWeakObserver(listener, NotificationCenter.walletTransactionsUpdate);
+                    NotificationCenter.getInstance(currentAccount).addObserver(listener, NotificationCenter.walletTransactionsUpdate);
                     loadMore();
                 }
 
@@ -2553,10 +2548,10 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                 @Override
                 public View createView(int viewType) {
                     final FrameLayout page = new FrameLayout(context);
-                    ThemeBind.fillBackground(page, new android.graphics.drawable.InsetDrawable(
+                    page.setBackground(new android.graphics.drawable.InsetDrawable(
                             Theme.createRoundRectDrawable(dp(20), 0,
                                     Theme.getColor(Theme.key_windowBackgroundWhite, resourceProvider)),
-                            pagePadding.left, 0, pagePadding.right, 0), ThemeBind.of(Theme.key_windowBackgroundWhite), resourceProvider);
+                            pagePadding.left, 0, pagePadding.right, 0));
                     return page;
                 }
 
@@ -2672,19 +2667,19 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         final ImageView closeButton = new ImageView(context);
         closeButton.setScaleType(ImageView.ScaleType.CENTER);
         closeButton.setImageResource(R.drawable.ic_ab_close);
-        ThemeBind.colorFilter(closeButton, Theme.key_windowBackgroundWhiteBlackText, resourceProvider, PorterDuff.Mode.SRC_IN);
-        ThemeBind.selectorBackground(closeButton, Theme.createSelectorDrawable(selectorColor, Theme.RIPPLE_MASK_CIRCLE_20DP), null, ThemeBind.of(Theme.key_listSelector), resourceProvider);
+        closeButton.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
+        closeButton.setBackground(Theme.createSelectorDrawable(selectorColor, Theme.RIPPLE_MASK_CIRCLE_20DP));
         closeButton.setContentDescription(getString(R.string.Close));
         topBar.addView(closeButton, LayoutHelper.createFrame(48, 48, Gravity.LEFT | Gravity.CENTER_VERTICAL, 4, -2, 0, 0));
 
         final ImageView moreButton = new ImageView(context);
         moreButton.setScaleType(ImageView.ScaleType.CENTER);
         moreButton.setImageResource(R.drawable.ic_ab_other);
-        ThemeBind.colorFilter(moreButton, Theme.key_windowBackgroundWhiteBlackText, resourceProvider, PorterDuff.Mode.SRC_IN);
-        ThemeBind.selectorBackground(moreButton, Theme.createSelectorDrawable(
+        moreButton.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
+        moreButton.setBackground(Theme.createSelectorDrawable(
                 selectorColor,
                 Theme.RIPPLE_MASK_CIRCLE_20DP
-        ), null, ThemeBind.of(Theme.key_listSelector), resourceProvider);
+        ));
         moreButton.setContentDescription(getString(R.string.AccDescrMoreOptions));
         moreButton.setVisibility(onSend != null ? View.GONE : View.VISIBLE);
         topBar.addView(moreButton, LayoutHelper.createFrame(
@@ -2724,7 +2719,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         usdView.setGravity(Gravity.CENTER);
         usdView.setIncludeFontPadding(false);
         usdView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(usdView, Theme.key_windowBackgroundWhiteGrayText2, resourceProvider);
+        usdView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider));
         amountLayout.addView(usdView, LayoutHelper.createLinear(
             LayoutHelper.MATCH_PARENT, 20, Gravity.CENTER_HORIZONTAL, 0, 3, 0, 0
         ));
@@ -2743,7 +2738,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
             final TextView titleView = new TextView(context);
             titleView.setText(LocaleController.getString(R.string.WalletKeyUpdate));
-            ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
+            titleView.setTextColor(iconColor);
             titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
             titleView.setTypeface(AndroidUtilities.bold());
             titleView.setGravity(Gravity.CENTER);
@@ -2758,7 +2753,8 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             imageView.setRoundRadius(dp(12));
             imageView.setContentDescription(collectible.name);
             final Drawable placeholder = context.getResources().getDrawable(R.drawable.wallet_nft_placeholder).mutate();
-            ThemeBind.drawableColorFilter(imageView, placeholder, Theme.key_windowBackgroundWhiteGrayText2, resourceProvider, PorterDuff.Mode.SRC_IN);
+            placeholder.setColorFilter(new PorterDuffColorFilter(
+                    Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider), PorterDuff.Mode.SRC_IN));
             final org.telegram.messenger.ImageLocation image = CollectibleCell.getImage(collectible, false);
             if (image != null) {
                 imageView.setImage(image, "120_120", placeholder, collectible);
@@ -2769,7 +2765,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
 
             final TextView nameView = new TextView(context);
             nameView.setText(TextUtils.isEmpty(collectible.name) ? LocaleController.getString(R.string.WalletCollectible) : collectible.name);
-            ThemeBind.textColor(nameView, Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
+            nameView.setTextColor(iconColor);
             nameView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
             nameView.setTypeface(AndroidUtilities.bold());
             nameView.setGravity(Gravity.CENTER);
@@ -2783,7 +2779,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                     final SpoilersTextView commentView = new SpoilersTextView(context, false, resourceProvider);
                     commentView.allowClickSpoilers = false;
                     commentView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-                    ThemeBind.textColor(commentView, Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
+                    commentView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider));
                     SpannableString sb = new SpannableString("a".repeat(25));
                     TextStyleSpan.TextStyleRun run = new TextStyleSpan.TextStyleRun();
                     run.flags |= TextStyleSpan.FLAG_STYLE_SPOILER;
@@ -2827,7 +2823,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             } else if (!TextUtils.isEmpty(T.comment)) {
                 final SpoilersTextView commentView = new SpoilersTextView(context);
                 commentView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-                ThemeBind.textColor(commentView, Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
+                commentView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider));
                 commentView.setText(Emoji.replaceEmoji(T.comment, commentView.getPaint().getFontMetricsInt(), false));
                 commentView.setTextIsSelectable(true);
                 final MessageDrawable commentBackground = new MessageDrawable(MessageDrawable.TYPE_TEXT, false, false);
@@ -2851,7 +2847,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         final EditTextBoldCursor commentEditText;
         if (onSend != null) {
             final FrameLayout editTextContainer = new FrameLayout(context);
-            ThemeBind.fillBackground(editTextContainer, Theme.createRoundRectDrawable(dp(22), dp(22), Theme.getColor(Theme.key_windowBackgroundGray, resourceProvider)), ThemeBind.of(Theme.key_windowBackgroundGray), resourceProvider);
+            editTextContainer.setBackground(Theme.createRoundRectDrawable(dp(22), dp(22), Theme.getColor(Theme.key_windowBackgroundGray, resourceProvider)));
 
             final Runnable setFeeLoading = () -> {
                 if (feeView[0] == null) return;
@@ -2924,8 +2920,8 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             editText.setHint(LocaleController.getString(R.string.WalletOptionalComment));
             editText.setText(typingComment[0]);
             editText.setPadding(dp(16), dp(11), dp(16 + 48), dp(12));
-            ThemeBind.textColor(editText, Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
-            ThemeBind.hintTextColor(editText, ThemeBind.multAlpha(Theme.key_windowBackgroundWhiteBlackText, .65f), resourceProvider);
+            editText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider));
+            editText.setHintTextColor(Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider), .65f));
             editText.setMaxLines(4);
             editTextContainer.addView(editText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL, 0, 0, T.nft == null && commentRecipientPublicKey != null ? 44 : 0, 0));
 
@@ -2953,9 +2949,9 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                 final ImageView lockView = new ImageView(context);
                 lockViewContainer.addView(lockView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
                 lockView.setScaleType(ImageView.ScaleType.CENTER);
-                ThemeBind.colorFilter(lockView, typingCommentEncrypted[0] ? Theme.key_featuredStickers_addButton : Theme.key_windowBackgroundWhiteGrayText2, resourceProvider, PorterDuff.Mode.SRC_IN);
+                lockView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(typingCommentEncrypted[0] ? Theme.key_featuredStickers_addButton : Theme.key_windowBackgroundWhiteGrayText2, resourceProvider), PorterDuff.Mode.SRC_IN));
                 lockView.setImageResource(typingCommentEncrypted[0] ? R.drawable.wallet_comment_locked : R.drawable.wallet_comment_unlocked);
-                ThemeBind.selectorBackground(lockView, Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourceProvider), Theme.RIPPLE_MASK_CIRCLE_20DP), null, ThemeBind.of(Theme.key_listSelector), resourceProvider);
+                lockView.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourceProvider), Theme.RIPPLE_MASK_CIRCLE_20DP));
                 final HintView2[] lastHint = new HintView2[1];
                 lockViewContainer.setOnClickListener(v -> {
                     typingCommentEncrypted[0] = !typingCommentEncrypted[0];
@@ -2969,7 +2965,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                         lockView.setScaleY(scale);
                         if (val >= 0.5f && !changed.get()) {
                             changed.set(true);
-                            ThemeBind.colorFilter(lockView, typingCommentEncrypted[0] ? Theme.key_featuredStickers_addButton : Theme.key_windowBackgroundWhiteGrayText2, resourceProvider, PorterDuff.Mode.SRC_IN);
+                            lockView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(typingCommentEncrypted[0] ? Theme.key_featuredStickers_addButton : Theme.key_windowBackgroundWhiteGrayText2, resourceProvider), PorterDuff.Mode.SRC_IN));
                             lockView.setImageResource(typingCommentEncrypted[0] ? R.drawable.wallet_comment_locked : R.drawable.wallet_comment_unlocked);
                         }
                     });
@@ -3032,7 +3028,10 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                     || ((ViewPagerFixed) layout.getParent().getParent()).getViewPages()[0] == layout.getParent();
 
             if (!t.key_change && t.nft == null) {
-                ThemeBind.textColor(amountView, unsettled ? Theme.key_windowBackgroundWhiteGrayText2 : Theme.key_featuredStickers_addButton, resourceProvider);
+                amountView.setTextColor(unsettled
+                    ? Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider)
+                    : Theme.getColor(Theme.key_featuredStickers_addButton, resourceProvider)
+                );
                 final SpannableStringBuilder formattedAmount = GramWallet.formatGramsScaled(amount, 30f / 40f);
                 formattedAmount.insert(0, incoming ? "+" : "–");
                 if (!unsettled) {
@@ -3192,7 +3191,7 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
                 feeView[0].setGravity(Gravity.CENTER_VERTICAL);
                 feeView[0].setIncludeFontPadding(false);
                 feeView[0].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                ThemeBind.textColor(feeView[0], unsettled ? Theme.key_windowBackgroundWhiteGrayText2 : Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
+                feeView[0].setTextColor(unsettled ? Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider) : iconColor);
                 if (t.preview && fee <= 0) {
                     if (feeViewLoading[0] == null) {
                         feeViewLoading[0] = new SpannableString(getString(R.string.Loading));
@@ -3251,8 +3250,8 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             public void onViewAttachedToWindow(View v) {
                 update.run(transaction[0]);
                 if (listener != null) {
-                    NotificationCenter.getInstance(currentAccount).addWeakObserver(listener, NotificationCenter.walletUpdate);
-                    NotificationCenter.getInstance(currentAccount).addWeakObserver(listener, NotificationCenter.walletTransactionsUpdate);
+                    NotificationCenter.getInstance(currentAccount).addObserver(listener, NotificationCenter.walletUpdate);
+                    NotificationCenter.getInstance(currentAccount).addObserver(listener, NotificationCenter.walletTransactionsUpdate);
                 }
                 if (onDismiss != null) {
                     sheet[0].setOnDismissListener(() -> onDismiss.run(typingComment[0], typingCommentEncrypted[0]));
@@ -3378,7 +3377,10 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             final int approximationStart = fee.length();
             fee.append("  ~ ").append(currencyAmount);
             fee.setSpan(
-                new org.telegram.ui.Components.ForegroundColorSpanThemable(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider),
+                new ForegroundColorSpan(Theme.getColor(
+                        Theme.key_windowBackgroundWhiteGrayText2,
+                        resourceProvider
+                )),
                 approximationStart,
                 fee.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -3546,15 +3548,15 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         final Context context = text.getContext();
         final FrameLayout row = new FrameLayout(context);
         row.setPadding(dp(16), dp(14), dp(16), dp(14));
-        ThemeBind.selectorBackground(row, Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL), null, ThemeBind.of(Theme.key_listSelector), getResourceProvider());
-        ThemeBind.textColor(text, Theme.key_windowBackgroundWhiteBlackText, getResourceProvider());
+        row.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
+        text.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
         text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         text.setTypeface(AndroidUtilities.bold());
         text.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
         row.addView(text, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT, 0, 0, 42, 0));
         final ImageView arrow = new ImageView(context);
         arrow.setImageResource(R.drawable.attach_arrow_right);
-        ThemeBind.colorFilter(arrow, Theme.key_windowBackgroundWhiteGrayText2, getResourceProvider(), PorterDuff.Mode.SRC_IN);
+        arrow.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteGrayText2), PorterDuff.Mode.SRC_IN));
         row.addView(arrow, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
         row.setOnClickListener(v -> onClick.run());
         text.setDuplicateParentStateEnabled(true);
@@ -3569,11 +3571,12 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         text.append('\uFFFC');
         final ColoredImageSpan icon = new ColoredImageSpan(R.drawable.mini_gram_16);
         icon.recolorDrawable = false;
+        final int amountColor = getThemedColor(Theme.key_featuredStickers_addButton);
         text.setSpan(icon, iconStart, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         text.append(" ");
         final int amountStart = text.length();
         text.append(GramWallet.formatGrams(balance));
-        text.setSpan(new org.telegram.ui.Components.ForegroundColorSpanThemable(Theme.key_featuredStickers_addButton, getResourceProvider()), amountStart, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(new ForegroundColorSpan(amountColor), amountStart, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return LocaleController.formatSpannable(stringRes, text);
     }
 
@@ -3711,10 +3714,10 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
     @Override
     public boolean onFragmentCreate() {
         WalletCard2DMaterial.prewarm(org.telegram.messenger.ApplicationLoader.applicationContext);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.walletUpdate);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.starBalanceUpdated);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.walletTransactionsUpdate);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.didSetOrRemoveTwoStepPassword);
+        getNotificationCenter().addObserver(this, NotificationCenter.walletUpdate);
+        getNotificationCenter().addObserver(this, NotificationCenter.starBalanceUpdated);
+        getNotificationCenter().addObserver(this, NotificationCenter.walletTransactionsUpdate);
+        getNotificationCenter().addObserver(this, NotificationCenter.didSetOrRemoveTwoStepPassword);
         final GramWallet wallet = GramWallet.getInstance(currentAccount);
         nftsList = wallet.getCollectibles();
         nftsList.subscribe(onNftsChanged);
@@ -3722,70 +3725,6 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         cancelListen = wallet.listen();
         requestPassword();
         return super.onFragmentCreate();
-    }
-
-    @Override
-    public void onThemeColorsChanged() {
-        super.onThemeColorsChanged();
-        try {
-            if (balanceView != null && usdBalanceView != null && card != null) {
-                updateBalanceTransitionColors(balanceTransitionProgress);
-            }
-            if (card != null && addFundsButton != null && sendButton != null) {
-                updateButtonColors(card.getStickerStyle());
-            }
-            // spans reading theme colors on draw
-            if (tosText != null) tosText.invalidate();
-            if (oldWalletsButtonText != null) oldWalletsButtonText.invalidate();
-            if (gramEarningsButtonText != null) gramEarningsButtonText.invalidate();
-            if (walletTopPanel != null) walletTopPanel.invalidate();
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
-    /** AndroidUtilities.replaceSingleLink(str, color(colorKey), onClick), the link color read on every draw */
-    private static SpannableStringBuilder themedSingleLink(String str, int colorKey, Theme.ResourcesProvider resourcesProvider, Runnable onClick) {
-        int startIndex = str.indexOf("**");
-        int endIndex = str.indexOf("**", startIndex + 1);
-        str = str.replace("**", "");
-        int index = -1;
-        int len = 0;
-        if (startIndex >= 0 && endIndex >= 0 && endIndex - startIndex > 2) {
-            len = endIndex - startIndex - 2;
-            index = startIndex;
-        }
-        final SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(str);
-        if (index >= 0) {
-            spannableStringBuilder.setSpan(new ThemedLinkSpan(colorKey, resourcesProvider, onClick), index, index + len, 0);
-        }
-        return spannableStringBuilder;
-    }
-
-    private static class ThemedLinkSpan extends ClickableSpan {
-        private final int colorKey;
-        private final Theme.ResourcesProvider resourcesProvider;
-        private final Runnable onClick;
-
-        ThemedLinkSpan(int colorKey, Theme.ResourcesProvider resourcesProvider, Runnable onClick) {
-            this.colorKey = colorKey;
-            this.resourcesProvider = resourcesProvider;
-            this.onClick = onClick;
-        }
-
-        @Override
-        public void updateDrawState(@NonNull TextPaint ds) {
-            super.updateDrawState(ds);
-            ds.setUnderlineText(false);
-            ds.setColor(Theme.getColor(colorKey, resourcesProvider));
-        }
-
-        @Override
-        public void onClick(@NonNull View view) {
-            if (onClick != null) {
-                onClick.run();
-            }
-        }
     }
 
     @Override
@@ -4385,11 +4324,6 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
             header.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             text.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         }
-        @Override
-        public void addColorKeys(HashSet<Integer> colors) {
-            colors.add(Theme.key_windowBackgroundWhiteBlackText);
-            colors.add(Theme.key_windowBackgroundWhiteGrayText2);
-        }
 
         public static class Factory extends UItem.UItemFactory<LearnCell> {
             static { setup(new LearnCell.Factory()); }
@@ -4514,12 +4448,6 @@ public class WalletActivity extends UniversalFragment implements NotificationCen
         public void updateColors() {
             stepAnimation();
             layout.setBackground(shadowed ? null : Theme.createRoundRectDrawable(dp(18), Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider)));
-        }
-        @Override
-        public void addColorKeys(HashSet<Integer> colors) {
-            colors.add(Theme.key_windowBackgroundWhiteGrayText2);
-            colors.add(Theme.key_featuredStickers_addButton);
-            colors.add(Theme.key_windowBackgroundWhite);
         }
 
         public void setSelected(int selected) {

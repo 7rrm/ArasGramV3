@@ -23,7 +23,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 
 import java.util.ArrayList;
 
@@ -49,7 +48,7 @@ public class ChatBigEmptyView extends LinearLayout {
         if (type == EMPTY_VIEW_TYPE_SECRET) {
             statusTextView = new TextView(context);
             statusTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            ThemeBind.textColor(statusTextView, Theme.key_chat_serviceText, resourcesProvider);
+            statusTextView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
             statusTextView.setGravity(Gravity.CENTER_HORIZONTAL);
             statusTextView.setMaxWidth(AndroidUtilities.dp(210));
             textViews.add(statusTextView);
@@ -57,7 +56,7 @@ public class ChatBigEmptyView extends LinearLayout {
         } else if (type == EMPTY_VIEW_TYPE_GROUP) {
             statusTextView = new TextView(context);
             statusTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            ThemeBind.textColor(statusTextView, Theme.key_chat_serviceText, resourcesProvider);
+            statusTextView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
             statusTextView.setGravity(Gravity.CENTER_HORIZONTAL);
             statusTextView.setMaxWidth(AndroidUtilities.dp(210));
             textViews.add(statusTextView);
@@ -83,7 +82,7 @@ public class ChatBigEmptyView extends LinearLayout {
             textView.setTypeface(AndroidUtilities.bold());
             textView.setGravity(Gravity.CENTER_HORIZONTAL);
         }
-        ThemeBind.textColor(textView, Theme.key_chat_serviceText, resourcesProvider);
+        textView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
         textViews.add(textView);
         textView.setMaxWidth(AndroidUtilities.dp(260));
         addView(textView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (type != EMPTY_VIEW_TYPE_SAVED ? (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL) | Gravity.TOP, 0, 8, 0, type != EMPTY_VIEW_TYPE_SAVED ? 0 : 8));
@@ -94,7 +93,7 @@ public class ChatBigEmptyView extends LinearLayout {
             addView(linearLayout, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT, 0, 8, 0, 0));
 
             ImageView imageView = new ImageView(context);
-            ThemeBind.colorFilter(imageView, Theme.key_chat_serviceText, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            imageView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_serviceText), PorterDuff.Mode.MULTIPLY));
             if (type == EMPTY_VIEW_TYPE_SECRET) {
                 imageView.setImageResource(R.drawable.ic_lock_white);
             } else if (type == EMPTY_VIEW_TYPE_SAVED) {
@@ -106,7 +105,7 @@ public class ChatBigEmptyView extends LinearLayout {
 
             textView = new TextView(context);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            ThemeBind.textColor(textView, Theme.key_chat_serviceText, resourcesProvider);
+            textView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
             textViews.add(textView);
             textView.setGravity(Gravity.CENTER_VERTICAL | (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT));
             textView.setMaxWidth(AndroidUtilities.dp(260));

@@ -16,7 +16,6 @@ import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 public class RichDividerCell extends RichBlockCell
     implements Theme.Colorable, TextSelectionHelper.ArticleSelectableView {
@@ -60,11 +59,6 @@ public class RichDividerCell extends RichBlockCell
     public void updateColors() {
         paint.setColor(Theme.getColor(Theme.key_chat_inDivider, resourcesProvider));
         selectionPaint.setColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
-    }
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_chat_inDivider);
-        colors.add(Theme.key_chat_inTextSelectionHighlight);
     }
 
     @Override

@@ -37,7 +37,6 @@ import org.telegram.messenger.SvgHelper;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.ProgressButton;
@@ -69,10 +68,9 @@ public class ArchivedStickerSetCell extends FrameLayout implements Checkable {
         if (this.checkable = checkable) {
             currentButton = addButton = new ProgressButton(context);
             addButton.setText(LocaleController.getString(R.string.Add));
-            ThemeBind.textColor(addButton, Theme.key_featuredStickers_buttonText);
+            addButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
             addButton.setProgressColor(Theme.getColor(Theme.key_featuredStickers_buttonProgress));
             addButton.setBackgroundRoundRect(Theme.getColor(Theme.key_featuredStickers_addButton), Theme.getColor(Theme.key_featuredStickers_addButtonPressed));
-            ThemeBind.selectorBackground(addButton, addButton.getBackground(), ThemeBind.of(Theme.key_featuredStickers_addButton), null);
             addView(addButton, LayoutHelper.createFrameRelatively(LayoutHelper.WRAP_CONTENT, 28, Gravity.TOP | Gravity.END, 0, 18, 14, 0));
 
             final int minWidth = AndroidUtilities.dp(60);
@@ -81,9 +79,9 @@ public class ArchivedStickerSetCell extends FrameLayout implements Checkable {
             deleteButton.setMinWidth(minWidth);
             deleteButton.setMinimumWidth(minWidth);
             deleteButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-            ThemeBind.textColor(deleteButton, Theme.key_featuredStickers_removeButtonText);
+            deleteButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_removeButtonText));
             deleteButton.setText(LocaleController.getString(R.string.StickersRemove));
-            ThemeBind.selectorBackground(deleteButton, Theme.getRoundRectSelectorDrawable(Theme.getColor(Theme.key_featuredStickers_removeButtonText)), null, ThemeBind.alpha(Theme.key_featuredStickers_removeButtonText, 0x19));
+            deleteButton.setBackground(Theme.getRoundRectSelectorDrawable(Theme.getColor(Theme.key_featuredStickers_removeButtonText)));
             deleteButton.setTypeface(AndroidUtilities.bold());
             ViewHelper.setPadding(deleteButton, 8, 0, 8, 0);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -102,7 +100,7 @@ public class ArchivedStickerSetCell extends FrameLayout implements Checkable {
         }
 
         textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setLines(1);
         textView.setMaxLines(1);
@@ -112,7 +110,7 @@ public class ArchivedStickerSetCell extends FrameLayout implements Checkable {
         addView(textView, LayoutHelper.createFrameRelatively(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.START, 71, 10, 21, 0));
 
         valueTextView = new TextView(context);
-        ThemeBind.textColor(valueTextView, Theme.key_windowBackgroundWhiteGrayText2);
+        valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         valueTextView.setLines(1);
         valueTextView.setMaxLines(1);

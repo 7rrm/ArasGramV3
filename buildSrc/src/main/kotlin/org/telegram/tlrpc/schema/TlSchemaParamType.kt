@@ -10,9 +10,7 @@ sealed class TlSchemaParamType {
         ): Primary()
 
         data class Object(
-            val name: String,
-            // bare type (`agent.settings`): name is the boxed type, this is the constructor predicate
-            val bareConstructor: String? = null
+            val name: String
         ) : Primary()
 
         data object X : Primary()

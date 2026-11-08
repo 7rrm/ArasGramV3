@@ -49,7 +49,6 @@ import org.telegram.ui.AccountFrozenAlert;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.AlertsCreator;
@@ -452,7 +451,7 @@ public class VoIPHelper {
 						if (onFinish != null)
 							onFinish.run();
 					})
-					.setTopAnimation(mergedRequest ? R.raw.permission_request_camera : R.raw.permission_request_microphone, AlertsCreator.PERMISSIONS_REQUEST_TOP_ICON_SIZE, false, Theme.getColor(Theme.key_dialogTopBackground)).setTopBackgroundColorKey(Theme.key_dialogTopBackground, null);
+					.setTopAnimation(mergedRequest ? R.raw.permission_request_camera : R.raw.permission_request_microphone, AlertsCreator.PERMISSIONS_REQUEST_TOP_ICON_SIZE, false, Theme.getColor(Theme.key_dialogTopBackground));
 
 			dlg.show();
         }
@@ -529,7 +528,7 @@ public class VoIPHelper {
 
 		TextView text = new TextView(context);
 		text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-		ThemeBind.textColor(text, Theme.key_dialogTextBlack);
+		text.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
 		text.setGravity(Gravity.CENTER);
 		text.setText(LocaleController.getString(R.string.VoipRateCallAlert));
 		alertView.addView(text);
@@ -594,10 +593,10 @@ public class VoIPHelper {
 		final EditTextBoldCursor commentBox = new EditTextBoldCursor(context);
 		commentBox.setHint(LocaleController.getString(R.string.VoipFeedbackCommentHint));
 		commentBox.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-		ThemeBind.textColor(commentBox, Theme.key_dialogTextBlack);
-		ThemeBind.hintTextColor(commentBox, Theme.key_dialogTextHint);
+		commentBox.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+		commentBox.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
 		commentBox.setBackground(null);
-		ThemeBind.lineColors(commentBox, Theme.key_dialogInputField, Theme.key_dialogInputFieldActivated, Theme.key_text_RedBold);
+		commentBox.setLineColors(Theme.getColor(Theme.key_dialogInputField), Theme.getColor(Theme.key_dialogInputFieldActivated), Theme.getColor(Theme.key_text_RedBold));
 		commentBox.setPadding(0, AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4));
 		commentBox.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
 		commentBox.setVisibility(View.GONE);
@@ -616,7 +615,7 @@ public class VoIPHelper {
 
 		final TextView logsText = new TextView(context);
 		logsText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-		ThemeBind.textColor(logsText, Theme.key_dialogTextGray3);
+		logsText.setTextColor(Theme.getColor(Theme.key_dialogTextGray3));
 		logsText.setText(LocaleController.getString(R.string.CallReportLogsExplain));
 		logsText.setPadding(AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8), 0);
 		logsText.setOnClickListener(checkClickListener);
@@ -717,20 +716,20 @@ public class VoIPHelper {
 		});
 	}
 
-	private static File getLogFile(long callID) {
-		if (BuildVars.DEBUG_VERSION) {
-			File debugLogsDir = new File(ApplicationLoader.applicationContext.getExternalFilesDir(null), "logs");
-			String[] logs = debugLogsDir.list();
-			if (logs != null) {
-				for (String log : logs) {
-					if (log.endsWith("voip" + callID + ".txt")) {
-						return new File(debugLogsDir, log);
-					}
-				}
-			}
-		}
-		return new File(getLogsDir(), callID + ".log");
-	}
+    private static File getLogFile(long callID) {
+        if (BuildVars.DEBUG_VERSION) {
+            File debugLogsDir = new File(ApplicationLoader.applicationContext.getExternalFilesDir(null), "logs");
+            String[] logs = debugLogsDir.list();
+            if (logs != null) {
+                for (String log : logs) {
+                    if (log.endsWith("voip" + callID + ".txt")) {
+                        return new File(debugLogsDir, log);
+                    }
+                }
+            }
+        }
+        return new File(getLogsDir(), callID + ".log");
+    }
 
     public static void showCallDebugSettings(final Context context) {
         final SharedPreferences preferences = MessagesController.getGlobalMainSettings();

@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
@@ -29,9 +28,9 @@ public class SubtitleWithCounterCell extends org.telegram.ui.Cells.HeaderCell {
         counterTextView.setGravity(LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT);
         counterTextView.setTextSize(dp(15));
         counterTextView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(counterTextView, Theme.key_windowBackgroundWhiteBlueHeader, resourcesProvider);
+        counterTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader, resourcesProvider));
         addView(counterTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 24, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM, 24, 0, 24, 0));
-        ThemeBind.backgroundColor(this, Theme.key_dialogBackground, resourcesProvider);
+        setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
     }
 
     public void updateCounter(boolean animated, int count) {

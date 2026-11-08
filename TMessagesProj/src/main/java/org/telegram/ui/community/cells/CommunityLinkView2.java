@@ -31,7 +31,6 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.LayoutHelper;
-import java.util.HashSet;
 
 @SuppressLint("ViewConstructor")
 public class CommunityLinkView2 extends FrameLayout implements Theme.Colorable {
@@ -119,10 +118,5 @@ public class CommunityLinkView2 extends FrameLayout implements Theme.Colorable {
         arrowView.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
-    }
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_windowBackgroundWhiteGrayText2);
-        colors.add(Theme.key_windowBackgroundWhiteBlackText);
     }
 }

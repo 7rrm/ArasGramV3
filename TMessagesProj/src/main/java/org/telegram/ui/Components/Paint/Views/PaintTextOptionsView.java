@@ -351,7 +351,7 @@ public class PaintTextOptionsView extends FrameLayout implements NotificationCen
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        NotificationCenter.getGlobalInstance().addWeakObserver(this, NotificationCenter.customTypefacesLoaded);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.customTypefacesLoaded);
     }
 
     @Override

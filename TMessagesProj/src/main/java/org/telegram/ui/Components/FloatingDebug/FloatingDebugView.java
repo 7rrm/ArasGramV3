@@ -50,7 +50,6 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.BlurSettingsBottomSheet;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Components.AnimationProperties;
@@ -208,7 +207,7 @@ public class FloatingDebugView extends FrameLayout implements NotificationCenter
         };
         ImageView actionIcon = new ImageView(context);
         actionIcon.setImageResource(R.drawable.device_phone_android);
-        ThemeBind.colorFilter(actionIcon, Theme.key_chats_actionIcon, PorterDuff.Mode.SRC_IN);
+        actionIcon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chats_actionIcon), PorterDuff.Mode.SRC_IN));
         floatingButtonContainer.addView(actionIcon);
         floatingButtonContainer.setVisibility(GONE);
         addView(floatingButtonContainer, LayoutHelper.createFrame(56, 56));
@@ -344,10 +343,10 @@ public class FloatingDebugView extends FrameLayout implements NotificationCenter
         floatingButtonBackground = drawable;
 
         drawable = getResources().getDrawable(R.drawable.popup_fixed_alert3);
-        ThemeBind.drawableColorFilter(this, drawable, Theme.key_dialogBackground, PorterDuff.Mode.MULTIPLY);
+        drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogBackground), PorterDuff.Mode.MULTIPLY));
         bigLayout.setBackground(drawable);
 
-        ThemeBind.textColor(titleView, Theme.key_dialogTextBlack);
+        titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
 
         invalidate();
     }
@@ -384,7 +383,7 @@ public class FloatingDebugView extends FrameLayout implements NotificationCenter
                         .setStiffness(650f)
                         .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY));
 
-        NotificationCenter.getGlobalInstance().addWeakObserver(this, NotificationCenter.didSetNewTheme);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didSetNewTheme);
     }
 
     @Override

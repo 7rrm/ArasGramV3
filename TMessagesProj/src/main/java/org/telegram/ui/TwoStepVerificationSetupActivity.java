@@ -67,7 +67,6 @@ import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.CustomPhoneKeyboardView;
@@ -85,7 +84,6 @@ import org.telegram.ui.Components.VerticalPositionAutoAnimator;
 import org.telegram.ui.Components.spoilers.SpoilersTextView;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.ui.EditTextAutoFill;
@@ -253,9 +251,9 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
         actionBar.setBackgroundDrawable(null);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(false);
-        ThemeBind.actionBarTitleColor(actionBar, Theme.key_windowBackgroundWhiteBlackText);
-        ThemeBind.actionBarItemsColor(actionBar, Theme.key_windowBackgroundWhiteBlackText, false);
-        ThemeBind.actionBarItemsBackgroundColor(actionBar, Theme.key_actionBarWhiteSelector, false);
+        actionBar.setTitleColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        actionBar.setItemsColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), false);
+        actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_actionBarWhiteSelector), false);
         actionBar.setCastShadows(false);
         actionBar.setAddToContainer(false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -285,7 +283,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                     showDialog(alertDialog);
                     TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     if (button != null) {
-                        ThemeBind.textColor(button, Theme.key_text_RedBold);
+                        button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     }
                 }
             }
@@ -311,7 +309,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
         floatingButton.addAdditionalView(floatingButtonIcon);
 
         bottomSkipButton = new TextView(context);
-        ThemeBind.textColor(bottomSkipButton, Theme.key_windowBackgroundWhiteBlueText2);
+        bottomSkipButton.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText2));
         bottomSkipButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         bottomSkipButton.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
         bottomSkipButton.setVisibility(View.GONE);
@@ -372,7 +370,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                 showDialog(alertDialog);
                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    ThemeBind.textColor(button, Theme.key_text_RedBold);
+                    button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                 }
             } else if (currentType == TYPE_ENTER_HINT) {
                 onHintDone();
@@ -388,13 +386,13 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
         }
 
         titleTextView = new TextView(context);
-        ThemeBind.textColor(titleTextView, Theme.key_windowBackgroundWhiteBlackText);
+        titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         titleTextView.setGravity(Gravity.CENTER_HORIZONTAL);
         titleTextView.setPadding(AndroidUtilities.dp(32), 0, AndroidUtilities.dp(32), 0);
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
 
         descriptionText = new SpoilersTextView(context);
-        ThemeBind.textColor(descriptionText, Theme.key_windowBackgroundWhiteGrayText6);
+        descriptionText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6));
         descriptionText.setGravity(Gravity.CENTER_HORIZONTAL);
         descriptionText.setLineSpacing(AndroidUtilities.dp(2), 1);
         descriptionText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
@@ -402,7 +400,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
         descriptionText.setPadding(AndroidUtilities.dp(32), 0, AndroidUtilities.dp(32), 0);
 
         descriptionText2 = new TextView(context);
-        ThemeBind.textColor(descriptionText2, Theme.key_windowBackgroundWhiteGrayText6);
+        descriptionText2.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6));
         descriptionText2.setGravity(Gravity.CENTER_HORIZONTAL);
         descriptionText2.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         descriptionText2.setLineSpacing(AndroidUtilities.dp(2), 1);
@@ -427,7 +425,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
         buttonTextView.setMinWidth(AndroidUtilities.dp(220));
         buttonTextView.setPadding(AndroidUtilities.dp(34), 0, AndroidUtilities.dp(34), 0);
         buttonTextView.setGravity(Gravity.CENTER);
-        ThemeBind.textColor(buttonTextView, Theme.key_featuredStickers_buttonText);
+        buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
         buttonTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         buttonTextView.setTypeface(AndroidUtilities.bold());
         buttonTextView.setBackground(Theme.AdaptiveRipple.filledRectByKey(Theme.key_featuredStickers_addButton, 24));
@@ -716,8 +714,8 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                 editTextFirstRow.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
                 int padding = AndroidUtilities.dp(16);
                 editTextFirstRow.setPadding(padding, padding, padding, padding);
-                ThemeBind.cursorColor(editTextFirstRow, Theme.key_windowBackgroundWhiteInputFieldActivated);
-                ThemeBind.textColor(editTextFirstRow, Theme.key_windowBackgroundWhiteBlackText);
+                editTextFirstRow.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteInputFieldActivated));
+                editTextFirstRow.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                 editTextFirstRow.setBackground(null);
                 editTextFirstRow.setMaxLines(1);
                 editTextFirstRow.setLines(1);
@@ -754,8 +752,8 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                 showPasswordButton.setImageResource(R.drawable.msg_message);
                 showPasswordButton.setScaleType(ImageView.ScaleType.CENTER);
                 showPasswordButton.setContentDescription(LocaleController.getString(R.string.TwoStepVerificationShowPassword));
-                ThemeBind.selectorBackground(showPasswordButton, Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector)), null, ThemeBind.of(Theme.key_listSelector));
-                ThemeBind.colorFilter(showPasswordButton, Theme.key_chat_messagePanelIcons, PorterDuff.Mode.MULTIPLY);
+                showPasswordButton.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector)));
+                showPasswordButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_messagePanelIcons), PorterDuff.Mode.MULTIPLY));
                 AndroidUtilities.updateViewVisibilityAnimated(showPasswordButton, false, 0.1f, false);
 
                 showPasswordButton.setOnClickListener(v -> {
@@ -763,7 +761,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                     if (editTextFirstRow.getTransformationMethod() == null) {
                         isPasswordVisible = false;
                         editTextFirstRow.setTransformationMethod(PasswordTransformationMethod.getInstance());
-                        ThemeBind.colorFilter(showPasswordButton, Theme.key_chat_messagePanelIcons, PorterDuff.Mode.MULTIPLY);
+                        showPasswordButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_messagePanelIcons), PorterDuff.Mode.MULTIPLY));
                         if (currentType == TYPE_CREATE_PASSWORD_STEP_1) {
                             if (editTextFirstRow.length() > 0 && editTextFirstRow.hasFocus()) {
                                 if (monkeyEndCallback == null) {
@@ -779,7 +777,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                     } else {
                         isPasswordVisible = true;
                         editTextFirstRow.setTransformationMethod(null);
-                        ThemeBind.colorFilter(showPasswordButton, Theme.key_chat_messagePanelSend, PorterDuff.Mode.MULTIPLY);
+                        showPasswordButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_messagePanelSend), PorterDuff.Mode.MULTIPLY));
 
                         if (currentType == TYPE_CREATE_PASSWORD_STEP_1) {
                             if (editTextFirstRow.length() > 0 && editTextFirstRow.hasFocus()) {
@@ -827,8 +825,8 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                 editTextSecondRow.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
                 padding = AndroidUtilities.dp(16);
                 editTextSecondRow.setPadding(padding, padding, padding, padding);
-                ThemeBind.cursorColor(editTextSecondRow, Theme.key_windowBackgroundWhiteInputFieldActivated);
-                ThemeBind.textColor(editTextSecondRow, Theme.key_windowBackgroundWhiteBlackText);
+                editTextSecondRow.setCursorColor(Theme.getColor(Theme.key_windowBackgroundWhiteInputFieldActivated));
+                editTextSecondRow.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                 editTextSecondRow.setBackground(null);
                 editTextSecondRow.setMaxLines(1);
                 editTextSecondRow.setLines(1);
@@ -895,7 +893,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
 
                 if (currentType == TYPE_EMAIL_RECOVERY) {
                     descriptionText3 = new TextView(context);
-                    ThemeBind.textColor(descriptionText3, Theme.key_windowBackgroundWhiteLinkText);
+                    descriptionText3.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
                     descriptionText3.setGravity(Gravity.CENTER_HORIZONTAL);
                     descriptionText3.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
                     descriptionText3.setLineSpacing(AndroidUtilities.dp(2), 1);
@@ -944,7 +942,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
             }
         }
 
-        ThemeBind.backgroundColor(fragmentView, Theme.key_windowBackgroundWhite);
+        fragmentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
 
         switch (currentType) {
             case TYPE_INTRO: {
@@ -991,7 +989,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                 descriptionText.setVisibility(View.VISIBLE);
                 actionBar.getTitleTextView().setAlpha(0.0f);
                 descriptionText2.setText(LocaleController.getString(R.string.ForgotPassword));
-                ThemeBind.textColor(descriptionText2, Theme.key_windowBackgroundWhiteBlueText2);
+                descriptionText2.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText2));
                 outlineTextFirstRow.setText(LocaleController.getString(R.string.LoginPassword));
                 editTextFirstRow.setContentDescription(LocaleController.getString(R.string.LoginPassword));
                 editTextFirstRow.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
@@ -1390,7 +1388,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
                                 needHideProgress();
                                 if ("PASSWORD_HASH_INVALID".equals(error.text)) {
                                     descriptionText.setText(LocaleController.getString(R.string.CheckPasswordWrong));
-                                    ThemeBind.textColor(descriptionText, Theme.key_text_RedRegular);
+                                    descriptionText.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
                                     onFieldError(outlineTextFirstRow, editTextFirstRow, true);
                                     showDoneButton(false);
                                 } else if (error.text.startsWith("FLOOD_WAIT")) {
@@ -2093,10 +2091,16 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
+        themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND | ThemeDescription.FLAG_CHECKTAG, null, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND | ThemeDescription.FLAG_CHECKTAG, null, null, null, null, Theme.key_windowBackgroundGray));
 
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
 
         themeDescriptions.add(new ThemeDescription(titleTextView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteGrayText6));
+        themeDescriptions.add(new ThemeDescription(editTextFirstRow, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(editTextFirstRow, ThemeDescription.FLAG_HINTTEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteHintText));
         themeDescriptions.add(new ThemeDescription(editTextFirstRow, ThemeDescription.FLAG_BACKGROUNDFILTER, null, null, null, null, Theme.key_windowBackgroundWhiteInputField));
         themeDescriptions.add(new ThemeDescription(editTextFirstRow, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_windowBackgroundWhiteInputFieldActivated));
@@ -2141,7 +2145,7 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
 
         builder.setNegativeButton(LocaleController.getString(R.string.ForceSetPasswordCancel), (a1, a2) -> finishFragment());
         AlertDialog alertDialog = builder.show();
-        ThemeBind.textColor((TextView)alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE), Theme.key_text_RedBold);
+        ((TextView)alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE)).setTextColor(Theme.getColor(Theme.key_text_RedBold));
     }
 
     public void setBlockingAlert(int otherwiseRelogin) {
@@ -2165,36 +2169,5 @@ public class TwoStepVerificationSetupActivity extends BaseFragment {
     public boolean isLightStatusBar() {
         int color = Theme.getColor(Theme.key_windowBackgroundWhite, null, true);
         return ColorUtils.calculateLuminance(color) > 0.7f;
-    }
-
-    @Override
-    public void onThemeColorsChanged() {
-        try {
-            super.onThemeColorsChanged();
-            if (floatingButtonIcon != null) {
-                floatingButtonIcon.setColor(Theme.getColor(Theme.key_chats_actionIcon));
-            }
-    
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-        try {
-            final int activated = Theme.getColor(Theme.key_windowBackgroundWhiteInputFieldActivated);
-            if (radialProgressView != null) {
-                radialProgressView.setProgressColor(activated);
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
-    /** theme editor: colors this page shows (former ThemeDescription keys) */
-    @Override
-    public void addThemeColorKeys(HashSet<Integer> keys) {
-        super.addThemeColorKeys(keys);
-        keys.add(Theme.key_actionBarDefaultSelector);
-        keys.add(Theme.key_actionBarDefaultTitle);
-        keys.add(Theme.key_actionBarDefaultIcon);
-        keys.add(Theme.key_actionBarDefault);
     }
 }

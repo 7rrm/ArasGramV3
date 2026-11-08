@@ -1,6 +1,5 @@
 package org.telegram.ui.Charts.view_data;
 
-import android.graphics.PorterDuff;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
@@ -23,7 +22,6 @@ import org.telegram.messenger.BillingController;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ChannelMonetizationLayout;
 import org.telegram.ui.Charts.data.ChartData;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
@@ -117,9 +115,9 @@ public class LegendSignatureView extends FrameLayout {
     }
 
     public void recolor() {
-        ThemeBind.textColor(time, Theme.key_dialogTextBlack, resourcesProvider);
-        ThemeBind.textColor(hourTime, Theme.key_dialogTextBlack, resourcesProvider);
-        ThemeBind.colorFilter(chevron, Theme.key_statisticChartChevronColor, resourcesProvider, PorterDuff.Mode.SRC_ATOP);
+        time.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        hourTime.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        chevron.setColorFilter(Theme.getColor(Theme.key_statisticChartChevronColor, resourcesProvider));
         progressView.setProgressColor(Theme.getColor(Theme.key_statisticChartChevronColor, resourcesProvider));
 
         shadowDrawable = getContext().getResources().getDrawable(R.drawable.stats_tooltip).mutate();
@@ -198,16 +196,15 @@ public class LegendSignatureView extends FrameLayout {
                     h.signature.setText(l.line.name);
                 }
                 if (l.line.colorKey >= 0 && Theme.hasThemeKey(l.line.colorKey)) {
-                    ThemeBind.textColor(h.value, l.line.colorKey, resourcesProvider);
+                    h.value.setTextColor(Theme.getColor(l.line.colorKey, resourcesProvider));
                 } else {
-                    ThemeBind.clear(h.value); // holder reused: drop a previous line's key binding
                     h.value.setTextColor(Theme.getCurrentTheme().isDark() ? l.line.colorDark : l.line.color);
                 }
-                ThemeBind.textColor(h.signature, Theme.key_dialogTextBlack, resourcesProvider);
+                h.signature.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
 
                 if (showPercentage && h.percentage != null) {
                     h.percentage.setVisibility(VISIBLE);
-                    ThemeBind.textColor(h.percentage, Theme.key_dialogTextBlack, resourcesProvider);
+                    h.percentage.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
                     float v = lines.get(i).line.y[index] / (float) sum;
                     if (v < 0.1f && v != 0f) {
                         h.percentage.setText(String.format(Locale.ENGLISH, "%.1f%s", (100f * v), "%"));

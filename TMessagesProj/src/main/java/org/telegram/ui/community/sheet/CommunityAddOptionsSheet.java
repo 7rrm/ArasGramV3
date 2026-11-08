@@ -58,7 +58,7 @@ public class CommunityAddOptionsSheet extends BottomSheetWithRecyclerListView {
         headerMoveTop = dp(12);
         actionBar.setTitle(getTitle());
 
-        setBackgroundColorKey(Theme.key_windowBackgroundGray);
+        setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
 
         cell = new FrameLayout(context);
         cell.setPadding(0, dp(3), 0, dp(3));

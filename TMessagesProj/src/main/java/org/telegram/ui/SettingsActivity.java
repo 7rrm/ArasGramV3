@@ -1,6 +1,7 @@
 package org.telegram.ui;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
+import static org.telegram.messenger.AndroidUtilities.lerp;
 import static org.telegram.messenger.AndroidUtilities.replaceSingleTag;
 import static org.telegram.messenger.LocaleController.formatString;
 import static org.telegram.messenger.LocaleController.getString;
@@ -23,6 +24,7 @@ import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
@@ -30,6 +32,8 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -42,7 +46,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.WebStorage;
 import android.webkit.WebView;
@@ -58,7 +61,6 @@ import androidx.annotation.Nullable;
 import androidx.collection.LongSparseArray;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.Insets;
-import androidx.core.math.MathUtils;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -75,6 +77,7 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageLocation;
+import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
@@ -83,7 +86,6 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SharedPrefsHelper;
-import org.telegram.utils.glass.BaseFragmentSimpleGlass;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Wallet.GramWallet;
 import org.telegram.ui.Wallet.WalletActivity;
@@ -94,14 +96,13 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.SimpleActionBarMenu;
+import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.SettingsSearchCell;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
@@ -111,6 +112,7 @@ import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.FloatingDebug.FloatingDebugController;
+import org.telegram.ui.Components.FragmentFloatingButton;
 import org.telegram.ui.Components.HintsController;
 import org.telegram.ui.Components.IconBackgroundColors;
 import org.telegram.ui.Components.ImageUpdater;
@@ -120,7 +122,6 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
 import org.telegram.ui.Components.Paint.PersistColorPalette;
 import org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet;
-import org.telegram.ui.Components.ProfileGooeyView;
 import org.telegram.ui.Components.RadialProgressView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ScaleStateListAnimator;
@@ -131,7 +132,10 @@ import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
-import org.telegram.utils.glass.source.GlassSourceRenderNode;
+import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
+import org.telegram.ui.Components.blur3.ViewGroupPartRenderer;
+import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
 import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
@@ -164,11 +168,6 @@ import tw.nekomimi.nekogram.utils.AndroidUtil;
 import xyz.nextalone.nagram.NaConfig;
 
 import kotlin.Unit;
-import java.util.HashSet;
-import android.graphics.RectF;
-import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
-import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
-import org.telegram.messenger.LiteMode;
 
 public class SettingsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, ImageUpdater.ImageUpdaterDelegate, MainTabsActivity.TabFragmentDelegate, FactorAnimator.Target {
 
@@ -179,6 +178,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
     private SizeNotifierFrameLayout contentView;
     private UniversalRecyclerView listView;
+    private View actionBarBackground;
     private UndoView undoView;
 
     private ActionBarMenuItem searchItem, otherItem;
@@ -194,8 +194,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
     private FrameLayout topView;
     private FrameLayout avatarContainer;
-    private FrameLayout avatarTouchView;
-    private ProfileGooeyView avatarGooey;
     private AvatarDrawable avatarDrawable;
     private BackupImageView avatarView;
     private FrameLayout cameraButton;
@@ -207,7 +205,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     public boolean hasMainTabs;
 
     private View navigationBar;
-    private View actionBarFadeView;
 
     private int versionViewPressCount = 0;
 
@@ -217,22 +214,23 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
     public SettingsActivity(Bundle args) {
         super(args);
-    }
 
-    private NotificationCenter.ObserversGroup observersGroup;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            scrollableViewNoiseSuppressor = new DownscaleScrollableNoiseSuppressor();
+            iBlur3SourceGlassFrosted = new BlurredBackgroundSourceRenderNode(null);
+            iBlur3SourceGlass = new BlurredBackgroundSourceRenderNode(null);
+        } else {
+            scrollableViewNoiseSuppressor = null;
+            iBlur3SourceGlassFrosted = null;
+            iBlur3SourceGlass = null;
+        }
+    }
 
     @Override
     public boolean onFragmentCreate() {
-        if (observersGroup != null) {
-            observersGroup.removeAllObservers();
-            observersGroup = null;
-        }
-
-        observersGroup = NotificationCenter.getGlobalInstance()
-            .createObserversGroup(this)
-            .add(NotificationCenter.updateInterfaces)
-            .add(NotificationCenter.starBalanceUpdated)
-            .add(NotificationCenter.newSuggestionsAvailable);
+        getNotificationCenter().addObserver(this, NotificationCenter.updateInterfaces);
+        getNotificationCenter().addObserver(this, NotificationCenter.starBalanceUpdated);
+        getNotificationCenter().addObserver(this, NotificationCenter.newSuggestionsAvailable);
 
         if (arguments != null) {
             hasMainTabs = arguments.getBoolean("hasMainTabs", false);
@@ -256,42 +254,77 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     }
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
         additionNavigationBarHeight = hasMainTabs ? dp(MainTabsHelper.getMainTabsHeightWithMargins()) : 0;
 
-        setHasOwnBackground(true);
         contentView = new SizeNotifierFrameLayout(context) {
             @Override
             protected void dispatchDraw(Canvas canvas) {
-                // the place of the avatar in the list also changes without scroll: item animations, adapter updates
-                updateAvatarHide();
+                if (Build.VERSION.SDK_INT >= 31 && scrollableViewNoiseSuppressor != null) {
+                    blur3_InvalidateBlur();
+
+                    final int width = getMeasuredWidth();
+                    final int height = getMeasuredHeight();
+                    if (iBlur3SourceGlassFrosted != null && !iBlur3SourceGlassFrosted.inRecording()) {
+                        //if (iBlur3SourceGlassFrosted.needUpdateDisplayList(width, height) || iBlur3Invalidated) {
+                        final Canvas c = iBlur3SourceGlassFrosted.beginRecording(width, height);
+                        c.drawColor(getThemedColor(Theme.key_windowBackgroundWhite));
+                        if (SharedConfig.chatBlurEnabled()) {
+                            scrollableViewNoiseSuppressor.draw(c, DownscaleScrollableNoiseSuppressor.DRAW_FROSTED_GLASS);
+                        }
+                        iBlur3SourceGlassFrosted.endRecording();
+                        //}
+                    }
+                    if (iBlur3SourceGlass != null && !iBlur3SourceGlass.inRecording()) {
+                        //if (iBlur3SourceGlass.needUpdateDisplayList(width, height) || iBlur3Invalidated) {
+                        final Canvas c = iBlur3SourceGlass.beginRecording(width, height);
+                        c.drawColor(getThemedColor(Theme.key_windowBackgroundWhite));
+                        if (SharedConfig.chatBlurEnabled()) {
+                            scrollableViewNoiseSuppressor.draw(c, DownscaleScrollableNoiseSuppressor.DRAW_GLASS);
+                        }
+                        iBlur3SourceGlass.endRecording();
+                        //}
+                    }
+                    iBlur3Invalidated = false;
+                }
                 super.dispatchDraw(canvas);
-                glassEngine.invalidate();
                 if (!hasMainTabs) {
                     AndroidUtilities.drawNavigationBarProtection(canvas, this, getThemedColor(Theme.key_windowBackgroundWhite), navigationBarHeight);
                 }
             }
 
             @Override
-            public void updateColors() {
-                try {
-                    super.updateColors();
-                    SettingsActivity.this.updateColors();
-                } catch (Exception e) {
-                    FileLog.e(e);
+            public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !SharedConfig.chatBlurEnabled() || iBlur3SourceGlassFrosted == null) {
+                    canvas.drawRect(rectTmp, blurScrimPaint);
+                    return;
                 }
+
+                canvas.save();
+                canvas.translate(0, -y);
+                iBlur3SourceGlassFrosted.draw(canvas, rectTmp.left, rectTmp.top + y, rectTmp.right, rectTmp.bottom + y);
+                canvas.restore();
+
+                final int oldScrimAlpha = blurScrimPaint.getAlpha();
+                blurScrimPaint.setAlpha(ChatActivity.ACTION_BAR_BLUR_ALPHA);
+                canvas.drawRect(rectTmp, blurScrimPaint);
+                blurScrimPaint.setAlpha(oldScrimAlpha);
+            }
+
+            @Override
+            public void updateColors() {
+                super.updateColors();
+                SettingsActivity.this.updateColors();
             }
         };
 
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         leftButtonIsBack = true; // the view may be rebuilt (theme, language): checkUi_menuItems swaps it to QR again
-        simpleActionBar.setTitle(getString(R.string.Settings));
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setAllowOverlayTitle(true);
+        actionBar.setUseContainerForTitles();
+        actionBar.setTitle(getString(R.string.Settings));
+        actionBar.setAdditionalTextLeft(-dp(4));
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -309,9 +342,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 }
             }
         });
-        simpleActionBar.setBackground(null);
+        actionBar.setAddToContainer(false);
+        actionBar.setOccupyStatusBar(true);
+        actionBar.setBackgroundColor(Color.TRANSPARENT);
+        actionBar.setBackground(null);
 
-        final SimpleActionBarMenu menu = simpleActionBar.createMenu();
+        final ActionBarMenu menu = actionBar.createMenu();
         searchItem = menu.addItem(0, R.drawable.outline_header_search, resourceProvider).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
 
             @Override
@@ -349,35 +385,43 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         search.loadFaqWebPage();
 
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
-        listView.setCaptureSectionsDecoratorAllowed(true);
         listView.adapter.setApplyBackground(false);
         listView.setSections();
-        listView.setSectionsDrawBackground(true);
-        BaseFragmentSimpleGlass.setListViewParams(listView, 0, 0, dp(12), additionNavigationBarHeight);
+        listView.setPadding(0, AndroidUtilities.statusBarHeight + dp(12), 0, AndroidUtilities.navigationBarHeight + additionNavigationBarHeight);
         listView.setClipToPadding(false);
         listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 updateActionBarVisible();
-                updateAvatarHide();
                 if (listView.scrollingByUser) {
                     AndroidUtilities.hideKeyboard(fragmentView);
                 }
-            }
 
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    snapAvatarHide();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && scrollableViewNoiseSuppressor != null) {
+                    scrollableViewNoiseSuppressor.onScrolled(dx, dy);
+                    blur3_InvalidateBlur();
                 }
             }
         });
+        iBlur3Capture = new ViewGroupPartRenderer(listView, contentView, listView::drawChild);
+        listView.addEdgeEffectListener(() -> listView.postOnAnimation(this::blur3_InvalidateBlur));
         contentView.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
 
-        actionBarFadeView = new View(context);
-        actionBarFadeView.setBackground(getBaseSimpleGlass().createActionBarFadeDrawable(actionBarFadeView));
-        contentView.addView(actionBarFadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.TOP));
-        contentView.addView(simpleActionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP));
+        actionBarBackground = new View(context) {
+            private final Paint blurScrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            @Override
+            protected void onDraw(@NonNull Canvas canvas) {
+                int top = actionBar.getHeight();
+                AndroidUtilities.rectTmp2.set(0, 0, getMeasuredWidth(), top);
+                blurScrimPaint.setColor(Theme.getColor(Theme.key_actionBarDefault, resourceProvider));
+                contentView.drawBlurRect(canvas, 0, AndroidUtilities.rectTmp2, blurScrimPaint, true);
+                if (getParentLayout() != null) {
+                    getParentLayout().drawHeaderShadow(canvas, top);
+                }
+            }
+        };
+        contentView.addView(actionBarBackground, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 200, Gravity.TOP));
+        contentView.addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP));
 
         imageUpdater = new ImageUpdater(true, ImageUpdater.FOR_TYPE_USER, true);
         imageUpdater.setOpenWithFrontfaceCamera(true);
@@ -386,17 +430,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
         topView = new FrameLayout(context);
 
-        // the avatar is drawn above the list, where it can hide into the camera cutout as in the profile;
-        // this view in the list takes its touches, its place and its press scale
-        avatarTouchView = new FrameLayout(context) {
-            @Override
-            public void setScaleX(float scaleX) {
-                super.setScaleX(scaleX);
-                updateAvatarHide();
-            }
-        };
-        topView.addView(avatarTouchView, LayoutHelper.createFrame(120, 120, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 23 - 12, 0, 0));
-        avatarTouchView.setOnClickListener(v -> {
+        avatarContainer = new FrameLayout(context);
+        topView.addView(avatarContainer, LayoutHelper.createFrame(120, 120, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 23 - 12, 0, 0));
+        avatarContainer.setOnClickListener(v -> {
             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(UserConfig.getInstance(currentAccount).getClientUserId());
             if (user == null) {
                 user = UserConfig.getInstance(currentAccount).getCurrentUser();
@@ -410,25 +446,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
             }, 0);
         });
-        ScaleStateListAnimator.apply(avatarTouchView);
-        topView.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> updateAvatarHide());
-
-        avatarGooey = new ProfileGooeyView(context) {
-            @Override
-            public boolean dispatchTouchEvent(MotionEvent ev) {
-                return false;
-            }
-        };
-        avatarContainer = new FrameLayout(context);
-        avatarContainer.setPivotX(0);
-        avatarContainer.setPivotY(0);
-        avatarGooey.addView(avatarContainer, LayoutHelper.createFrame(90, 90, Gravity.TOP | Gravity.LEFT));
-        contentView.addView(avatarGooey, contentView.indexOfChild(listView) + 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        ScaleStateListAnimator.apply(avatarContainer);
 
         avatarDrawable = new AvatarDrawable();
         avatarView = new BackupImageView(context);
         avatarView.setRoundRadius(dp(90));
-        avatarContainer.addView(avatarView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        avatarContainer.addView(avatarView, LayoutHelper.createFrame(90, 90, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 15, 0, 0));
 
         avatarProgressView = new RadialProgressView(context) {
             private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -449,11 +472,11 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         avatarProgressView.setSize(AndroidUtilities.dp(26));
         avatarProgressView.setProgressColor(0xffffffff);
         avatarProgressView.setNoProgress(false);
-        avatarContainer.addView(avatarProgressView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        avatarContainer.addView(avatarProgressView, LayoutHelper.createFrame(90, 90, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 15, 0, 0));
         showAvatarProgress(false, false);
 
         cameraButton = new FrameLayout(context);
-        ThemeBind.fillBackground(cameraButton, Theme.createCircleDrawable(dp(32), getThemedColor(Theme.key_windowBackgroundGray)), ThemeBind.of(Theme.key_windowBackgroundGray), getResourceProvider());
+        cameraButton.setBackground(Theme.createCircleDrawable(dp(32), getThemedColor(Theme.key_windowBackgroundGray)));
         cameraButton.setPadding(dp(2), dp(2), dp(2), dp(2));
         cameraBackground = new FrameLayout(context);
         cameraBackground.setBackground(Theme.createCircleDrawable(dp(30), getThemedColor(Theme.getActiveTheme().isMonetNight() ? Theme.key_featuredStickers_unread : Theme.key_featuredStickers_addButton)));
@@ -462,12 +485,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         cameraImageView.setImageResource(R.drawable.filled_premium_camera);
         cameraBackground.addView(cameraImageView, LayoutHelper.createFrame(22, 22, Gravity.CENTER));
         cameraButton.addView(cameraBackground, LayoutHelper.createFrame(30, 30));
-        // over the avatar, so it scales and hides with it; its touches go to the place of the avatar in the list
-        // over the avatar layer, not in it: the goo is made of the avatar only. It follows the avatar
-        // (at its bottom right, past its edge), its touches go to the place of the avatar in the list
-        cameraButton.setPivotX(0);
-        cameraButton.setPivotY(0);
-        contentView.addView(cameraButton, contentView.indexOfChild(avatarGooey) + 1, LayoutHelper.createFrame(34, 34, Gravity.LEFT | Gravity.TOP));
+        avatarContainer.addView(cameraButton, LayoutHelper.createFrame(34, 34, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 32, 75, 0, 0));
+        ScaleStateListAnimator.apply(cameraButton);
 
         titleView = new TextView(context);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
@@ -486,10 +505,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
         versionView = new TextView(context);
         versionView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(versionView, Theme.key_windowBackgroundWhiteGrayText4, getResourceProvider());
+        versionView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText4));
         versionView.setPadding(dp(21), dp(10), dp(21), dp(10));
         versionView.setGravity(Gravity.CENTER);
-        ThemeBind.selectorBackground(versionView, Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL), null, ThemeBind.of(Theme.key_listSelector), getResourceProvider());
+        versionView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ALL));
         versionView.setOnClickListener(v -> showVersionMenu());
         versionView.setOnLongClickListener(v -> {
             versionViewPressCount++;
@@ -501,7 +520,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 }
                 return true;
             }
-            presentFragment(new DebugSettingsActivity());
+            openDebugMenu();
             return true;
         });
 
@@ -514,10 +533,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         updateColors();
         checkUi_menuItems();
 
-        simpleActionBar.setBackground(null);
-        updateActionBarFadeHeight(mSystemInsets.top);
-        updateActionBarVisible(true, false);
-
         ViewCompat.setOnApplyWindowInsetsListener(contentView, this::onApplyWindowInsets);
         return fragmentView = contentView;
     }
@@ -525,10 +540,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
-        if (observersGroup != null) {
-            observersGroup.removeAllObservers();
-            observersGroup = null;
-        }
+
+        getNotificationCenter().removeObserver(this, NotificationCenter.updateInterfaces);
+        getNotificationCenter().removeObserver(this, NotificationCenter.starBalanceUpdated);
+        getNotificationCenter().removeObserver(this, NotificationCenter.newSuggestionsAvailable);
     }
 
     @Override
@@ -575,19 +590,18 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     }
 
 
-    private int lastNavigationBarColor;
-
     public void updateColors() {
+        actionBar.setTitleColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
+        actionBar.setItemsColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), false);
+        contentView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
         titleView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
         subtitleView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText));
         searchItem.updateColor();
 
         final int navigationBarColor = getThemedColor(Theme.key_windowBackgroundWhite);
-        if (navigationBar.getBackground() == null || navigationBarColor != lastNavigationBarColor) {
-            lastNavigationBarColor = navigationBarColor;
-            navigationBar.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[] { Theme.multAlpha(navigationBarColor, 0.0f), navigationBarColor }));
-        }
+        navigationBar.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[] { Theme.multAlpha(navigationBarColor, 0.0f), navigationBarColor }));
 
+        actionBarBackground.invalidate();
         listView.invalidate();
     }
 
@@ -613,7 +627,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             final View firstChild = listView.getChildAt(0);
             visible = (
                 listView.getChildAdapterPosition(firstChild) > 0 ||
-                firstChild.getY() + firstChild.getHeight() < simpleActionBar.getHeight()
+                firstChild.getY() + firstChild.getHeight() < actionBar.getHeight()
             );
         } else {
             visible = false;
@@ -626,12 +640,14 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             actionBarVisibleAnimator = null;
         }
         if (!animated) {
-            setActionBarVisibilityFactor(visible ? 1f : 0f);
+            actionBar.getTitlesContainer().setAlpha(visible ? 1.0f : 0.0f);
+            actionBarBackground.setAlpha(visible ? 1.0f : 0.0f);
         } else {
-            actionBarVisibleAnimator = ValueAnimator.ofFloat(simpleActionBar.getTitlesAlpha(), visible ? 1.0f : 0.0f);
+            actionBarVisibleAnimator = ValueAnimator.ofFloat(actionBar.getTitlesContainer().getAlpha(), visible ? 1.0f : 0.0f);
             actionBarVisibleAnimator.addUpdateListener(a -> {
                 final float t = (float) a.getAnimatedValue();
-                setActionBarVisibilityFactor(t);
+                actionBar.getTitlesContainer().setAlpha(t);
+                actionBarBackground.setAlpha(t);
             });
             actionBarVisibleAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
             actionBarVisibleAnimator.setDuration(420);
@@ -650,106 +666,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         };
         Bulletin.addDelegate(this, delegate);
         if (listView.adapter != null) {
-            listView.adapter.update(false);
-        }
-    }
-
-    private void setActionBarVisibilityFactor(float factor) {
-        simpleActionBar.setTitlesAlpha(factor);
-        if (actionBarFadeView != null) {
-            actionBarFadeView.setAlpha(factor);
-        }
-    }
-
-    /**
-     * Moves the avatar after its place in the list and hides it into the camera cutout while the list
-     * scrolls it up, as the profile does with its collapsing header.
-     */
-    private void updateAvatarHide() {
-        if (avatarGooey == null || avatarContainer == null) {
-            return;
-        }
-        float y = avatarTouchView.getHeight() / 2f;
-        float alpha = 1f;
-        View view = avatarTouchView;
-        while (view != null && view != fragmentView && view.getParent() instanceof View) {
-            y += view.getY();
-            alpha *= view.getAlpha();
-            view = (View) view.getParent();
-        }
-        if (view != fragmentView || !avatarTouchView.isAttachedToWindow() || avatarTouchView.getHeight() == 0) {
-            if (avatarHideShown != 0) {
-                avatarHideShown = 0;
-                avatarGooey.setHideProgress(1f);
-                cameraButton.setAlpha(0f);
-            }
-            return;
-        }
-        // the center of the avatar: with the list at its top, and in the cutout
-        final float shownY = y - getListItemTop(topView) + listView.getPaddingTop();
-        final float hiddenY = avatarGooey.getHiddenAvatarCenterY(-dp(16));
-        // the avatar goes with the list, it must not run into the name below it
-        final float shown = MathUtils.clamp((y - hiddenY) / Math.max(1, shownY - hiddenY), 0f, 1f);
-        final float centerY = Math.max(y, hiddenY);
-        avatarListY = y;
-        avatarShownY = shownY;
-        avatarHiddenY = hiddenY;
-
-        final float size = dp(90);
-        final float scale = AndroidUtilities.lerp(dp(avatarGooey.getHiddenAvatarSizeDp()), size, shown) / size * avatarTouchView.getScaleX();
-        final float translationX = avatarGooey.getWidth() / 2f - size * scale / 2f;
-        if (centerY == avatarHideCenterY && scale == avatarHideScale && shown == avatarHideShown && alpha == avatarGooey.getAlpha() && translationX == avatarContainer.getTranslationX()) {
-            return; // called on each draw: no invalidation without changes
-        }
-        avatarHideCenterY = centerY;
-        avatarHideScale = scale;
-        avatarHideShown = shown;
-        avatarGooey.setAlpha(alpha);
-        avatarContainer.setScaleX(scale);
-        avatarContainer.setScaleY(scale);
-        avatarContainer.setTranslationX(translationX);
-        avatarContainer.setTranslationY(centerY - size * scale / 2f);
-        cameraButton.setAlpha(alpha * MathUtils.clamp(AndroidUtilities.ilerp(shown, 0.75f, 1f), 0f, 1f));
-        cameraButton.setScaleX(scale);
-        cameraButton.setScaleY(scale);
-        cameraButton.setTranslationX(translationX + dp(60) * scale);
-        cameraButton.setTranslationY(centerY - size * scale / 2f + dp(60) * scale);
-        avatarGooey.setHideProgress(1f - shown);
-    }
-
-    private float avatarHideCenterY, avatarHideScale, avatarHideShown = -1;
-    /** The center of the avatar in the list, at the top of the list and in the cutout, from the last update. */
-    private float avatarListY, avatarShownY, avatarHiddenY;
-
-    /** The list does not stop with the avatar half hidden: it scrolls on to the shown or the hidden avatar. */
-    private void snapAvatarHide() {
-        if (avatarGooey == null || searchItem != null && searchItem.isSearchFieldVisible2() || avatarHideShown <= 0 || avatarHideShown >= 1) {
-            return;
-        }
-        if (avatarHideShown >= 0.5f) {
-            listView.smoothScrollBy(0, (int) -(avatarShownY - avatarListY), CubicBezierInterpolator.EASE_OUT_QUINT);
-        } else {
-            listView.smoothScrollBy(0, (int) Math.ceil(avatarListY - avatarHiddenY), CubicBezierInterpolator.EASE_OUT_QUINT);
-        }
-    }
-
-    /** Top of the list item holding {@code view}, in the list. */
-    private float getListItemTop(View view) {
-        float top = 0;
-        while (view != null && view != listView && view.getParent() instanceof View) {
-            top += view.getY();
-            view = (View) view.getParent();
-        }
-        return top;
-    }
-
-    private void updateActionBarFadeHeight(int insetTop) {
-        if (actionBarFadeView == null) return;
-        int height = insetTop + ActionBar.getCurrentActionBarHeight();
-        ViewGroup.LayoutParams params = actionBarFadeView.getLayoutParams();
-        if (params.height != height) {
-            params.height = height;
-            actionBarFadeView.setLayoutParams(params);
+            listView.adapter.notifyDataSetChanged();
         }
     }
 
@@ -918,10 +835,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
         if (SharedSettings.experimentalSettingsAllowed.get()) {
             items.add(UItem.asShadow(null));
-            items.add(UItem.asHeader(getString(R.string.SettingsExperimental)));
+            items.add(UItem.asHeader("Experimental"));
             items.add(SettingCell.Factory.of(24, 0xFFF45255, 0xFFDF3955, 0, getString(R.string.RoundVideoSettings)));
             items.add(SettingCell.Factory.of(26, 0xFF55CA47, 0xFF27B434, 0, getString(R.string.AudioRecorderSettings)));
-            items.add(SettingCell.Factory.of(27, 0xFF3D8BEB, 0xFF2A6FD9, 0, getString(R.string.HeaderSettings)));
         }
 
         if (BuildVars.LOGS_ENABLED || BuildVars.DEBUG_PRIVATE_VERSION) {
@@ -1081,10 +997,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 presentFragment(new AudioRecorderSettingsActivity());
                 break;
             }
-            case 27: {
-                presentFragment(new HeaderSettingsActivity());
-                break;
-            }
         }
     }
 
@@ -1163,8 +1075,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
         final Insets systemInsets = AndroidUtilities.getDefaultWindowInsets(insets, false);
         navigationBarHeight = systemInsets.bottom;
-        updateActionBarFadeHeight(systemInsets.top);
-        BaseFragmentSimpleGlass.setListViewParams(listView, systemInsets.top, systemInsets.bottom, dp(12), additionNavigationBarHeight);
+        final int statusBarHeight = systemInsets.top;
+        listView.setPadding(0, statusBarHeight + dp(12), 0, navigationBarHeight + additionNavigationBarHeight);
         return WindowInsetsCompat.CONSUMED;
     }
 
@@ -1193,7 +1105,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             textView = new SimpleTextView(context);
             textView.setTextSize(15);
             textView.setTypeface(AndroidUtilities.bold());
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
 
             botDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(textView, dp(24), AnimatedEmojiDrawable.CACHE_TYPE_EMOJI_STATUS);
             emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(textView, dp(24), AnimatedEmojiDrawable.CACHE_TYPE_EMOJI_STATUS);
@@ -1216,13 +1128,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             counterView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
             counterView.setTypeface(AndroidUtilities.bold());
             counterView.setGravity(Gravity.CENTER);
-            ThemeBind.textColor(counterView, Theme.key_featuredStickers_buttonText, resourcesProvider);
-            ThemeBind.fillBackground(counterView, Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)), ThemeBind.of(Theme.key_featuredStickers_addButton), resourcesProvider);
+            counterView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider));
+            counterView.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
 
             arrowView = new ImageView(context);
             arrowView.setImageResource(R.drawable.msg_arrowright);
             arrowView.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(arrowView, Theme.key_windowBackgroundWhiteGrayIcon, resourcesProvider, PorterDuff.Mode.SRC_IN);
+            arrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon, resourcesProvider), PorterDuff.Mode.SRC_IN));
 
             if (LocaleController.isRTL) {
                 textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
@@ -1243,38 +1155,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             }
         }
 
-        private int lastArrowColor;
-
         @Override
         public void updateColors() {
             textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
-            Theme.setDrawableColor(counterView.getBackground(), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider));
-            counterView.invalidate();
-            final int arrowColor = Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon, resourcesProvider);
-            if (arrowColor != lastArrowColor || arrowView.getColorFilter() == null) {
-                lastArrowColor = arrowColor;
-                arrowView.setColorFilter(new PorterDuffColorFilter(arrowColor, PorterDuff.Mode.SRC_IN));
-            }
+            counterView.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
+            arrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon, resourcesProvider), PorterDuff.Mode.SRC_IN));
             emojiStatusDrawable.setColor(Theme.getColor(Theme.key_profile_verifiedBackground, resourcesProvider));
-            updateBotDrawableColor();
-        }
-
-        private void updateBotDrawableColor() {
-            try {
-                if (botDrawable != null) {
-                    botDrawable.setColor(Theme.getColor(Theme.key_profile_verifiedBackground, resourcesProvider));
-                    if (textView != null) {
-                        textView.invalidate();
-                    }
-                }
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
-
-        @Override
-        public void addColorKeys(HashSet<Integer> colors) {
-            colors.add(Theme.key_profile_verifiedBackground);
         }
 
         public void set(int account) {
@@ -1353,8 +1239,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
     @Override
     public boolean onBackPressed(boolean invoked) {
-        if (simpleActionBar.isSearchFieldVisible()) {
-            if (invoked) simpleActionBar.closeSearchField();
+        if (actionBar.isSearchFieldVisible()) {
+            if (invoked) actionBar.closeSearchField();
             return false;
         }
         return super.onBackPressed(invoked);
@@ -1422,12 +1308,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
             valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, resourcesProvider));
             iconBackground.setDrawBorder(hasBackground && (resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark()));
-        }
-        @Override
-        public void addColorKeys(HashSet<Integer> colors) {
-            colors.add(Theme.key_windowBackgroundWhiteBlackText);
-            colors.add(Theme.key_windowBackgroundWhiteGrayText);
-            colors.add(Theme.key_windowBackgroundWhiteBlueText);
         }
 
         private boolean twoLines;
@@ -1524,7 +1404,22 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         public static class Factory extends UItem.UItemFactory<SettingCell> {
             static { setup(new Factory()); }
 
+            @Override
+            public SettingCell createView(Context context, RecyclerListView listView, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
+                return new SettingCell(context, resourcesProvider);
+            }
 
+            @Override
+            public void bindView(View view, UItem item, boolean divider, UniversalAdapter adapter, UniversalRecyclerView listView) {
+                int iconColorTop    = (int) item.longValue;
+                int iconColorBottom = (int) (item.longValue >>> 32);
+                ((SettingCell) view).set(
+                    iconColorTop, iconColorBottom, item.iconResId,
+                    item.text,
+                    item.subtext,
+                    item.textValue
+                );
+            }
 
             public static UItem of(int id, int iconColorTop, int iconColorBottom, int icon, CharSequence title) {
                 return of(id, iconColorTop, iconColorBottom, icon, title, null, null);
@@ -1591,10 +1486,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         }
-        @Override
-        public void addColorKeys(HashSet<Integer> colors) {
-            colors.add(Theme.key_windowBackgroundWhiteBlackText);
-        }
 
         public void set(
             CharSequence title,
@@ -1614,12 +1505,24 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         public static class Factory extends UItem.UItemFactory<SuggestionCell> {
             static { setup(new Factory()); }
 
+            @Override
+            public SuggestionCell createView(Context context, RecyclerListView listView, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
+                return new SuggestionCell(context, resourcesProvider);
+            }
 
             @Override
             public boolean isClickable() {
                 return false;
             }
 
+            @Override
+            public void bindView(View view, UItem item, boolean divider, UniversalAdapter adapter, UniversalRecyclerView listView) {
+                ((SuggestionCell) view).set(
+                    item.text, item.subtext,
+                    item.textValue, item.clickCallback,
+                    item.animatedText, item.clickCallback2
+                );
+            }
 
             public static UItem of(
                 CharSequence title,
@@ -2257,7 +2160,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 avatarView.setImage(ImageLocation.getForLocal(avatar), "90_90", avatarDrawable, null);
                 showAvatarProgress(true, false);
             }
-            simpleActionBar.createMenu().requestLayout();
+            actionBar.createMenu().requestLayout();
         });
     }
 
@@ -2336,25 +2239,35 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private boolean leftButtonIsBack = true;
 
     private void checkUi_menuItems() {
+        final float searchVisible = animatorSearchPageVisible.getFloatValue();
+        FragmentFloatingButton.setAnimatedVisibility(otherItem, 1f - searchVisible);
         if (!hasMainTabs) {
+            FragmentFloatingButton.setAnimatedVisibility(actionBar.getBackButton(), 1f);
             return;
         }
         // the main tab has no back: the left button is the QR code, turning into back while the search is open
-        // (the bar swaps the icons inside the glass circle, so the title does not move)
-        final boolean back = simpleActionBar.isSearchFieldVisible();
+        // (shrinks away and grows back with the other icon; stays visible, so the title does not move)
+        final ImageView button = actionBar.getBackButton();
+        if (button == null) return;
+        final boolean back = searchVisible > 0.5f;
         if (back != leftButtonIsBack) {
             leftButtonIsBack = back;
-            simpleActionBar.setBackButtonImageAnimated(back ? R.drawable.ic_ab_back : R.drawable.outline_header_qr_24);
-            simpleActionBar.setBackButtonContentDescription(getString(back ? R.string.AccDescrGoBack : R.string.QrCode));
+            button.setImageResource(back ? R.drawable.ic_ab_back : R.drawable.outline_header_qr_24);
+            button.setContentDescription(getString(back ? R.string.AccDescrGoBack : R.string.QrCode));
         }
+        final float f = Math.abs(searchVisible * 2f - 1f);
+        button.setVisibility(View.VISIBLE);
+        button.setAlpha(f);
+        button.setScaleX(lerp(0.4f, 1f, f));
+        button.setScaleY(lerp(0.4f, 1f, f));
     }
 
 
     /* Blur */
 
-    private @Nullable DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
-    private final @Nullable GlassSourceRenderNode iBlur3SourceGlassFrosted;
-    private final @Nullable GlassSourceRenderNode iBlur3SourceGlass;
+    private final @Nullable DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
+    private final @Nullable BlurredBackgroundSourceRenderNode iBlur3SourceGlassFrosted;
+    private final @Nullable BlurredBackgroundSourceRenderNode iBlur3SourceGlass;
 
     private IBlur3Capture iBlur3Capture;
     private boolean iBlur3Invalidated;
@@ -2384,13 +2297,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     }
 
     @Override
-    public GlassSourceRenderNode getGlassSource() {
-        return getBaseSimpleGlass().getGlassSource();
-    }
-
-    @Override
-    public GlassSourceRenderNode getFrostedGlassSource() {
-        return getBaseSimpleGlass().getFrostedGlassSource();
+    public BlurredBackgroundSourceRenderNode getGlassSource() {
+        return iBlur3SourceGlass;
     }
 
     @Override
@@ -2417,30 +2325,5 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         layoutParams.bottomMargin += navigationBarHeight + additionNavigationBarHeight;
         contentView.addView(undoView, layoutParams);
         return undoView;
-    }
-
-    @Override
-    protected boolean useFadeDrawableForActionBar() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
-    }
-
-    private interface ChoiceHandler {
-        void onChoice(int index);
-    }
-
-    private void showChoice(String title, CharSequence[] choices, ChoiceHandler handler) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(title);
-        builder.setItems(choices, (dialog, index) -> {
-            handler.onChoice(index);
-            listView.adapter.update(true);
-        });
-        showDialog(builder.create());
     }
 }

@@ -14,7 +14,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.AppIconsSelectorCell;
 import org.telegram.ui.LauncherIconController;
 
@@ -30,7 +29,7 @@ public class AppIconBulletinLayout extends Bulletin.ButtonLayout {
 
         textView.setGravity(Gravity.START);
         textView.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8));
-        ThemeBind.textColor(textView, Theme.key_undo_infoColor, resourcesProvider);
+        textView.setTextColor(getThemedColor(Theme.key_undo_infoColor));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         textView.setTypeface(Typeface.SANS_SERIF);
         addView(textView, LayoutHelper.createFrameRelatively(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.CENTER_VERTICAL, 56, 0, 16, 0));

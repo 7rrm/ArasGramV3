@@ -27,7 +27,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
@@ -102,7 +101,7 @@ public class SelfStoryViewsView extends FrameLayout {
         //selfStoriesPreviewView.setAlpha(0.2f);
 
         shadowDrawable = context.getResources().getDrawable(R.drawable.sheet_shadow_round).mutate();
-        ThemeBind.drawableColorFilter(this, shadowDrawable, Theme.key_dialogBackground, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+        shadowDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogBackground, resourcesProvider), PorterDuff.Mode.MULTIPLY));
         viewPagerContainer = new ContainerView(context);
 
         viewPager = new ViewPagerInner(context) {

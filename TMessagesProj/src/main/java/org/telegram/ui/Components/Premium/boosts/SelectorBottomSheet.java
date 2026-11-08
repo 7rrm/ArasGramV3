@@ -30,7 +30,6 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.GraySectionCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Components.AnimatedFloat;
@@ -132,7 +131,7 @@ public class SelectorBottomSheet extends BottomSheetWithRecyclerListView {
                 selectorAdapter.notifyChangedLast();
             }
         };
-        ThemeBind.backgroundColor(searchField, Theme.key_dialogBackground, resourcesProvider);
+        searchField.setBackgroundColor(getThemedColor(Theme.key_dialogBackground));
         searchField.setOnSearchTextChange(this::onSearch);
 
         sectionCell = new GraySectionCell(getContext(), resourcesProvider);
@@ -146,7 +145,7 @@ public class SelectorBottomSheet extends BottomSheetWithRecyclerListView {
         buttonContainer.setClickable(true);
         buttonContainer.setOrientation(LinearLayout.VERTICAL);
         buttonContainer.setPadding(dp(10), dp(10), dp(10), dp(10));
-        ThemeBind.backgroundColor(buttonContainer, Theme.key_dialogBackground, resourcesProvider);
+        buttonContainer.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
         actionButton = new ButtonWithCounterView(getContext(), resourcesProvider);
         actionButton.setOnClickListener(v -> save(false));
         buttonContainer.addView(actionButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL));

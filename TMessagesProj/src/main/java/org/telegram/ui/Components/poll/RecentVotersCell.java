@@ -28,7 +28,6 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.CallLogActivity;
 import org.telegram.ui.Components.AvatarsListDrawable;
 import org.telegram.ui.Components.FlickerLoadingView;
@@ -54,7 +53,7 @@ public class RecentVotersCell extends FrameLayout {
         avatarsListDrawable = new AvatarsListDrawable(currentAccount, this, dp(24), dp(10), dpf2(1));
 
         textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_actionBarDefaultSubmenuItem, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider));
         textView.setLines(1);
         textView.setSingleLine(true);
         textView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);

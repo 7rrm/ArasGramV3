@@ -24,7 +24,6 @@ import android.widget.TextView;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RadioButton;
 
@@ -55,9 +54,9 @@ public class RadioCell extends FrameLayout {
 
         textView = new TextView(context);
         if (dialog) {
-            ThemeBind.textColor(textView, Theme.key_dialogTextBlack, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
         } else {
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         }
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setLines(1);
@@ -70,9 +69,9 @@ public class RadioCell extends FrameLayout {
         radioButton = new RadioButton(context);
         radioButton.setSize(AndroidUtilities.dp(20));
         if (dialog) {
-            ThemeBind.radioColors(radioButton, Theme.key_dialogRadioBackground, Theme.key_dialogRadioBackgroundChecked, resourcesProvider);
+            radioButton.setColor(Theme.getColor(Theme.key_dialogRadioBackground, resourcesProvider), Theme.getColor(Theme.key_dialogRadioBackgroundChecked, resourcesProvider));
         } else {
-            ThemeBind.radioColors(radioButton, Theme.key_radioBackground, Theme.key_radioBackgroundChecked, resourcesProvider);
+            radioButton.setColor(Theme.getColor(Theme.key_radioBackground, resourcesProvider), Theme.getColor(Theme.key_radioBackgroundChecked, resourcesProvider));
         }
         addView(radioButton, LayoutHelper.createFrame(22, 22, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, (LocaleController.isRTL ? padding + 1 : 0), 14, (LocaleController.isRTL ? 0 : padding + 1), 0));
     }

@@ -125,6 +125,7 @@ public class NekoMessageCell extends ChatMessageCell {
                 Optional.ofNullable(ayuDelegate).ifPresent(d -> d.didPressBotButton(cell, button));
             }
 
+            @Override
             public boolean didLongPressBotButton(ChatMessageCell cell, TL_keyboard.KeyboardButtonProto button) {
                 if (ayuDelegate != null) {
                     return ayuDelegate.didLongPressBotButton(cell, button);
@@ -166,10 +167,12 @@ public class NekoMessageCell extends ChatMessageCell {
         });
     }
 
+    @Override
     protected boolean shouldTranslucentDeleted() {
         return false;
     }
 
+    @Override
     protected boolean shouldShowAyuDeletedMark(MessageObject messageObject) {
         return showAyuDeletedMark;
     }

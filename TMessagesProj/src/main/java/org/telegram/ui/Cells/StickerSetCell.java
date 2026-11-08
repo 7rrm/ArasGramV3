@@ -46,11 +46,9 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.FileLog;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.CheckBox2;
@@ -67,9 +65,8 @@ import org.telegram.ui.Components.UniversalRecyclerView;
 
 import java.util.ArrayList;
 import java.util.Locale;
-import android.graphics.drawable.Drawable;
 
-public class StickerSetCell extends FrameLayout implements Theme.Colorable {
+public class StickerSetCell extends FrameLayout {
     private final static String LINK_PREFIX = "t.me/addstickers/";
     private final static String LINK_PREFIX_EMOJI = "t.me/addemoji/";
 
@@ -112,10 +109,10 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
             optionsButton.setFocusable(false);
             optionsButton.setScaleType(ImageView.ScaleType.CENTER);
             if (option != 3) {
-                ThemeBind.selectorBackground(optionsButton, Theme.createSelectorDrawable(Theme.getColor(Theme.key_stickers_menuSelector)), null, ThemeBind.of(Theme.key_stickers_menuSelector));
+                optionsButton.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_stickers_menuSelector)));
             }
             if (option == 1) {
-                ThemeBind.colorFilter(optionsButton, Theme.key_stickers_menu, PorterDuff.Mode.MULTIPLY);
+                optionsButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_stickers_menu), PorterDuff.Mode.MULTIPLY));
                 optionsButton.setImageResource(R.drawable.msg_actions);
                 optionsButton.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
                 addView(optionsButton, LayoutHelper.createFrame(40, 40, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL));
@@ -125,7 +122,7 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
                 reorderButton.setVisibility(GONE);
                 reorderButton.setScaleType(ImageView.ScaleType.CENTER);
                 reorderButton.setImageResource(R.drawable.list_reorder);
-                ThemeBind.colorFilter(reorderButton, Theme.key_stickers_menu, PorterDuff.Mode.MULTIPLY);
+                reorderButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_stickers_menu), PorterDuff.Mode.MULTIPLY));
                 addView(reorderButton, LayoutHelper.createFrameRelatively(58, 58, Gravity.END));
 
                 checkBox = new CheckBox2(context, 21);
@@ -134,7 +131,7 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
                 checkBox.setDrawBackgroundAsArc(3);
                 addView(checkBox, LayoutHelper.createFrameRelatively(24, 24, Gravity.START, 34, 30, 0, 0));
             } else if (option == 3) {
-                ThemeBind.colorFilter(optionsButton, Theme.key_featuredStickers_addedIcon, PorterDuff.Mode.MULTIPLY);
+                optionsButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_featuredStickers_addedIcon), PorterDuff.Mode.MULTIPLY));
                 optionsButton.setImageResource(R.drawable.floating_check);
                 addView(optionsButton, LayoutHelper.createFrame(40, 40, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, (LocaleController.isRTL ? 10 : 0), 9, (LocaleController.isRTL ? 0 : 10), 0));
             }
@@ -146,8 +143,8 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
         addButtonView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         addButtonView.setTypeface(AndroidUtilities.bold());
         addButtonView.setText(LocaleController.getString(R.string.Add));
-        ThemeBind.textColor(addButtonView, Theme.key_featuredStickers_buttonText, resourcesProvider);
-        ThemeBind.selectorBackground(addButtonView, Theme.AdaptiveRipple.createRect(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), Theme.getColor(Theme.key_featuredStickers_addButtonPressed, resourcesProvider), 14), ThemeBind.of(Theme.key_featuredStickers_addButton), ThemeBind.of(Theme.key_featuredStickers_addButtonPressed), resourcesProvider);
+        addButtonView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider));
+        addButtonView.setBackground(Theme.AdaptiveRipple.createRect(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), Theme.getColor(Theme.key_featuredStickers_addButtonPressed, resourcesProvider), 14));
         addButtonView.setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
         addButtonView.setGravity(Gravity.CENTER);
         addButtonView.setOnClickListener(e -> onAddButtonClick());
@@ -158,8 +155,8 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
         removeButtonView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         removeButtonView.setTypeface(AndroidUtilities.bold());
         removeButtonView.setText(LocaleController.getString(R.string.StickersRemove));
-        ThemeBind.textColor(removeButtonView, Theme.key_featuredStickers_removeButtonText, resourcesProvider);
-        ThemeBind.selectorBackground(removeButtonView, Theme.AdaptiveRipple.createRect(0, Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider) & 0x1affffff, 14), null, ThemeBind.alpha(Theme.key_featuredStickers_addButton, 0x1a), resourcesProvider);
+        removeButtonView.setTextColor(Theme.getColor(Theme.key_featuredStickers_removeButtonText, resourcesProvider));
+        removeButtonView.setBackground(Theme.AdaptiveRipple.createRect(0, Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider) & 0x1affffff, 14));
         removeButtonView.setPadding(AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12), 0);
         removeButtonView.setGravity(Gravity.CENTER);
         removeButtonView.setOnClickListener(e -> onRemoveButtonClick());
@@ -201,7 +198,7 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
             }
         };
         NotificationCenter.listenEmojiLoading(textView);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setTypeface(AndroidUtilities.bold());
         textView.setLines(1);
@@ -212,7 +209,7 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
         addView(textView, LayoutHelper.createFrameRelatively(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.START, 71, 9, 70, 0));
 
         valueTextView = new TextView(context);
-        ThemeBind.textColor(valueTextView, Theme.key_windowBackgroundWhiteGrayText2);
+        valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         valueTextView.setLines(1);
         valueTextView.setMaxLines(1);
@@ -223,8 +220,8 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
             deleteView = new ImageView(context);
             deleteView.setImageResource(R.drawable.msg_close);
             deleteView.setPadding(dp(8), dp(8), dp(8), dp(8));
-            ThemeBind.colorFilter(deleteView, Theme.key_windowBackgroundWhiteGrayText, PorterDuff.Mode.SRC_IN);
-            ThemeBind.selectorBackground(deleteView, Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector)), null, ThemeBind.of(Theme.key_listSelector));
+            deleteView.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText), PorterDuff.Mode.SRC_IN);
+            deleteView.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector)));
             deleteView.setVisibility(GONE);
             addView(deleteView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL, LocaleController.isRTL ? 4 : 0, 0, LocaleController.isRTL ? 0 : 4, 0));
         }
@@ -251,7 +248,6 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
     public void setText(String title, String subtitle, int icon, boolean divider) {
         needDivider = divider;
         stickersSet = null;
-        iconThemed = false;
         textView.setText(title);
         valueTextView.setText(subtitle);
         if (TextUtils.isEmpty(subtitle)) {
@@ -261,7 +257,6 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
         }
         if (icon != 0) {
             imageView.setImageResource(icon, Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon));
-            iconThemed = true;
             imageView.setVisibility(VISIBLE);
             if (progressView != null) {
                 progressView.setVisibility(INVISIBLE);
@@ -272,33 +267,6 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
                 progressView.setVisibility(VISIBLE);
             }
         }
-    }
-
-    private boolean iconThemed;
-    private Drawable lastThemedIcon;
-    private int lastThemedIconColor;
-
-    @Override
-    public void updateColors() {
-        try {
-            if (iconThemed && stickersSet == null && imageView != null && imageView.getImageReceiver() != null) {
-                final Drawable icon = imageView.getImageReceiver().getStaticThumb();
-                final int color = Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon);
-                if (icon != null && (icon != lastThemedIcon || color != lastThemedIconColor)) {
-                    lastThemedIcon = icon;
-                    lastThemedIconColor = color;
-                    icon.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
-                    imageView.invalidate();
-                }
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
-    @Override
-    public void addColorKeys(java.util.HashSet<Integer> colors) {
-        colors.add(Theme.key_windowBackgroundWhiteGrayIcon);
     }
 
     public void setNeedDivider(boolean needDivider) {
@@ -332,7 +300,6 @@ public class StickerSetCell extends FrameLayout implements Theme.Colorable {
 
     @SuppressLint("SetTextI18n")
     public void setStickersSet(TLRPC.TL_messages_stickerSet set, boolean divider, boolean search) {
-        iconThemed = false;
         needDivider = divider;
         stickersSet = set;
         groupSearch = search;

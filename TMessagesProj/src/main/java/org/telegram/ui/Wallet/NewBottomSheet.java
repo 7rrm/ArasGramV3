@@ -18,7 +18,6 @@ import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.blur3.ViewGroupPartRenderer;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 public class NewBottomSheet extends BottomSheetWithRecyclerListView implements Theme.Colorable {
 
@@ -54,10 +53,6 @@ public class NewBottomSheet extends BottomSheetWithRecyclerListView implements T
         if (this.container != null) {
             this.container.invalidate();
         }
-    }
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_windowBackgroundGray);
     }
 
     @Override

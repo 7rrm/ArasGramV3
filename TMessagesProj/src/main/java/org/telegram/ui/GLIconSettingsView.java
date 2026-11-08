@@ -11,7 +11,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.ColorPicker;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.Premium.GLIcon.GLIconRenderer;
@@ -27,7 +26,7 @@ public class GLIconSettingsView extends LinearLayout {
 
         TextView saturationTextView = new TextView(context);
         saturationTextView.setText("Spectral top ");
-        ThemeBind.textColor(saturationTextView, Theme.key_dialogTextBlue2);
+        saturationTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         saturationTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         saturationTextView.setLines(1);
         saturationTextView.setMaxLines(1);
@@ -56,7 +55,7 @@ public class GLIconSettingsView extends LinearLayout {
 
         saturationTextView = new TextView(context);
         saturationTextView.setText("Spectral bottom ");
-        ThemeBind.textColor(saturationTextView, Theme.key_dialogTextBlue2);
+        saturationTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         saturationTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         saturationTextView.setLines(1);
         saturationTextView.setMaxLines(1);
@@ -90,8 +89,8 @@ public class GLIconSettingsView extends LinearLayout {
         saturationTextView.setGravity(Gravity.CENTER);
         saturationTextView.setMaxLines(1);
         saturationTextView.setSingleLine(true);
-        ThemeBind.textColor(saturationTextView, (Theme.key_featuredStickers_buttonText));
-        ThemeBind.selectorBackground(saturationTextView, Theme.AdaptiveRipple.filledRect(Theme.getColor(Theme.key_featuredStickers_addButton), 4), ThemeBind.of(Theme.key_featuredStickers_addButton), ThemeBind.adaptiveRipple(Theme.key_featuredStickers_addButton));
+        saturationTextView.setTextColor(Theme.getColor((Theme.key_featuredStickers_buttonText)));
+        saturationTextView.setBackground(Theme.AdaptiveRipple.filledRect(Theme.getColor(Theme.key_featuredStickers_addButton), 4));
         saturationTextView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,7 +121,7 @@ public class GLIconSettingsView extends LinearLayout {
 
         saturationTextView = new TextView(context);
         saturationTextView.setText("Diffuse ");
-        ThemeBind.textColor(saturationTextView, Theme.key_dialogTextBlue2);
+        saturationTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         saturationTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         saturationTextView.setLines(1);
         saturationTextView.setMaxLines(1);
@@ -150,7 +149,7 @@ public class GLIconSettingsView extends LinearLayout {
 
         saturationTextView = new TextView(context);
         saturationTextView.setText("Normal map spectral");
-        ThemeBind.textColor(saturationTextView, Theme.key_dialogTextBlue2);
+        saturationTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         saturationTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         saturationTextView.setLines(1);
         saturationTextView.setMaxLines(1);
@@ -184,8 +183,8 @@ public class GLIconSettingsView extends LinearLayout {
         saturationTextView.setGravity(Gravity.CENTER);
         saturationTextView.setMaxLines(1);
         saturationTextView.setSingleLine(true);
-        ThemeBind.textColor(saturationTextView, (Theme.key_featuredStickers_buttonText));
-        ThemeBind.selectorBackground(saturationTextView, Theme.AdaptiveRipple.filledRect(Theme.getColor(Theme.key_featuredStickers_addButton), 4), ThemeBind.of(Theme.key_featuredStickers_addButton), ThemeBind.adaptiveRipple(Theme.key_featuredStickers_addButton));
+        saturationTextView.setTextColor(Theme.getColor((Theme.key_featuredStickers_buttonText)));
+        saturationTextView.setBackground(Theme.AdaptiveRipple.filledRect(Theme.getColor(Theme.key_featuredStickers_addButton), 4));
         // addView(saturationTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, 21, 13, 21, 0));
         saturationTextView.setOnClickListener(new OnClickListener() {
             @Override
@@ -220,7 +219,7 @@ public class GLIconSettingsView extends LinearLayout {
 
         saturationTextView = new TextView(context);
         saturationTextView.setText("Small starts size");
-        ThemeBind.textColor(saturationTextView, Theme.key_dialogTextBlue2);
+        saturationTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         saturationTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         saturationTextView.setLines(1);
         saturationTextView.setMaxLines(1);

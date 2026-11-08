@@ -50,7 +50,6 @@ import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.Cells.EditTextCell;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.TextSelectionHelper;
 import org.telegram.ui.Components.AIEditorAlert;
 import org.telegram.ui.Components.AlertsCreator;
@@ -846,13 +845,11 @@ public class ChatAttachAlertRichLayout extends ChatAttachAlert.AttachAlertLayout
         long monoForumPeerId = 0;
         MessageObject replyToMsg = null;
         MessageObject replyToTopMsg = null;
-        ChatActivity.ReplyQuote replyQuote = null;
         SendMessageChatArguments sendMessageChatArguments = null;
         if (parentAlert.baseFragment instanceof ChatActivity) {
             ChatActivity ca = (ChatActivity) parentAlert.baseFragment;
             replyToMsg = ca.getReplyMessage();
             replyToTopMsg = ca.getThreadMessage();
-            replyQuote = ca.getReplyingQuote();
             monoForumPeerId = ca.getSendMonoForumPeerId();
             sendMessageChatArguments = ca.getMessageChatSendParams();
         }
@@ -866,7 +863,6 @@ public class ChatAttachAlertRichLayout extends ChatAttachAlert.AttachAlertLayout
             parentAlert.getDialogId(),
             replyToMsg,
             replyToTopMsg,
-            replyQuote,
             notify,
             scheduleDate,
             scheduleRepeatPeriod,
@@ -875,12 +871,6 @@ public class ChatAttachAlertRichLayout extends ChatAttachAlert.AttachAlertLayout
             monoForumPeerId,
             0
         );
-        if (parentAlert.baseFragment instanceof ChatActivity) {
-            final ChatActivityEnterView enterView = ((ChatActivity) parentAlert.baseFragment).getChatActivityEnterView();
-            if (enterView != null) {
-                enterView.onRichEditorSent(notify, scheduleDate, scheduleRepeatPeriod);
-            }
-        }
         parentAlert.dismiss(true);
         return true;
     }
@@ -1170,7 +1160,7 @@ public class ChatAttachAlertRichLayout extends ChatAttachAlert.AttachAlertLayout
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
         updateSendButtonLocked();
     }
 
@@ -1375,7 +1365,7 @@ public class ChatAttachAlertRichLayout extends ChatAttachAlert.AttachAlertLayout
         final String[] source = new String[] { initialSource == null ? "" : initialSource };
         final ImageView previewView = new ImageView(context);
         previewView.setPadding(dp(4), dp(4), dp(4), dp(4));
-        ThemeBind.fillBackground(previewView, Theme.createRoundRectDrawable(dp(8), Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), .05f)), ThemeBind.multAlpha(Theme.key_windowBackgroundWhiteBlackText, .05f), resourcesProvider);
+        previewView.setBackground(Theme.createRoundRectDrawable(dp(8), Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), .05f)));
         final FrameLayout previewContainer = new FrameLayout(context);
         previewContainer.addView(previewView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
         final HorizontalScrollView previewScroll = new HorizontalScrollView(context);
@@ -1421,12 +1411,12 @@ public class ChatAttachAlertRichLayout extends ChatAttachAlert.AttachAlertLayout
             generate.run(currentSource, (bitmap, err) -> {
                 if (!TextUtils.equals(currentSource, source[0])) return;
                 if (err) {
-                    ThemeBind.colorFilter(previewView, Theme.key_text_RedBold, resourcesProvider, PorterDuff.Mode.SRC_IN);
+                    previewView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_text_RedBold, resourcesProvider), PorterDuff.Mode.SRC_IN));
                     if (!wasError) {
                         AndroidUtilities.shakeViewSpring(previewView, shiftDp[0] = -shiftDp[0]);
                     }
                 } else {
-                    ThemeBind.colorFilter(previewView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider, PorterDuff.Mode.SRC_IN);
+                    previewView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), PorterDuff.Mode.SRC_IN));
                 }
                 if (bitmap != null) {
                     previewView.setImageBitmap(bitmap);
@@ -1440,7 +1430,7 @@ public class ChatAttachAlertRichLayout extends ChatAttachAlert.AttachAlertLayout
         final EditTextCell editCell = new EditTextCell(context, getString(R.string.ArticleLatexEquation), true, false, -1, resourcesProvider);
         editCell.editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
         editCell.editText.setMaxLines(5);
-        ThemeBind.fillBackground(editCell, Theme.createRoundRectDrawable(dp(24), Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider)), ThemeBind.of(Theme.key_windowBackgroundWhite), resourcesProvider);
+        editCell.setBackground(Theme.createRoundRectDrawable(dp(24), Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider)));
         editCell.setText(source[0]);
         editCell.editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -1471,8 +1461,8 @@ public class ChatAttachAlertRichLayout extends ChatAttachAlert.AttachAlertLayout
             }
         });
         final BottomSheet sheet = b.show();
-        sheet.setBackgroundColorKey(Theme.key_windowBackgroundGray);
-        sheet.fixNavigationBarKey(Theme.key_windowBackgroundGray);
+        sheet.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
+        sheet.fixNavigationBar(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
         button.setOnClickListener(v -> {
             if (!button.isEnabled()) return;
             if (!sentDone[0]) {

@@ -16,7 +16,6 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.tgnet.tl.TL_iv;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.TextSelectionHelper;
 
 import java.util.ArrayList;
@@ -122,8 +121,8 @@ class RichCaptionController {
     void applyColors() {
         editText.updateColors();
         final int color = Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-        ThemeBind.textColor(editText, ThemeBind.multAlpha(Theme.key_windowBackgroundWhiteBlackText, 0.5f), resourcesProvider);
-        ThemeBind.hintTextColor(editText, ThemeBind.multAlpha(Theme.key_windowBackgroundWhiteBlackText, 0.35f), resourcesProvider);
+        editText.setTextColor(Theme.multAlpha(color, 0.5f));
+        editText.setHintTextColor(Theme.multAlpha(color, 0.35f));
     }
 
     void setLocked(boolean locked) {

@@ -18,7 +18,7 @@ import org.telegram.ui.ActionBar.Theme;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 
-public class DialogsActivityStatusLayout extends View implements Theme.Colorable {
+public class DialogsActivityStatusLayout extends View {
     private final BoolAnimator animatorStatusBarVisible = new BoolAnimator(this, CubicBezierInterpolator.EASE_OUT_QUINT, 380L);
 
     private final Paint fillingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -32,7 +32,6 @@ public class DialogsActivityStatusLayout extends View implements Theme.Colorable
         updateColors();
     }
 
-    @Override
     public void updateColors() {
         fillingPaint.setColor(Theme.getColor(Theme.key_telegram_color));
         invalidate();

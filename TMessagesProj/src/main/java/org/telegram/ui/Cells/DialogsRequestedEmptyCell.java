@@ -23,7 +23,6 @@ import org.telegram.messenger.SvgHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.StickerEmptyView;
@@ -40,7 +39,7 @@ public class DialogsRequestedEmptyCell extends LinearLayout implements Notificat
         super(context);
 
         setOrientation(VERTICAL);
-        ThemeBind.backgroundColor(this, Theme.key_windowBackgroundGray);
+        setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         LinearLayout linearLayout = new LinearLayout(context) {
             Path path = new Path();
@@ -51,10 +50,6 @@ public class DialogsRequestedEmptyCell extends LinearLayout implements Notificat
             }
             @Override
             protected void onDraw(Canvas canvas) {
-                final int color = Theme.getColor(Theme.key_windowBackgroundWhite);
-                if (paint.getColor() != color) {
-                    paint.setColor(color);
-                }
                 canvas.drawPath(path, paint);
                 super.onDraw(canvas);
             }
@@ -81,21 +76,21 @@ public class DialogsRequestedEmptyCell extends LinearLayout implements Notificat
         titleView = new TextView(context);
         titleView.setGravity(Gravity.CENTER);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-        ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText);
+        titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         titleView.setTypeface(AndroidUtilities.bold());
         linearLayout.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 6, 0, 0));
 
         subtitleView = new TextView(context);
         subtitleView.setGravity(Gravity.CENTER);
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(subtitleView, Theme.key_windowBackgroundWhiteGrayText);
+        subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
         linearLayout.addView(subtitleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 7, 0, 0));
 
         buttonView = new TextView(context);
         buttonView.setGravity(Gravity.CENTER);
         buttonView.setBackground(Theme.AdaptiveRipple.filledRectByKey(Theme.key_featuredStickers_addButton, 8));
         buttonView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(buttonView, Theme.key_featuredStickers_buttonText);
+        buttonView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
         buttonView.setTypeface(AndroidUtilities.bold());
         buttonView.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(14), AndroidUtilities.dp(14), AndroidUtilities.dp(14));
         buttonView.setOnClickListener(e -> {
@@ -133,7 +128,7 @@ public class DialogsRequestedEmptyCell extends LinearLayout implements Notificat
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.diceStickersDidLoad);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.diceStickersDidLoad);
         updateSticker();
     }
 

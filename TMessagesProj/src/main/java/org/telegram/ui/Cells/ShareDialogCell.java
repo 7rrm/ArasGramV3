@@ -41,7 +41,6 @@ import androidx.dynamicanimation.animation.SpringForce;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.LocaleController;
@@ -55,7 +54,6 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -139,7 +137,7 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
             }
         };
         NotificationCenter.listenEmojiLoading(nameTextView);
-        ThemeBind.textColor(nameTextView, premiumBlocked ? Theme.key_windowBackgroundWhiteGrayText5 : Theme.key_dialogTextBlack, resourcesProvider);
+        nameTextView.setTextColor(getThemedColor(premiumBlocked ? Theme.key_windowBackgroundWhiteGrayText5 : Theme.key_dialogTextBlack));
         nameTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
         nameTextView.setMaxLines(2);
         nameTextView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
@@ -148,7 +146,7 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
         addView(nameTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 6, currentType == TYPE_CREATE ? 58 : 66, 6, 0));
 
         topicTextView = new SimpleTextView(context);
-        ThemeBind.textColor(topicTextView, Theme.key_dialogTextBlack, resourcesProvider);
+        topicTextView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
         topicTextView.setTextSize(12);
         topicTextView.setMaxLines(2);
         topicTextView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
@@ -167,13 +165,13 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
         });
         addView(checkBox, LayoutHelper.createFrame(24, 24, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 19, currentType == TYPE_CREATE ? -40 : 42, 0, 0));
 
-        ThemeBind.selectorBackground(this, Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), dp(2), dp(2)), null, ThemeBind.of(Theme.key_listSelector), resourcesProvider);
+        setBackground(Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), dp(2), dp(2)));
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.userIsPremiumBlockedUpadted);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.userIsPremiumBlockedUpadted);
     }
 
     @Override
@@ -190,7 +188,7 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
             if (premiumBlocked != DialogObject.isPremiumBlocked(r) || starsPriceBlocked != starsPrice) {
                 premiumBlocked = DialogObject.isPremiumBlocked(r);
                 starsPriceBlocked = starsPrice;
-                ThemeBind.textColor(nameTextView, premiumBlocked ? Theme.key_windowBackgroundWhiteGrayText5 : Theme.key_dialogTextBlack, resourcesProvider);
+                nameTextView.setTextColor(getThemedColor(premiumBlocked ? Theme.key_windowBackgroundWhiteGrayText5 : Theme.key_dialogTextBlack));
                 invalidate();
             }
         }
@@ -218,7 +216,7 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
             final TL_account.RequirementToContact r = MessagesController.getInstance(currentAccount).isUserContactBlocked(uid);
             premiumBlocked = DialogObject.isPremiumBlocked(r);
             starsPriceBlocked = DialogObject.getMessagesStarsPrice(r);
-            ThemeBind.textColor(nameTextView, premiumBlocked ? Theme.key_windowBackgroundWhiteGrayText5 : Theme.key_dialogTextBlack, resourcesProvider);
+            nameTextView.setTextColor(getThemedColor(premiumBlocked ? Theme.key_windowBackgroundWhiteGrayText5 : Theme.key_dialogTextBlack));
             premiumBlockedT.force(premiumBlocked);
             starsBlockedT.force(starsPriceBlocked > 0);
             invalidate();
@@ -475,8 +473,6 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
 
         private final RLottieDrawable lottieDrawable;
         private final Drawable drawable;
-        private final Theme.ResourcesProvider resourcesProvider;
-        private int gradientColor1, gradientColor2;
 
         public RepostStoryDrawable(Context context, View parentView, boolean animate, Theme.ResourcesProvider resourcesProvider) {
             this(context, parentView, animate, R.drawable.large_repost_story, resourcesProvider);
@@ -487,12 +483,9 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
         }
 
         public RepostStoryDrawable(Context context, View parentView, boolean animate, @DrawableRes int drawableRes, Theme.ResourcesProvider resourcesProvider) {
-            this.resourcesProvider = resourcesProvider;
-            gradientColor1 = Theme.getColor(Theme.key_stories_circle1, resourcesProvider);
-            gradientColor2 = Theme.getColor(Theme.key_stories_circle2, resourcesProvider);
             gradient = new LinearGradient(0, 0, dp(56), dp(56), new int[] {
-                gradientColor1,
-                gradientColor2
+                Theme.getColor(Theme.key_stories_circle1, resourcesProvider),
+                Theme.getColor(Theme.key_stories_circle2, resourcesProvider)
             }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
             paint.setShader(gradient);
 
@@ -508,25 +501,9 @@ public class ShareDialogCell extends FrameLayout implements NotificationCenter.N
             }
         }
 
-        // the gradient is rebuilt only when the theme colors changed since it was made
-        private void checkThemeColors() {
-            try {
-                final int c1 = Theme.getColor(Theme.key_stories_circle1, resourcesProvider);
-                final int c2 = Theme.getColor(Theme.key_stories_circle2, resourcesProvider);
-                if (c1 != gradientColor1 || c2 != gradientColor2) {
-                    gradientColor1 = c1;
-                    gradientColor2 = c2;
-                    paint.setShader(new LinearGradient(0, 0, dp(56), dp(56), new int[] { c1, c2 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP));
-                }
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
-
         int alpha = 0xFF;
         @Override
         public void draw(@NonNull Canvas canvas) {
-            checkThemeColors();
             canvas.save();
             canvas.translate(getBounds().left, getBounds().top);
             AndroidUtilities.rectTmp.set(0, 0, getBounds().width(), getBounds().height());

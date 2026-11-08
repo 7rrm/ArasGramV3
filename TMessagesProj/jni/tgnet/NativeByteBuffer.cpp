@@ -153,7 +153,7 @@ bool NativeByteBuffer::hasRemaining() {
 
 void NativeByteBuffer::skip(uint32_t length) {
     if (!calculateSizeOnly) {
-        if (length > _limit - _position) {
+        if (_position + length > _limit) {
             return;
         }
         _position += length;

@@ -5,6 +5,7 @@ import static org.telegram.messenger.LocaleController.getString;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -14,7 +15,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,7 +31,6 @@ import org.telegram.tgnet.tl.TL_stars;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.AvailableReactionCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
@@ -48,6 +47,7 @@ import java.util.List;
 
 public class ReactionsDoubleTapManageActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
+    private LinearLayout contentView;
     private RecyclerListView listView;
     private RecyclerView.Adapter listAdapter;
 
@@ -61,35 +61,20 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
         super();
     }
 
-    private NotificationCenter.ObserversGroup observersGroup;
-
     @Override
     public boolean onFragmentCreate() {
-        if (observersGroup != null) {
-            observersGroup.removeAllObservers();
-            observersGroup = null;
-        }
-
-        observersGroup = getNotificationCenter()
-            .createObserversGroup(this)
-            .add(NotificationCenter.reactionsDidLoad)
-            .add(NotificationCenter.currentUserPremiumStatusChanged);
-
+        getNotificationCenter().addObserver(this, NotificationCenter.reactionsDidLoad);
+        getNotificationCenter().addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
         return super.onFragmentCreate();
     }
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
-        simpleActionBar.setTitle(LocaleController.getString(R.string.Reactions));
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setTitle(getString(R.string.Reactions));
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setAllowOverlayTitle(true);
 
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -98,11 +83,12 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
             }
         });
 
-        final FrameLayout frameLayout = new FrameLayout(context);
+        LinearLayout linaerLayout = new LinearLayout(context);
+        linaerLayout.setOrientation(LinearLayout.VERTICAL);
 
         listView = new RecyclerListView(context);
         listView.setSections();
-        listView.setSectionsDrawBackground(true);
+        actionBar.setAdaptiveBackground(listView);
         ((DefaultItemAnimator)listView.getItemAnimator()).setSupportsChangeAnimations(false);
         listView.setLayoutManager(new LinearLayoutManager(context));
         listView.setAdapter(listAdapter = new RecyclerListView.SelectionAdapter() {
@@ -118,7 +104,9 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
                 switch (viewType) {
                     case 0:
                         ThemePreviewMessagesCell messagesCell = new ThemePreviewMessagesCell(context, parentLayout, ThemePreviewMessagesCell.TYPE_REACTIONS_DOUBLE_TAP);
-                        messagesCell.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            messagesCell.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+                        }
                         messagesCell.fragment = ReactionsDoubleTapManageActivity.this;
                         view = messagesCell;
                         break;
@@ -204,25 +192,26 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
                 showSelectStatusDialog((SetDefaultReactionCell) view);
             }
         });
-        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        linaerLayout.addView(listView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        fragmentView = contentView = linaerLayout;
 
-        fragmentView = frameLayout;
         updateColors();
         updateRows();
 
-        return frameLayout;
+        return contentView;
     }
 
     private class SetDefaultReactionCell extends FrameLayout {
 
-        private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable imageDrawable;
+        private TextView textView;
+        private AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable imageDrawable;
 
         public SetDefaultReactionCell(Context context) {
             super(context);
 
-            TextView textView = new TextView(context);
+            textView = new TextView(context);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, ReactionsDoubleTapManageActivity.this.getResourceProvider());
+            textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
             textView.setText(getString(R.string.DoubleTapSetting));
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.FILL_HORIZONTAL, 20, 0, 48, 0));
 
@@ -282,7 +271,7 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
     }
 
     private SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialog;
-    private void showSelectStatusDialog(SetDefaultReactionCell cell) {
+    public void showSelectStatusDialog(SetDefaultReactionCell cell) {
         if (selectAnimatedEmojiDialog != null) {
             return;
         }
@@ -374,10 +363,8 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
-        if (observersGroup != null) {
-            observersGroup.removeAllObservers();
-            observersGroup = null;
-        }
+        getNotificationCenter().removeObserver(this, NotificationCenter.reactionsDidLoad);
+        getNotificationCenter().removeObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
     }
 
     private List<TLRPC.TL_availableReaction> getAvailableReactions() {
@@ -405,6 +392,7 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
 
     @SuppressLint("NotifyDataSetChanged")
     private void updateColors() {
+        contentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
         listAdapter.notifyDataSetChanged();
     }
 
@@ -425,9 +413,9 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
         return true;
     }
 
-    @Nullable
     @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
+    public void onInsets(int left, int top, int right, int bottom) {
+        listView.setPadding(0, 0, 0, bottom);
+        listView.setClipToPadding(false);
     }
 }

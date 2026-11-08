@@ -39,7 +39,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
@@ -122,7 +121,7 @@ public class HeaderCell extends FrameLayout {
         titleView = new TextView(context);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
-        ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         titleView.setGravity(Gravity.CENTER_HORIZONTAL);
 
         linearLayout.addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 24, -8, 24, 0));
@@ -130,9 +129,9 @@ public class HeaderCell extends FrameLayout {
         subtitleView = new LinkSpanDrawable.LinksTextView(context, links = new LinkSpanDrawable.LinkCollector(this), resourcesProvider);
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         subtitleView.setGravity(Gravity.CENTER);
-        ThemeBind.textColor(subtitleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         subtitleView.setMovementMethod(LinkMovementMethod.getInstance());
-        ThemeBind.linkTextColor(subtitleView, Theme.key_windowBackgroundWhiteLinkText, resourcesProvider);
+        subtitleView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText, resourcesProvider));
         subtitleView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         linearLayout.addView(subtitleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 24, 8, 24, 18));
 
@@ -156,11 +155,11 @@ public class HeaderCell extends FrameLayout {
         MarginLayoutParams lp = (MarginLayoutParams) getLayoutParams();
         lp.topMargin = -AndroidUtilities.dp(6);
         setLayoutParams(lp);
-        ThemeBind.backgroundColor(this, Theme.key_windowBackgroundGray, resourcesProvider);
+        setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
         titleView.setText(LocaleController.formatString("BoostingBoostsViaGifts", R.string.BoostingBoostsViaGifts));
         boolean isChannel = ChatObject.isChannelAndNotMegaGroup(currentChat);
         subtitleView.setText(LocaleController.formatString(isChannel ? R.string.BoostingGetMoreBoost2 : R.string.BoostingGetMoreBoostGroup));
-        ThemeBind.textColor(subtitleView, Theme.key_dialogTextGray3, resourcesProvider);
+        subtitleView.setTextColor(Theme.getColor(Theme.key_dialogTextGray3, resourcesProvider));
     }
 
     public void setUsedGiftLinkText() {

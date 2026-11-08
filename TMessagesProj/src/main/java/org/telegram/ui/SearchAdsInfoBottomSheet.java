@@ -36,7 +36,6 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.BottomSheetWithRecyclerListView;
 import org.telegram.ui.Components.ColoredImageSpan;
 import org.telegram.ui.Components.ItemOptions;
@@ -78,7 +77,7 @@ public class SearchAdsInfoBottomSheet extends BottomSheetWithRecyclerListView {
         imageView.setScaleType(ImageView.ScaleType.CENTER);
         imageView.setImageResource(R.drawable.large_ads_info);
         imageView.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
-        ThemeBind.fillBackground(imageView, Theme.createCircleDrawable(dp(80), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)), ThemeBind.of(Theme.key_featuredStickers_addButton), resourcesProvider);
+        imageView.setBackground(Theme.createCircleDrawable(dp(80), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
         topView.addView(imageView, LayoutHelper.createFrame(80, 80, Gravity.CENTER_HORIZONTAL, 0, 20, 0, 0));
 
         linearLayout.addView(topView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 100, 0, 0, 0, 0));
@@ -86,14 +85,14 @@ public class SearchAdsInfoBottomSheet extends BottomSheetWithRecyclerListView {
         TextView topTitle = new TextView(context);
         topTitle.setText(LocaleController.getString(R.string.SearchAdsAboutTitle));
         topTitle.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(topTitle, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        topTitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         topTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         topTitle.setGravity(Gravity.CENTER_HORIZONTAL);
         linearLayout.addView(topTitle, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 22, 14, 22, 0));
 
         TextView topSubtitle = new TextView(context);
         topSubtitle.setText(LocaleController.getString(R.string.SearchAdsAboutSubtitle));
-        ThemeBind.textColor(topSubtitle, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        topSubtitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         topSubtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         topSubtitle.setGravity(Gravity.CENTER_HORIZONTAL);
         linearLayout.addView(topSubtitle, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 22, 8, 22, 0));
@@ -117,7 +116,7 @@ public class SearchAdsInfoBottomSheet extends BottomSheetWithRecyclerListView {
         linearLayout.addView(info2, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 16, 0, 0));
 
         View divider = new View(getContext());
-        ThemeBind.backgroundColor(divider, Theme.key_divider, resourcesProvider);
+        divider.setBackgroundColor(Theme.getColor(Theme.key_divider, resourcesProvider));
         LinearLayout.LayoutParams dividerLayoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
         dividerLayoutParams.setMargins(AndroidUtilities.dp(24), AndroidUtilities.dp(20), AndroidUtilities.dp(24), AndroidUtilities.dp(20));
         linearLayout.addView(divider, dividerLayoutParams);
@@ -125,7 +124,7 @@ public class SearchAdsInfoBottomSheet extends BottomSheetWithRecyclerListView {
         TextView textViewDescription4 = new TextView(context);
         textViewDescription4.setText(LocaleController.getString(R.string.SearchAdsAboutLaunchTitle));
         textViewDescription4.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(textViewDescription4, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textViewDescription4.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textViewDescription4.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         textViewDescription4.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
         textViewDescription4.setGravity(Gravity.CENTER);
@@ -140,8 +139,8 @@ public class SearchAdsInfoBottomSheet extends BottomSheetWithRecyclerListView {
         SpannableStringBuilder bottomSubtitleFinal = AndroidUtilities.replaceCharSequence("%1$s", bottomSubtitle1, stringBuilder2);
         LinkSpanDrawable.LinksTextView textViewSubtitle4 = new LinkSpanDrawable.LinksTextView(context);
         textViewSubtitle4.setText(bottomSubtitleFinal);
-        ThemeBind.textColor(textViewSubtitle4, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-        ThemeBind.linkTextColor(textViewSubtitle4, Theme.key_chat_messageLinkIn, resourcesProvider);
+        textViewSubtitle4.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+        textViewSubtitle4.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
         textViewSubtitle4.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         textViewSubtitle4.setGravity(Gravity.CENTER_HORIZONTAL);
         textViewSubtitle4.setLineSpacing(AndroidUtilities.dp(2), 1f);
@@ -152,11 +151,11 @@ public class SearchAdsInfoBottomSheet extends BottomSheetWithRecyclerListView {
         buttonTextView.setSingleLine(true);
         buttonTextView.setGravity(Gravity.CENTER);
         buttonTextView.setEllipsize(TextUtils.TruncateAt.END);
-        ThemeBind.textColor(buttonTextView, Theme.key_featuredStickers_buttonText, resourcesProvider);
+        buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider));
         buttonTextView.setTypeface(AndroidUtilities.bold());
         buttonTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         buttonTextView.setText(LocaleController.getString(R.string.SearchAdsAboutUnderstood));
-        ThemeBind.selectorBackground(buttonTextView, Theme.AdaptiveRipple.filledRect(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), 24), ThemeBind.of(Theme.key_featuredStickers_addButton), ThemeBind.adaptiveRipple(Theme.key_featuredStickers_addButton), resourcesProvider);
+        buttonTextView.setBackground(Theme.AdaptiveRipple.filledRect(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), 24));
         buttonTextView.setOnClickListener(e -> dismiss());
         linearLayout.addView(buttonTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 0, 14, 22, 14, 14));
 
@@ -185,13 +184,13 @@ public class SearchAdsInfoBottomSheet extends BottomSheetWithRecyclerListView {
             final boolean isRtl = LocaleController.isRTL;
             final ImageView ivIcon = new ImageView(getContext());
             Drawable iconDrawable = getContext().getResources().getDrawable(icon).mutate();
-            ThemeBind.drawableColorFilter(this, iconDrawable, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            iconDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), PorterDuff.Mode.MULTIPLY));
             ivIcon.setImageDrawable(iconDrawable);
             addView(ivIcon, LayoutHelper.createFrame(ICON_SIZE, ICON_SIZE, isRtl ? Gravity.RIGHT : Gravity.LEFT, isRtl ? 0 : ITEM_HORIZONTAL_PADDING, 6, isRtl ? ITEM_HORIZONTAL_PADDING : 0, 0));
 
             final TextView tvTitle = new TextView(getContext());
             tvTitle.setText(header);
-            ThemeBind.textColor(tvTitle, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            tvTitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             tvTitle.setTypeface(AndroidUtilities.bold());
             addView(tvTitle, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, isRtl ? Gravity.RIGHT : Gravity.LEFT, isRtl ? ITEM_HORIZONTAL_PADDING : ITEM_TEXT_PADDING, 0, isRtl ? ITEM_TEXT_PADDING : ITEM_HORIZONTAL_PADDING, 0));
@@ -199,8 +198,8 @@ public class SearchAdsInfoBottomSheet extends BottomSheetWithRecyclerListView {
             final LinkSpanDrawable.LinksTextView tvSubtitle = new LinkSpanDrawable.LinksTextView(getContext());
             tvSubtitle.setText(text);
             tvSubtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-            ThemeBind.textColor(tvSubtitle, Theme.key_player_actionBarSubtitle, resourcesProvider);
-            ThemeBind.linkTextColor(tvSubtitle, Theme.key_chat_messageLinkIn, resourcesProvider);
+            tvSubtitle.setTextColor(Theme.getColor(Theme.key_player_actionBarSubtitle, resourcesProvider));
+            tvSubtitle.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
             tvSubtitle.setLineSpacing(AndroidUtilities.dp(2), 1f);
             tvSubtitle.setPadding(dp(4), 0, dp(4), 0);
             addView(tvSubtitle, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, isRtl ? Gravity.RIGHT : Gravity.LEFT, (isRtl ? ITEM_HORIZONTAL_PADDING : ITEM_TEXT_PADDING) - 4, 18, (isRtl ? ITEM_TEXT_PADDING : ITEM_HORIZONTAL_PADDING) - 4, 0));

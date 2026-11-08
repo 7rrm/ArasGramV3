@@ -37,7 +37,6 @@ import org.telegram.messenger.voip.VoIPService;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.Components.RLottieDrawable;
@@ -139,7 +138,7 @@ public abstract class PrivateVideoPreviewDialog extends FrameLayout implements V
         ActionBar actionBar = new ActionBar(context);
         actionBar.setBackButtonDrawable(new BackDrawable(false));
         actionBar.setBackgroundColor(Color.TRANSPARENT);
-        ThemeBind.actionBarItemsColor(actionBar, Theme.key_voipgroup_actionBarItems, false);
+        actionBar.setItemsColor(Theme.getColor(Theme.key_voipgroup_actionBarItems), false);
         actionBar.setOccupyStatusBar(true);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
@@ -206,7 +205,7 @@ public abstract class PrivateVideoPreviewDialog extends FrameLayout implements V
         positiveButton.setMinWidth(AndroidUtilities.dp(64));
         positiveButton.setTag(Dialog.BUTTON_POSITIVE);
         positiveButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(positiveButton, Theme.key_voipgroup_nameText);
+        positiveButton.setTextColor(Theme.getColor(Theme.key_voipgroup_nameText));
         positiveButton.setGravity(Gravity.CENTER);
         positiveButton.setTypeface(AndroidUtilities.bold());
         positiveButton.setText(LocaleController.getString(R.string.VoipShareVideo));

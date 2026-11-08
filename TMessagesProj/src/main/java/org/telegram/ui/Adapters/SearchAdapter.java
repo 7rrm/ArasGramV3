@@ -35,7 +35,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.GraySectionCell;
 import org.telegram.ui.Cells.ProfileSearchCell;
 import org.telegram.ui.Cells.TextCell;
@@ -376,7 +375,7 @@ public class SearchAdapter extends RecyclerListView.SelectionAdapter {
                 final FlickerLoadingView loadingView = new FlickerLoadingView(mContext);
                 loadingView.setIsSingleCell(true);
                 loadingView.setViewType(FlickerLoadingView.PROFILE_SEARCH_CELL);
-                ThemeBind.backgroundColor(loadingView, Theme.key_windowBackgroundWhite);
+                loadingView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                 view = loadingView;
                 break;
             case 2:

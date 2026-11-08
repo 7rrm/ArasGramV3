@@ -8,7 +8,6 @@ import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 
 import java.util.ArrayList;
 
@@ -37,7 +36,7 @@ public class PieLegendView extends LegendSignatureView {
             return;
         }
         super.recolor();
-        ThemeBind.textColor(signature, Theme.key_dialogTextBlack);
+        signature.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
     }
 
 

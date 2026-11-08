@@ -40,7 +40,6 @@ import org.telegram.messenger.utils.tlutils.AmountUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.BottomSheetWithRecyclerListView;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
@@ -184,7 +183,7 @@ public class StakedDiceSheet extends BottomSheetWithRecyclerListView {
 
             final TextView textView = new TextView(context);
             textView.setTypeface(AndroidUtilities.getTypeface("fonts/num.otf"));
-            ThemeBind.textColor(textView, Theme.key_dialogTextBlack, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
             textView.setText("x" + (x <= 0 ? "0" : x));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             textView.setGravity(Gravity.CENTER);
@@ -230,7 +229,7 @@ public class StakedDiceSheet extends BottomSheetWithRecyclerListView {
         editTextContainer.setForceForceUseCenter(true);
         editTextContainer.setText(getString(R.string.StakeDicePlaceholder));
         editTextContainer.setLeftPadding(dp(14 + 22));
-        ThemeBind.textColor(editText, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        editText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         editText.setCursorSize(AndroidUtilities.dp(20));
         editText.setCursorWidth(1.5f);
         editText.setBackground(null);
@@ -241,8 +240,8 @@ public class StakedDiceSheet extends BottomSheetWithRecyclerListView {
         editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         editText.setTypeface(Typeface.DEFAULT);
         editText.setSelectAllOnFocus(true);
-        ThemeBind.highlightColor(editText, Theme.key_chat_inTextSelectionHighlight, resourcesProvider);
-        ThemeBind.editHandlesColor(editText, Theme.key_chat_TextSelectionCursor, resourcesProvider);
+        editText.setHighlightColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
+        editText.setHandlesColor(Theme.getColor(Theme.key_chat_TextSelectionCursor, resourcesProvider));
         editText.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         editText.setOnFocusChangeListener((v, hasFocus) -> editTextContainer.animateSelection(hasFocus, !TextUtils.isEmpty(editText.getText())));
         LinearLayout editTextLayout = new LinearLayout(context);
@@ -258,7 +257,7 @@ public class StakedDiceSheet extends BottomSheetWithRecyclerListView {
 
         TextView subPriceView = new TextView(context);
         subPriceView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        ThemeBind.textColor(subPriceView, Theme.key_windowBackgroundWhiteGrayText3);
+        subPriceView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3));
         editTextContainer.addView(subPriceView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.RIGHT, 0, 0, 14, 0));
 
         long initialTon = 1_000_000_000L;
@@ -319,8 +318,8 @@ public class StakedDiceSheet extends BottomSheetWithRecyclerListView {
             textView.setGravity(Gravity.CENTER);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             textView.setTypeface(AndroidUtilities.bold());
-            ThemeBind.textColor(textView, Theme.key_featuredStickers_addButton, resourcesProvider);
-            ThemeBind.fillBackground(textView, Theme.createRoundRectDrawable(dp(13), Theme.multAlpha(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), 0.15f)), ThemeBind.multAlpha(Theme.key_featuredStickers_addButton, 0.15f), resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider));
+            textView.setBackground(Theme.createRoundRectDrawable(dp(13), Theme.multAlpha(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider), 0.15f)));
             textView.setText(replaceDiamond(formatTON(ton) + " 💎", 0.75f));
             ScaleStateListAnimator.apply(textView);
             textView.setOnClickListener(v -> {
@@ -503,7 +502,7 @@ public class StakedDiceSheet extends BottomSheetWithRecyclerListView {
         layout.textView.setPadding(0, dp(8), 0, dp(8));
         layout.addView(layout.textView, LayoutHelper.createFrameRelatively(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.START | Gravity.CENTER_VERTICAL, 56, 0, 16, 0));
         layout.textView.setText(replaceDiamond(sb));
-        ThemeBind.linkTextColor(layout.textView, Theme.key_undo_cancelColor, f.getResourceProvider());
+        layout.textView.setLinkTextColor(Theme.getColor(Theme.key_undo_cancelColor, f.getResourceProvider()));
         layout.setTextColor(Theme.getColor(Theme.key_undo_infoColor, f.getResourceProvider()));
 
         final long finalStake = stake;

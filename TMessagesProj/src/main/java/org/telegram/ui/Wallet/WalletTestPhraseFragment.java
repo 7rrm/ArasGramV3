@@ -23,7 +23,6 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
@@ -76,7 +75,7 @@ public class WalletTestPhraseFragment extends BaseFragment {
             keyboardInset = keyboardHeight > dp(20) ? keyboardHeight : 0;
             onInsets(lastLeftInset, lastTopInset, lastRightInset, lastBottomInset);
         });
-        ThemeBind.backgroundColor(container, Theme.key_windowBackgroundWhite, resourceProvider);
+        container.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourceProvider));
         fragmentView = container;
 
         scrollView = new ScrollView(context);
@@ -94,9 +93,9 @@ public class WalletTestPhraseFragment extends BaseFragment {
 
         closeButton = new ImageView(context);
         closeButton.setScaleType(ImageView.ScaleType.CENTER);
-        ThemeBind.colorFilter(closeButton, Theme.key_windowBackgroundWhiteBlackText, resourceProvider, PorterDuff.Mode.SRC_IN);
+        closeButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider), PorterDuff.Mode.SRC_IN));
         closeButton.setImageResource(R.drawable.ic_ab_close);
-        ThemeBind.selectorBackground(closeButton, Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourceProvider), 3), null, ThemeBind.of(Theme.key_listSelector), resourceProvider);
+        closeButton.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourceProvider), 3));
         closeButton.setOnClickListener(v -> finishFragment());
         container.addView(closeButton, LayoutHelper.createFrame(48, 48, Gravity.TOP | Gravity.LEFT, 4, 12, 0, 0));
 
@@ -111,14 +110,14 @@ public class WalletTestPhraseFragment extends BaseFragment {
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setGravity(Gravity.CENTER_HORIZONTAL);
-        ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourceProvider);
+        titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourceProvider));
         titleView.setText(LocaleController.getString(R.string.WalletTestPhrase));
         root.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 10));
 
         TextView subtitleView = new TextView(context);
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         subtitleView.setGravity(Gravity.CENTER_HORIZONTAL);
-        ThemeBind.textColor(subtitleView, Theme.key_windowBackgroundWhiteGrayText2, resourceProvider);
+        subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourceProvider));
         subtitleView.setText(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.WalletTestPhraseInfo, indices[0] + 1, indices[1] + 1, indices[2] + 1)));
         root.addView(subtitleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 8));
 

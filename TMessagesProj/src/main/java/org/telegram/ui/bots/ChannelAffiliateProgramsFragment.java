@@ -54,7 +54,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -103,8 +102,8 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
 
     @Override
     public boolean onFragmentCreate() {
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.channelConnectedBotsUpdate);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.channelSuggestedBotsUpdate);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.channelConnectedBotsUpdate);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.channelSuggestedBotsUpdate);
         return super.onFragmentCreate();
     }
 
@@ -125,7 +124,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
                 super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(dp(60), MeasureSpec.EXACTLY));
             }
         };
-        ThemeBind.backgroundColor(emptyLayout, Theme.key_dialogBackgroundGray);
+        emptyLayout.setBackgroundColor(Theme.getColor(Theme.key_dialogBackgroundGray));
 
         super.createView(context);
 
@@ -443,11 +442,11 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             addView(imageView, LayoutHelper.createFrame(46, 46, Gravity.CENTER_VERTICAL | Gravity.LEFT, 13, 0, 13, 0));
 
             linkBgView = new View(context);
-            ThemeBind.fillBackground(linkBgView, Theme.createCircleDrawable(dp(11), Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider)), ThemeBind.of(Theme.key_windowBackgroundWhite), resourcesProvider);
+            linkBgView.setBackground(Theme.createCircleDrawable(dp(11), Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider)));
             addView(linkBgView, LayoutHelper.createFrame(22, 22, Gravity.LEFT | Gravity.CENTER_VERTICAL, 40, 15, 0, 0));
 
             linkFg2View = new View(context);
-            ThemeBind.fillBackground(linkFg2View, Theme.createCircleDrawable(dp(19.33f / 2), Theme.getColor(Theme.key_color_green, resourcesProvider)), ThemeBind.of(Theme.key_color_green), resourcesProvider);
+            linkFg2View.setBackground(Theme.createCircleDrawable(dp(19.33f / 2), Theme.getColor(Theme.key_color_green, resourcesProvider)));
             addView(linkFg2View, LayoutHelper.createFrame(19.33f, 19.33f, Gravity.LEFT | Gravity.CENTER_VERTICAL, 41.33f, 15, 0, 0));
 
             linkFgView = new ImageView(context);
@@ -465,7 +464,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             titleView.setEllipsize(TextUtils.TruncateAt.END);
             titleView.setTypeface(AndroidUtilities.bold());
             titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-            ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             NotificationCenter.listenEmojiLoading(titleView);
             textLayout.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP, 6, 0, 24, 0));
 
@@ -474,11 +473,11 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             textView.setSingleLine(true);
             textView.setEllipsize(TextUtils.TruncateAt.END);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
             textLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP, 6, 1, 24, 0));
 
             arrowView = new ImageView(context);
-            ThemeBind.colorFilter(arrowView, Theme.key_switchTrack, resourcesProvider, PorterDuff.Mode.SRC_IN);
+            arrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_switchTrack, resourcesProvider), PorterDuff.Mode.SRC_IN));
             arrowView.setImageResource(R.drawable.msg_arrowright);
             arrowView.setScaleType(ImageView.ScaleType.CENTER);
             addView(arrowView, LayoutHelper.createFrame(24, 24, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 10, 0));
@@ -498,7 +497,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             if (bot.commission_permille > 0) {
                 ssb.append(" d");
                 FilterCreateActivity.NewSpan span = new FilterCreateActivity.NewSpan(10);
-                span.setColorKey(Theme.key_color_green, null);
+                span.setColor(Theme.getColor(Theme.key_color_green));
                 span.setText(percents(bot.commission_permille));
                 ssb.setSpan(span, 1, 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
@@ -515,7 +514,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             linkBgView.setVisibility(View.VISIBLE);
             linkFgView.setVisibility(View.VISIBLE);
             linkFg2View.setVisibility(View.VISIBLE);
-            ThemeBind.fillBackground(linkFg2View, Theme.createCircleDrawable(dp(19.33f / 2), Theme.getColor(bot.revoked ? Theme.key_color_red : Theme.key_color_green, resourcesProvider)), ThemeBind.of(bot.revoked ? Theme.key_color_red : Theme.key_color_green), resourcesProvider);
+            linkFg2View.setBackground(Theme.createCircleDrawable(dp(19.33f / 2), Theme.getColor(bot.revoked ? Theme.key_color_red : Theme.key_color_green, resourcesProvider)));
             linkFgView.setImageResource(bot.revoked ? R.drawable.msg_link_2 : R.drawable.msg_limit_links);
             linkFgView.setScaleX(bot.revoked ? 0.8f : 0.6f);
             linkFgView.setScaleY(bot.revoked ? 0.8f : 0.6f);
@@ -535,7 +534,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             if (bot.commission_permille > 0) {
                 ssb.append(" d");
                 FilterCreateActivity.NewSpan span = new FilterCreateActivity.NewSpan(10);
-                span.setColorKey(Theme.key_color_green, null);
+                span.setColor(Theme.getColor(Theme.key_color_green));
                 span.setText(percents(bot.commission_permille));
                 ssb.setSpan(span, 1, 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
@@ -611,8 +610,8 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
 
             subtextView = new LinkSpanDrawable.LinksTextView(context, resourcesProvider);
             subtextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-            ThemeBind.textColor(subtextView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
-            ThemeBind.linkTextColor(subtextView, Theme.key_windowBackgroundWhiteBlueHeader, resourcesProvider);
+            subtextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
+            subtextView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader, resourcesProvider));
             subtextView.setPadding(dp(4), 0, dp(4), 0);
             addView(subtextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, 14 - 4, 14, 14 - 4, 0));
         }
@@ -683,10 +682,10 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
 
         if (bot.daily_revenue_per_user.positive()) {
             FrameLayout badge1Outer = new FrameLayout(context);
-            ThemeBind.fillBackground(badge1Outer, Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_dialogBackground, resourcesProvider)), ThemeBind.of(Theme.key_dialogBackground), resourcesProvider);
+            badge1Outer.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_dialogBackground, resourcesProvider)));
             badge1Outer.setPadding(dp(1.33f), dp(1.33f), dp(1.33f), dp(1.33f));
             TextView badge1 = new TextView(context);
-            ThemeBind.fillBackground(badge1, Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_color_green, resourcesProvider)), ThemeBind.of(Theme.key_color_green), resourcesProvider);
+            badge1.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_color_green, resourcesProvider)));
             badge1.setTypeface(AndroidUtilities.bold());
             badge1.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
             badge1.setPadding(dp(5.33f), 0, dp(5.33f), 0);
@@ -702,7 +701,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         arrowView.setImageResource(R.drawable.msg_arrow_avatar);
         arrowView.setScaleType(ImageView.ScaleType.CENTER);
         arrowView.setTranslationX(-dp(8.33f / 4));
-        ThemeBind.colorFilter(arrowView, Theme.key_windowBackgroundWhiteGrayText7, resourcesProvider, PorterDuff.Mode.SRC_IN);
+        arrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText7, resourcesProvider), PorterDuff.Mode.SRC_IN));
         topView.addView(arrowView, LayoutHelper.createFrame(36, 60, Gravity.CENTER, 60, 0, 60, 0));
 
         FrameLayout toView = new FrameLayout(context);
@@ -715,10 +714,10 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         toView.addView(imageView2, LayoutHelper.createFrame(60, 60, Gravity.FILL));
 
         FrameLayout badge2Outer = new FrameLayout(context);
-        ThemeBind.fillBackground(badge2Outer, Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_dialogBackground, resourcesProvider)), ThemeBind.of(Theme.key_dialogBackground), resourcesProvider);
+        badge2Outer.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_dialogBackground, resourcesProvider)));
         badge2Outer.setPadding(dp(1.33f), dp(1.33f), dp(1.33f), dp(1.33f));
         TextView badge2 = new TextView(context);
-        ThemeBind.fillBackground(badge2, Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)), ThemeBind.of(Theme.key_featuredStickers_addButton), resourcesProvider);
+        badge2.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
         badge2.setTypeface(AndroidUtilities.bold());
         badge2.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10);
         badge2.setPadding(dp(5.33f), 0, dp(5.33f), 0);
@@ -737,7 +736,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         linearLayout.addView(topView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 0));
 
         TextView titleView = new TextView(context);
-        ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         titleView.setGravity(Gravity.CENTER);
         titleView.setText(getString(R.string.ChannelAffiliateProgramJoinTitle));
@@ -746,15 +745,15 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
 
         LinearLayout botChip = new LinearLayout(context);
         botChip.setOrientation(LinearLayout.HORIZONTAL);
-        ThemeBind.fillBackground(botChip, Theme.createRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)), ThemeBind.of(Theme.key_windowBackgroundGray), resourcesProvider);
+        botChip.setBackground(Theme.createRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)));
         TextView botChipTextView = new TextView(context);
         botChipTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        ThemeBind.textColor(botChipTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        botChipTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         botChipTextView.setText(LocaleController.formatString(R.string.ChannelAffiliateProgramJoinViewBot, DialogObject.getName(currentAccount, bot.bot_id)));
         botChip.addView(botChipTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 11, 0, 0, 0));
         ImageView botArrowView = new ImageView(context);
         botArrowView.setScaleType(ImageView.ScaleType.CENTER);
-        ThemeBind.colorFilter(botArrowView, Theme.key_dialogTextGray3, resourcesProvider, PorterDuff.Mode.SRC_IN);
+        botArrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogTextGray3, resourcesProvider), PorterDuff.Mode.SRC_IN));
         botArrowView.setImageResource(R.drawable.settings_arrow);
         botArrowView.setScaleX(1.2f);
         botArrowView.setScaleY(1.2f);
@@ -763,7 +762,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         ScaleStateListAnimator.apply(botChip);
 
         TextView textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         textView.setGravity(Gravity.CENTER);
         NotificationCenter.listenEmojiLoading(textView);
@@ -773,7 +772,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         linearLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 20));
 
         textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         textView.setGravity(Gravity.CENTER);
         NotificationCenter.listenEmojiLoading(textView);
@@ -785,7 +784,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         LinearLayout chipLayout;
         if (dialogId >= 0) {
             TextView sendToTextView = new TextView(context);
-            ThemeBind.textColor(sendToTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            sendToTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             sendToTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             sendToTextView.setGravity(Gravity.CENTER);
             sendToTextView.setText(getString(R.string.ChannelAffiliateProgramLinkSendTo));
@@ -793,18 +792,18 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
 
             chipLayout = new LinearLayout(context);
             chipLayout.setOrientation(LinearLayout.HORIZONTAL);
-            ThemeBind.fillBackground(chipLayout, Theme.createRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)), ThemeBind.of(Theme.key_windowBackgroundGray), resourcesProvider);
-            ThemeBind.selectorBackground(chipLayout, Theme.createSimpleSelectorRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider), Theme.blendOver(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider), Theme.getColor(Theme.key_listSelector, resourcesProvider))), ThemeBind.of(Theme.key_windowBackgroundGray), ThemeBind.blendOver(Theme.key_windowBackgroundGray, Theme.key_listSelector), resourcesProvider);
+            chipLayout.setBackground(Theme.createRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)));
+            chipLayout.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider), Theme.blendOver(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider), Theme.getColor(Theme.key_listSelector, resourcesProvider))));
             chipImageView = new BackupImageView(context);
             chipImageView.setRoundRadius(dp(14));
             chipLayout.addView(chipImageView, LayoutHelper.createLinear(28, 28));
             chipTextView = new TextView(context);
             chipTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-            ThemeBind.textColor(chipTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            chipTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             chipLayout.addView(chipTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 6, 0, 0, 0));
             ImageView selectView = new ImageView(context);
             selectView.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(selectView, Theme.key_dialogTextGray3, resourcesProvider, PorterDuff.Mode.SRC_IN);
+            selectView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogTextGray3, resourcesProvider), PorterDuff.Mode.SRC_IN));
             selectView.setImageResource(R.drawable.arrows_select);
             chipLayout.addView(selectView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 2, 0, 5, 0));
             linearLayout.addView(chipLayout, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 28, Gravity.CENTER_HORIZONTAL, 0, 11, 0, 20));
@@ -824,8 +823,8 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         }));
         infoTextView.setGravity(Gravity.CENTER);
         infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-        ThemeBind.textColor(infoTextView, Theme.key_windowBackgroundWhiteGrayText4, resourcesProvider);
-        ThemeBind.linkTextColor(infoTextView, Theme.key_chat_messageLinkIn, resourcesProvider);
+        infoTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4, resourcesProvider));
+        infoTextView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
         linearLayout.addView(infoTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 14, 14, 14, 6));
 
         b.setCustomView(linearLayout);
@@ -921,7 +920,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
                 ArrayList<TLObject> chats = BotStarsController.getInstance(currentAccount).getAdmined();
                 chats.add(0, UserConfig.getInstance(currentAccount).getCurrentUser());
 
-                ItemOptions i = ItemOptions.makeOptions(sheet.getContainerView(), resourcesProvider, chip, false, false, true);
+                ItemOptions i = ItemOptions.makeOptions(sheet.getContainerView(), resourcesProvider, chip);
                 for (TLObject obj : chats) {
                     long did;
                     if (obj instanceof TLRPC.User) {
@@ -962,7 +961,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             }
         });
 
-        sheet.fixNavigationBarKey(Theme.key_dialogBackground);
+        sheet.fixNavigationBar(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
         sheet.show();
     }
 
@@ -982,7 +981,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         FrameLayout topView = new FrameLayout(context);
 
         View linkBgView = new View(context);
-        ThemeBind.fillBackground(linkBgView, Theme.createCircleDrawable(dp(40), Theme.getColor(bot.revoked ? Theme.key_color_red : Theme.key_featuredStickers_addButton, resourcesProvider)), ThemeBind.of(bot.revoked ? Theme.key_color_red : Theme.key_featuredStickers_addButton), resourcesProvider);
+        linkBgView.setBackground(Theme.createCircleDrawable(dp(40), Theme.getColor(bot.revoked ? Theme.key_color_red : Theme.key_featuredStickers_addButton, resourcesProvider)));
         topView.addView(linkBgView, LayoutHelper.createFrame(80, 80, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 0, 0, 0));
 
         ImageView linkFgView = new ImageView(context);
@@ -994,13 +993,13 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
 
         if (bot.participants > 0) {
             FrameLayout countLayout = new FrameLayout(context);
-            ThemeBind.fillBackground(countLayout, Theme.createRoundRectDrawable(dp(50), Theme.getColor(Theme.key_dialogBackground, resourcesProvider)), ThemeBind.of(Theme.key_dialogBackground), resourcesProvider);
+            countLayout.setBackground(Theme.createRoundRectDrawable(dp(50), Theme.getColor(Theme.key_dialogBackground, resourcesProvider)));
             topView.addView(countLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 66, 0, 0));
 
             TextView textView = new TextView(context);
             textView.setTypeface(AndroidUtilities.bold());
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-            ThemeBind.fillBackground(textView, Theme.createRoundRectDrawable(dp(19 / 2.0f), Theme.getColor(bot.revoked ? Theme.key_color_red : Theme.key_color_green, resourcesProvider)), ThemeBind.of(bot.revoked ? Theme.key_color_red : Theme.key_color_green), resourcesProvider);
+            textView.setBackground(Theme.createRoundRectDrawable(dp(19 / 2.0f), Theme.getColor(bot.revoked ? Theme.key_color_red : Theme.key_color_green, resourcesProvider)));
             textView.setTextColor(0xFFFFFFFF);
             textView.setPadding(dp(6.66f), 0, dp(6.66f), 0);
             SpannableStringBuilder ssb = new SpannableStringBuilder();
@@ -1019,7 +1018,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         linearLayout.addView(topView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 0));
 
         TextView titleView = new TextView(context);
-        ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         titleView.setGravity(Gravity.CENTER);
         titleView.setText(getString(R.string.ChannelAffiliateProgramLinkTitle));
@@ -1028,21 +1027,21 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
 
         LinearLayout botChip = new LinearLayout(context);
         botChip.setOrientation(LinearLayout.HORIZONTAL);
-        ThemeBind.fillBackground(botChip, Theme.createRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)), ThemeBind.of(Theme.key_windowBackgroundGray), resourcesProvider);
+        botChip.setBackground(Theme.createRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)));
         BackupImageView imageView = new BackupImageView(context);
         imageView.setRoundRadius(dp(14));
         AvatarDrawable avatarDrawable = new AvatarDrawable();
         botChip.addView(imageView, LayoutHelper.createLinear(28, 28));
         TextView botChipTextView = new TextView(context);
         botChipTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        ThemeBind.textColor(botChipTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        botChipTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         botChipTextView.setText(DialogObject.getName(currentAccount, bot.bot_id));
         avatarDrawable.setInfo(botUser);
         imageView.setForUserOrChat(botUser, avatarDrawable);
         botChip.addView(botChipTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 6, 0, 0, 0));
         ImageView arrowView = new ImageView(context);
         arrowView.setScaleType(ImageView.ScaleType.CENTER);
-        ThemeBind.colorFilter(arrowView, Theme.key_dialogTextGray3, resourcesProvider, PorterDuff.Mode.SRC_IN);
+        arrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogTextGray3, resourcesProvider), PorterDuff.Mode.SRC_IN));
         arrowView.setImageResource(R.drawable.settings_arrow);
         arrowView.setScaleX(1.2f);
         arrowView.setScaleY(1.2f);
@@ -1051,7 +1050,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         ScaleStateListAnimator.apply(botChip);
 
         TextView textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         textView.setGravity(Gravity.CENTER);
         if (bot.revoked) {
@@ -1066,7 +1065,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         LinearLayout chipLayout = null;
         if (!bot.revoked) {
             TextView sendToTextView = new TextView(context);
-            ThemeBind.textColor(sendToTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            sendToTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             sendToTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             sendToTextView.setGravity(Gravity.CENTER);
             sendToTextView.setText(getString(R.string.ChannelAffiliateProgramLinkSendTo));
@@ -1074,14 +1073,14 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
 
             chipLayout = new LinearLayout(context);
             chipLayout.setOrientation(LinearLayout.HORIZONTAL);
-            ThemeBind.fillBackground(chipLayout, Theme.createRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)), ThemeBind.of(Theme.key_windowBackgroundGray), resourcesProvider);
+            chipLayout.setBackground(Theme.createRoundRectDrawable(dp(28), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)));
             imageView = new BackupImageView(context);
             imageView.setRoundRadius(dp(14));
             avatarDrawable = new AvatarDrawable();
             chipLayout.addView(imageView, LayoutHelper.createLinear(28, 28));
             TextView chipTextView = new TextView(context);
             chipTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-            ThemeBind.textColor(chipTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            chipTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             if (dialogId >= 0) {
                 TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(dialogId);
                 avatarDrawable.setInfo(user);
@@ -1096,7 +1095,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             chipLayout.addView(chipTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 6, 0, 0, 0));
             ImageView selectView = new ImageView(context);
             selectView.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(selectView, Theme.key_dialogTextGray3, resourcesProvider, PorterDuff.Mode.SRC_IN);
+            selectView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogTextGray3, resourcesProvider), PorterDuff.Mode.SRC_IN));
             selectView.setImageResource(R.drawable.arrows_select);
             chipLayout.addView(selectView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 2, 0, 5, 0));
             linearLayout.addView(chipLayout, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 28, Gravity.CENTER_HORIZONTAL, 0, 9, 0, 22));
@@ -1105,8 +1104,8 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         TextView linkView = new TextView(context);
         linkView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         linkView.setGravity(Gravity.CENTER);
-        ThemeBind.textColor(linkView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-        ThemeBind.selectorBackground(linkView, Theme.createSimpleSelectorRoundRectDrawable(dp(8), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider), Theme.blendOver(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider), Theme.getColor(Theme.key_listSelector, resourcesProvider))), ThemeBind.of(Theme.key_windowBackgroundGray), ThemeBind.blendOver(Theme.key_windowBackgroundGray, Theme.key_listSelector), resourcesProvider);
+        linkView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+        linkView.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(8), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider), Theme.blendOver(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider), Theme.getColor(Theme.key_listSelector, resourcesProvider))));
         linkView.setPadding(dp(16), dp(14.66f), dp(16), dp(14.66f));
         linkView.setText(bot.url != null && bot.url.startsWith("https://") ? bot.url.substring(8) : bot.url);
         linearLayout.addView(linkView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, 0, 0, 0, 12));
@@ -1128,8 +1127,8 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         infoTextView.setText(bot.participants <= 0 ? formatString(R.string.ChannelAffiliateProgramLinkOpenedNone, UserObject.getUserName(botUser)) : formatPluralString("ChannelAffiliateProgramLinkOpened", (int) bot.participants, UserObject.getUserName(botUser)));
         infoTextView.setGravity(Gravity.CENTER);
         infoTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-        ThemeBind.textColor(infoTextView, Theme.key_windowBackgroundWhiteGrayText4, resourcesProvider);
-        ThemeBind.linkTextColor(infoTextView, Theme.key_chat_messageLinkIn, resourcesProvider);
+        infoTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4, resourcesProvider));
+        infoTextView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
         linearLayout.addView(infoTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 14, 12, 14, 2));
 
         b.setCustomView(linearLayout);
@@ -1172,7 +1171,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
                 ArrayList<TLObject> chats = BotStarsController.getInstance(currentAccount).getAdmined();
                 chats.add(0, UserConfig.getInstance(currentAccount).getCurrentUser());
 
-                ItemOptions i = ItemOptions.makeOptions(sheet.getContainerView(), resourcesProvider, chip, false, false, true);
+                ItemOptions i = ItemOptions.makeOptions(sheet.getContainerView(), resourcesProvider, chip);
                 for (TLObject obj : chats) {
                     long did;
                     if (obj instanceof TLRPC.User) {
@@ -1218,7 +1217,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
         });
 
 
-        sheet.fixNavigationBarKey(Theme.key_dialogBackground);
+        sheet.fixNavigationBar(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
         BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
         if (!AndroidUtilities.isTablet() && lastFragment != null && !AndroidUtilities.hasDialogOnTop(lastFragment)) {
             sheet.makeAttached(lastFragment);

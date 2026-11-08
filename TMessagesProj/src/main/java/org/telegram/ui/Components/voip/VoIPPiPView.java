@@ -37,7 +37,10 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.utils.pip.PipEnvironment;
+import org.telegram.messenger.pip.source.IPipSourceDelegate;
+import org.telegram.messenger.pip.utils.PipPermissions;
+import org.telegram.messenger.pip.PipSource;
+import org.telegram.messenger.pip.utils.PipUtils;
 import org.telegram.messenger.voip.Instance;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.messenger.voip.VoIPService;
@@ -48,7 +51,7 @@ import org.telegram.ui.VoIPFragment;
 import org.webrtc.RendererCommon;
 import org.webrtc.TextureViewRenderer;
 
-public class VoIPPiPView implements VoIPService.StateListener, NotificationCenter.NotificationCenterDelegate {
+public class VoIPPiPView implements VoIPService.StateListener, IPipSourceDelegate, NotificationCenter.NotificationCenterDelegate {
 
     public final static int ANIMATION_ENTER_TYPE_SCALE = 0;
     public final static int ANIMATION_ENTER_TYPE_TRANSITION = 1;
@@ -67,7 +70,7 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
     private boolean expandedAnimationInProgress;
     private WindowManager windowManager;
     public WindowManager.LayoutParams windowLayoutParams;
-    private boolean isOverlay;
+    private PipSource pipSource;
 
     public final int parentWidth;
     public final int parentHeight;
@@ -141,10 +144,9 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
         }
         WindowManager.LayoutParams windowLayoutParams = createWindowLayoutParams(activity, parentWidth, parentHeight, SCALE_NORMAL);
         instance = new VoIPPiPView(activity, parentWidth, parentHeight, false);
-        instance.isOverlay = PipEnvironment.canDrawOverlays(activity);
 
         WindowManager wm;
-        if (instance.isOverlay) {
+        if (AndroidUtilities.checkInlinePermissions(activity)) {
             wm = (WindowManager) ApplicationLoader.applicationContext.getSystemService(Context.WINDOW_SERVICE);
         } else {
             wm = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
@@ -181,7 +183,17 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
             }
         }
 
-        VoIPPipContent.update();
+        final VoIPService service = VoIPService.getSharedInstance();
+        if (service != null && service.getRemoteVideoState() == Instance.VIDEO_STATE_ACTIVE) {
+            if (PipUtils.checkPermissions(activity) == PipPermissions.PIP_GRANTED_PIP) {
+                instance.pipSource = new PipSource.Builder(activity, instance)
+                    .setTagPrefix("voip-pip")
+                    .setPriority(1)
+                    .setContentView(instance.callingUserTextureView.renderer)
+                    .setPlaceholderView(instance.callingUserTextureView.getPlaceholderView())
+                    .build();
+            }
+        }
     }
 
     private static WindowManager.LayoutParams createWindowLayoutParams(Context context, int parentWidth, int parentHeight, float scale) {
@@ -196,15 +208,14 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
         windowLayoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         windowLayoutParams.format = PixelFormat.TRANSLUCENT;
 
-        if (PipEnvironment.canDrawOverlays(context)) {
+        if (AndroidUtilities.checkInlinePermissions(context)) {
             if (Build.VERSION.SDK_INT >= 26) {
                 windowLayoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
             } else {
                 windowLayoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
             }
         } else {
-            // in-app window on the activity token: replaced by system PiP when the user leaves the app
-            windowLayoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION;
+            windowLayoutParams.type = WindowManager.LayoutParams.LAST_APPLICATION_WINDOW;
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -238,7 +249,6 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
         }
         expandedInstance = null;
         instance = null;
-        VoIPPipContent.update();
     }
 
     public static boolean isExpanding() {
@@ -385,6 +395,10 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
                 FileLog.e(e);
             }
         }
+        if (pipSource != null) {
+            pipSource.destroy();
+            pipSource = null;
+        }
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didEndCall);
     }
 
@@ -417,7 +431,23 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
 
     @Override
     public void onMediaStateUpdated(int audioState, int videoState) {
-        VoIPPipContent.update();
+        final VoIPService service = VoIPService.getSharedInstance();
+        if (service != null && service.getRemoteVideoState() == Instance.VIDEO_STATE_ACTIVE) {
+            final Context context = instance.windowView.getContext();
+            if (pipSource == null && PipUtils.checkPermissions(context) == PipPermissions.PIP_GRANTED_PIP) {
+                if (context instanceof Activity) {
+                    pipSource = new PipSource.Builder((Activity) context, this)
+                        .setTagPrefix("voip-pip")
+                        .setPriority(1)
+                        .setContentView(callingUserTextureView.renderer)
+                        .setPlaceholderView(callingUserTextureView.getPlaceholderView())
+                        .build();
+                }
+            }
+        } else if (pipSource != null) {
+            pipSource.destroy();
+            pipSource = null;
+        }
         updateViewState();
     }
 
@@ -479,36 +509,15 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
         }
     }
 
-    /**
-     * The app leaves the screen. An overlay bubble stays; system PiP replaces an in-app one (the
-     * camera goes on, as from the call screen); without either the camera is paused.
-     */
     public void onPause() {
-        if (!isOverlay && !PipEnvironment.canUseSystemPip(ApplicationLoader.applicationContext)) {
+        if (windowLayoutParams.type == WindowManager.LayoutParams.LAST_APPLICATION_WINDOW) {
             VoIPService service = VoIPService.getSharedInstance();
-            if (service != null && currentUserIsVideo) {
+            if (currentUserIsVideo) {
                 service.setVideoState(false, Instance.VIDEO_STATE_PAUSED);
             }
         }
     }
 
-    /**
-     * The overlay permission was granted or revoked while the bubble is shown: show it again as the
-     * other kind of window (the renderers do not survive moving the same views between windows).
-     */
-    public static void checkWindowType(@NonNull Activity activity) {
-        final VoIPPiPView pip = instance;
-        if (pip == null || expandedInstance != null || switchingToPip || pip.windowView.getParent() == null) {
-            return;
-        }
-        if (PipEnvironment.canDrawOverlays(activity) == pip.isOverlay) {
-            return;
-        }
-        final int account = pip.currentAccount;
-        final int width = pip.parentWidth, height = pip.parentHeight;
-        finish();
-        show(activity, account, width, height, ANIMATION_ENTER_TYPE_SCALE);
-    }
 
     public void onResume() {
         VoIPService service = VoIPService.getSharedInstance();
@@ -526,36 +535,86 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
 
     /* */
 
-    /* utils.pip */
+    private VoIPTextureView pipTextureView;
+    private boolean windowViewSkipRender;
+    private Runnable firstFrameCallback;
 
-    public boolean isOverlay() {
-        return isOverlay;
+    @Override
+    public Bitmap pipCreatePrimaryWindowViewBitmap() {
+        if (callingUserTextureView == null || !callingUserTextureView.renderer.isAvailable()) {
+            return null;
+        }
+
+        return callingUserTextureView.renderer.getBitmap();
     }
 
-    public View getFloatingVideoView() {
-        return floatingView;
+    @Override
+    public View pipCreatePictureInPictureView() {
+        pipTextureView = new VoIPTextureView(callingUserTextureView.getContext(), false, true, false, false);
+        pipTextureView.renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+        pipTextureView.renderer.setEnableHardwareScaler(true);
+        pipTextureView.renderer.setRotateTextureWithScreen(true);
+        pipTextureView.scaleType = VoIPTextureView.SCALE_TYPE_FIT;
+        pipTextureView.renderer.init(VideoCapturerDevice.getEglBase().getEglBaseContext(), new RendererCommon.RendererEvents() {
+            @Override
+            public void onFirstFrameRendered() {
+                if (firstFrameCallback != null) {
+                    firstFrameCallback.run();
+                    firstFrameCallback = null;
+                }
+            }
+
+            @Override
+            public void onFrameResolutionChanged(int videoWidth, int videoHeight, int rotation) {
+
+            }
+        });
+        if (pipTextureView.backgroundView != null) {
+            pipTextureView.backgroundView.setVisibility(View.GONE);
+        }
+
+        return pipTextureView;
     }
 
-    public void enterSystemPip(VoIPTextureView view) {
+    @Override
+    public void pipHidePrimaryWindowView(Runnable firstFrameCallback) {
+        this.firstFrameCallback = firstFrameCallback;
+        if (callingUserTextureView != null) {
+            callingUserTextureView.renderer.clearFirstFrame();
+        }
+
         final VoIPService voip = VoIPService.getSharedInstance();
         if (voip != null) {
-            voip.setSinks(currentUserTextureView.renderer, view.renderer);
+            voip.setSinks(currentUserTextureView.renderer, pipTextureView.renderer);
         }
-        try {
-            windowManager.removeView(windowView);
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
+
+        windowViewSkipRender = true;
+        windowManager.removeView(windowView);
+        windowView.invalidate();
     }
 
-    public void exitSystemPip() {
-        try {
-            if (windowView.getParent() == null) {
-                windowManager.addView(windowView, windowLayoutParams);
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
+    @Override
+    public Bitmap pipCreatePictureInPictureViewBitmap() {
+        if (pipTextureView == null || !pipTextureView.renderer.isAvailable()) {
+            return null;
         }
+
+        return pipTextureView.renderer.getBitmap();
+    }
+
+    @Override
+    public void pipShowPrimaryWindowView(Runnable firstFrameCallback) {
+        this.firstFrameCallback = firstFrameCallback;
+        windowManager.addView(windowView, windowLayoutParams);
+
+        if (pipTextureView != null) {
+            pipTextureView.renderer.release();
+            pipTextureView = null;
+        }
+
+        windowViewSkipRender = false;
+        windowView.invalidate();
+
         final VoIPService voip = VoIPService.getSharedInstance();
         if (voip != null) {
             voip.setSinks(currentUserTextureView.renderer, callingUserTextureView.renderer);
@@ -901,13 +960,15 @@ public class VoIPPiPView implements VoIPService.StateListener, NotificationCente
     private final RendererCommon.RendererEvents rendererEvents = new RendererCommon.RendererEvents() {
         @Override
         public void onFirstFrameRendered() {
-
+            if (firstFrameCallback != null) {
+                firstFrameCallback.run();
+                firstFrameCallback = null;
+            }
         }
 
         @Override
         public void onFrameResolutionChanged(int videoWidth, int videoHeight, int rotation) {
-            // system PiP aspect ratio follows the remote video
-            AndroidUtilities.runOnUIThread(VoIPPipContent::update);
+
         }
     };
 }

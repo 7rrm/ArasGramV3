@@ -13,7 +13,7 @@ import me.vkryl.core.reference.ReferenceList;
 class ViewOnPostDraw extends View {
 
     private final ReferenceList<OnPostDrawListener> callbacks = new ReferenceList<>();
-    private final ViewTreeObserver.OnDrawListener onDrawListener = this::dispatchOnDrawListeners;
+    private final ViewTreeObserver.OnDrawListener onDrawListener = this::forceLayout;
     private ViewTreeObserver observer;
 
     public ViewOnPostDraw(Context context) {
@@ -41,18 +41,6 @@ class ViewOnPostDraw extends View {
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
         dispatchOnPostDrawListeners();
-    }
-
-    private void dispatchOnDrawListeners() {
-        Trace.beginSection("OnDraw");
-        try {
-            for (OnPostDrawListener callback : callbacks) {
-                callback.onDraw();
-            }
-        } finally {
-            Trace.endSection();
-            forceLayout();
-        }
     }
 
     private void dispatchOnPostDrawListeners() {

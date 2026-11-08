@@ -1,6 +1,5 @@
 package org.telegram.ui.Cells;
 
-import org.telegram.messenger.FileLog;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -42,7 +41,6 @@ import org.telegram.messenger.voip.VoIPService;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -56,7 +54,7 @@ import org.telegram.ui.Components.WaveDrawable;
 
 import java.util.ArrayList;
 
-public class GroupCallUserCell extends FrameLayout implements Theme.Colorable {
+public class GroupCallUserCell extends FrameLayout {
 
     private AvatarWavesDrawable avatarWavesDrawable;
 
@@ -292,7 +290,7 @@ public class GroupCallUserCell extends FrameLayout implements Theme.Colorable {
         AndroidUtilities.updateViewVisibilityAnimated(avatarProgressView, false, 1f, false);
 
         nameTextView = new SimpleTextView(context);
-        ThemeBind.textColor(nameTextView, Theme.key_voipgroup_nameText);
+        nameTextView.setTextColor(Theme.getColor(Theme.key_voipgroup_nameText));
         nameTextView.setTypeface(AndroidUtilities.bold());
         nameTextView.setTextSize(16);
         nameTextView.setDrawablePadding(AndroidUtilities.dp(6));
@@ -302,7 +300,7 @@ public class GroupCallUserCell extends FrameLayout implements Theme.Colorable {
         rightDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView, AndroidUtilities.dp(20), AnimatedEmojiDrawable.CACHE_TYPE_ALERT_EMOJI_STATUS);
 
         speakingDrawable = context.getResources().getDrawable(R.drawable.voice_volume_mini);
-        ThemeBind.drawableColorFilter(this, speakingDrawable, Theme.key_voipgroup_speakingText, PorterDuff.Mode.MULTIPLY);
+        speakingDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_voipgroup_speakingText), PorterDuff.Mode.MULTIPLY));
 
         for (int a = 0; a < statusTextView.length; a++) {
             int num = a;
@@ -354,21 +352,21 @@ public class GroupCallUserCell extends FrameLayout implements Theme.Colorable {
             statusTextView[a].setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
             if (a == 4) {
                 statusTextView[a].setBuildFullLayout(true);
-                ThemeBind.textColor(statusTextView[a], Theme.key_voipgroup_mutedIcon);
+                statusTextView[a].setTextColor(Theme.getColor(Theme.key_voipgroup_mutedIcon));
                 addView(statusTextView[a], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 54 : 67, 32, LocaleController.isRTL ? 67 : 54, 0));
             } else {
                 if (a == 0) {
-                    ThemeBind.textColor(statusTextView[a], Theme.key_voipgroup_listeningText);
+                    statusTextView[a].setTextColor(Theme.getColor(Theme.key_voipgroup_listeningText));
                     statusTextView[a].setText(LocaleController.getString(R.string.Listening));
                 } else if (a == 1) {
-                    ThemeBind.textColor(statusTextView[a], Theme.key_voipgroup_speakingText);
+                    statusTextView[a].setTextColor(Theme.getColor(Theme.key_voipgroup_speakingText));
                     statusTextView[a].setText(LocaleController.getString(R.string.Speaking));
                     statusTextView[a].setDrawablePadding(AndroidUtilities.dp(2));
                 } else if (a == 2) {
-                    ThemeBind.textColor(statusTextView[a], Theme.key_voipgroup_mutedByAdminIcon);
+                    statusTextView[a].setTextColor(Theme.getColor(Theme.key_voipgroup_mutedByAdminIcon));
                     statusTextView[a].setText(LocaleController.getString(R.string.VoipGroupMutedForMe));
                 } else if (a == 3) {
-                    ThemeBind.textColor(statusTextView[a], Theme.key_voipgroup_listeningText);
+                    statusTextView[a].setTextColor(Theme.getColor(Theme.key_voipgroup_listeningText));
                     statusTextView[a].setText(LocaleController.getString(R.string.WantsToSpeak));
                 }
                 addView(statusTextView[a], LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 20, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 54 : 67, 32, LocaleController.isRTL ? 67 : 54, 0));
@@ -378,7 +376,7 @@ public class GroupCallUserCell extends FrameLayout implements Theme.Colorable {
         fullAboutTextView = new SimpleTextView(context);
         fullAboutTextView.setMaxLines(3);
         fullAboutTextView.setTextSize(15);
-        ThemeBind.textColor(fullAboutTextView, Theme.key_voipgroup_mutedIcon);
+        fullAboutTextView.setTextColor(Theme.getColor(Theme.key_voipgroup_mutedIcon));
         fullAboutTextView.setVisibility(View.GONE);
         addView(fullAboutTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 20 * 3, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 14, 32, 14, 0));
 
@@ -729,7 +727,7 @@ public class GroupCallUserCell extends FrameLayout implements Theme.Colorable {
         }
 
         if (!isSelfUser()) {
-            ThemeBind.textColor(statusTextView[4], grayIconColor);
+            statusTextView[4].setTextColor(Theme.getColor(grayIconColor));
         }
 
         if (isSelfUser()) {
@@ -739,29 +737,26 @@ public class GroupCallUserCell extends FrameLayout implements Theme.Colorable {
                 } else {
                     statusTextView[4].setText(LocaleController.getString(R.string.TapToAddPhotoOrDescription));
                 }
-                ThemeBind.textColor(statusTextView[4], grayIconColor);
+                statusTextView[4].setTextColor(Theme.getColor(grayIconColor));
             } else if (!hasAbout ){
                 if (currentUser != null) {
                     statusTextView[4].setText(LocaleController.getString(R.string.TapToAddBio));
                 } else {
                     statusTextView[4].setText(LocaleController.getString(R.string.TapToAddDescription));
                 }
-                ThemeBind.textColor(statusTextView[4], grayIconColor);
+                statusTextView[4].setTextColor(Theme.getColor(grayIconColor));
             } else if (!hasAvatar) {
                 statusTextView[4].setText(LocaleController.getString(R.string.TapToAddPhoto));
-                ThemeBind.textColor(statusTextView[4], grayIconColor);
+                statusTextView[4].setTextColor(Theme.getColor(grayIconColor));
             } else {
                 statusTextView[4].setText(LocaleController.getString(R.string.ThisIsYou));
-                ThemeBind.textColor(statusTextView[4], Theme.key_voipgroup_listeningText);
+                statusTextView[4].setTextColor(Theme.getColor(Theme.key_voipgroup_listeningText));
             }
             if (hasAbout) {
                 fullAboutTextView.setText(AndroidUtilities.replaceNewLines(participant.about));
-                fullAboutStatus = -1;
-                ThemeBind.textColor(fullAboutTextView, Theme.key_voipgroup_mutedIcon);
+                fullAboutTextView.setTextColor(Theme.getColor(Theme.key_voipgroup_mutedIcon));
             } else {
                 fullAboutTextView.setText(statusTextView[newStatus].getText());
-                fullAboutStatus = newStatus;
-                ThemeBind.clear(fullAboutTextView); // mirrors the status color, re-copied in updateColors()
                 fullAboutTextView.setTextColor(statusTextView[newStatus].getTextColor());
             }
         } else if (hasAbout) {
@@ -1125,21 +1120,5 @@ public class GroupCallUserCell extends FrameLayout implements Theme.Colorable {
             return 0;
         }
         return MessageObject.getPeerId(participant.peer);
-    }
-
-    private int fullAboutStatus = -1;
-    @Override
-    public void updateColors() {
-        try {
-            dividerPaint.setColor(Theme.getColor(Theme.key_voipgroup_actionBar));
-            if (fullAboutStatus >= 0 && fullAboutTextView != null && statusTextView != null && fullAboutStatus < statusTextView.length && statusTextView[fullAboutStatus] != null) {
-                ThemeBind.update(statusTextView[fullAboutStatus]); // children are updated after this view: refresh the source first
-                fullAboutTextView.setTextColor(statusTextView[fullAboutStatus].getTextColor());
-            }
-            invalidate();
-    
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
     }
 }

@@ -265,6 +265,7 @@ public class FactorAnimator {
     return isAnimating ? toFactor : factor;
   }
 
+  @FloatRange(from = 0.0, to = 1.0)
   public float getFactor () {
     return factor;
   }

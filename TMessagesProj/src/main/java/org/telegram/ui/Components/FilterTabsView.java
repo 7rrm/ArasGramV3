@@ -68,7 +68,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Stories.recorder.HintView2;
 
@@ -1188,7 +1187,7 @@ public class FilterTabsView extends FrameLayout {
         listView.setItemAnimator(itemAnimator);
         listView.setSelectorType(9);
         listView.setSelectorRadius(6);
-        ThemeBind.listSelectorColor(listView, selectorColorKey, resourcesProvider);
+        listView.setSelectorDrawableColor(Theme.getColor(selectorColorKey, resourcesProvider));
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false) {
 
             @Override
@@ -1468,7 +1467,7 @@ public class FilterTabsView extends FrameLayout {
         activeTextColorKey = active;
         unactiveTextColorKey = unactive;
         selectorDrawable.setColor(Theme.getColor(tabLineColorKey, resourcesProvider));
-        ThemeBind.listSelectorColor(listView, selector, resourcesProvider);
+        listView.setSelectorDrawableColor(Theme.getColor(selector, resourcesProvider));
 
         listView.invalidateViews();
         listView.invalidate();
@@ -1484,7 +1483,7 @@ public class FilterTabsView extends FrameLayout {
         aUnactiveTextColorKey = unactive;
         aBackgroundColorKey = background;
         selectorColorKey = selector;
-        ThemeBind.listSelectorColor(listView, selectorColorKey, resourcesProvider);
+        listView.setSelectorDrawableColor(Theme.getColor(selectorColorKey, resourcesProvider));
 
         colorChangeAnimator = new AnimatorSet();
         colorChangeAnimator.playTogether(ObjectAnimator.ofFloat(this, COLORS, 0.0f, 1.0f));
@@ -2154,7 +2153,7 @@ public class FilterTabsView extends FrameLayout {
             if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
                 listView.cancelClickRunnables(false);
                 viewHolder.itemView.setPressed(true);
-                ThemeBind.backgroundColor(viewHolder.itemView, backgroundColorKey, resourcesProvider);
+                viewHolder.itemView.setBackgroundColor(Theme.getColor(backgroundColorKey, resourcesProvider));
             } else {
                 AndroidUtilities.cancelRunOnUIThread(resetDefaultPosition);
                 AndroidUtilities.runOnUIThread(resetDefaultPosition, 320);

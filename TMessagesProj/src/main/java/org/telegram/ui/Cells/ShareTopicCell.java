@@ -28,7 +28,6 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -61,7 +60,7 @@ public class ShareTopicCell extends FrameLayout {
         addView(imageView, LayoutHelper.createFrame(56, 56, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 7, 0, 0));
 
         nameTextView = new TextView(context);
-        ThemeBind.textColor(nameTextView, Theme.key_dialogTextBlack, resourcesProvider);
+        nameTextView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
         nameTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
         nameTextView.setMaxLines(2);
         nameTextView.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
@@ -77,7 +76,7 @@ public class ShareTopicCell extends FrameLayout {
             }
         };
 
-        ThemeBind.selectorBackground(this, Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_listSelector), AndroidUtilities.dp(2), AndroidUtilities.dp(2)), null, ThemeBind.of(Theme.key_listSelector));
+        setBackground(Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_listSelector), AndroidUtilities.dp(2), AndroidUtilities.dp(2)));
     }
 
     @Override
@@ -124,7 +123,7 @@ public class ShareTopicCell extends FrameLayout {
             final long topicId = DialogObject.getPeerDialogId(topic.from_id);
             if (DialogObject.isUserDialog(topicId)) {
                 TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(topicId);
-                ThemeBind.textColor(nameTextView, Theme.key_dialogTextBlack, resourcesProvider);
+                nameTextView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
                 avatarDrawable.setInfo(currentAccount, user);
                 if (name != null) {
                     nameTextView.setText(name);

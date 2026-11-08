@@ -49,8 +49,6 @@ public class DialogCellTags {
 
         Text text;
         int color;
-        private boolean hasColorKey;
-        private int colorKey;
         int width;
         private int textHeight;
 
@@ -63,9 +61,7 @@ public class DialogCellTags {
             tag.width = dp(2 * padDp) + (int) tag.text.getCurrentWidth();
             tag.textHeight = (int) tag.text.getHeight();
 
-            tag.colorKey = Theme.key_avatar_nameInMessageBlue;
-            tag.hasColorKey = true;
-            tag.color = Theme.getColor(tag.colorKey);
+            tag.color = Theme.getColor(Theme.key_avatar_nameInMessageBlue);
 
             return tag;
         }
@@ -84,17 +80,12 @@ public class DialogCellTags {
             tag.width = dp(2 * padDp) + (int) tag.text.getCurrentWidth();
             tag.textHeight = (int) tag.text.getHeight();
 
-            tag.colorKey = Theme.keys_avatar_nameInMessage[filter.color % Theme.keys_avatar_nameInMessage.length];
-            tag.hasColorKey = true;
-            tag.color = Theme.getColor(tag.colorKey);
+            tag.color = Theme.getColor(Theme.keys_avatar_nameInMessage[filter.color % Theme.keys_avatar_nameInMessage.length]);
 
             return tag;
         }
 
         public void draw(Canvas canvas) {
-            if (hasColorKey) {
-                color = Theme.getColor(colorKey);
-            }
             Theme.dialogs_tagPaint.setColor(Theme.multAlpha(color, Theme.isCurrentThemeDark() ? .20f : .10f));
 
             AndroidUtilities.rectTmp.set(0, 0, width, dp(heightDp));

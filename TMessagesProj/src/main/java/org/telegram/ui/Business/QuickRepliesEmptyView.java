@@ -23,7 +23,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Stories.recorder.HintView2;
 
-public class QuickRepliesEmptyView extends LinearLayout implements Theme.Colorable {
+public class QuickRepliesEmptyView extends LinearLayout {
 
     private TextView titleView;
     private TextView descriptionView, descriptionView2;
@@ -127,11 +127,7 @@ public class QuickRepliesEmptyView extends LinearLayout implements Theme.Colorab
         updateColors();
     }
 
-    @Override
-    public void updateColors() {
-        if (titleView == null || descriptionView == null) {
-            return;
-        }
+    private void updateColors() {
         titleView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
         descriptionView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
         if (descriptionView2 != null) {

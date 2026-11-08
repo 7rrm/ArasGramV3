@@ -2,7 +2,6 @@ package org.telegram.ui;
 
 import static org.telegram.ui.CacheControlActivity.KEEP_MEDIA_TYPE_STORIES;
 
-import org.telegram.messenger.FileLog;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
@@ -22,7 +21,6 @@ import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AvatarsDrawable;
 import org.telegram.ui.Components.AvatarsImageView;
 import org.telegram.ui.Components.LayoutHelper;
@@ -30,7 +28,7 @@ import org.telegram.ui.Components.LinkSpanDrawable;
 
 import java.util.ArrayList;
 
-public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindowLayout implements Theme.Colorable {
+public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindowLayout {
 
     private final TextView description;
     ActionBarMenuSubItem delete;
@@ -77,9 +75,9 @@ public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindo
 
 
         gap = new FrameLayout(context);
-        ThemeBind.backgroundColor(gap, Theme.key_actionBarDefaultSubmenuSeparator);
+        gap.setBackgroundColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuSeparator));
         View gapShadow = new View(context);
-        ThemeBind.themedBackground(gapShadow, context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow);
+        gapShadow.setBackground(Theme.getThemedDrawableByKey(context, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow, null));
         gap.addView(gapShadow, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         gap.setTag(R.id.fit_width_tag, 1);
         addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
@@ -160,9 +158,9 @@ public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindo
         description.setTag(R.id.fit_width_tag, 1);
         description.setPadding(AndroidUtilities.dp(13), 0, AndroidUtilities.dp(13), AndroidUtilities.dp(8));
         description.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        ThemeBind.textColor(description, Theme.key_actionBarDefaultSubmenuItem);
+        description.setTextColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem));
         description.setMovementMethod(LinkMovementMethod.getInstance());
-        ThemeBind.linkTextColor(description, Theme.key_windowBackgroundWhiteLinkText);
+        description.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
         description.setText(LocaleController.getString(R.string.KeepMediaPopupDescription));
         addView(description, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 8, 0, 0));
 
@@ -215,7 +213,7 @@ public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindo
     }
 
 
-    private class ExceptionsView extends FrameLayout implements Theme.Colorable {
+    private class ExceptionsView extends FrameLayout {
 
         SimpleTextView titleView;
         AvatarsImageView avatarsImageView;
@@ -226,7 +224,7 @@ public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindo
             titleView.setTextSize(16);
             titleView.setEllipsizeByGradient(true);
             titleView.setRightPadding(AndroidUtilities.dp(68));
-            ThemeBind.textColor(titleView, Theme.key_dialogTextBlack);
+            titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
 
             addView(titleView, LayoutHelper.createFrame(0, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 19, 0, 19, 0));
 
@@ -264,22 +262,6 @@ public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindo
             }
             super.requestLayout();
         }
-
-        private int selectorColor = Theme.getColor(Theme.key_listSelector);
-
-        @Override
-        public void updateColors() {
-            try {
-                final int color = Theme.getColor(Theme.key_listSelector);
-                if (color != selectorColor) {
-                    selectorColor = color;
-                    Theme.setSelectorDrawableColor(getBackground(), color, true);
-                    invalidate();
-                }
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
     }
 
     private void updateAvatarsPosition() {
@@ -304,17 +286,5 @@ public class KeepMediaPopupView extends ActionBarPopupWindow.ActionBarPopupWindo
 
     public interface Callback {
         void onKeepMediaChange(int type, int keepMedia);
-    }
-
-    @Override
-    public void updateColors() {
-        try {
-            if (delete != null) {
-                delete.setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
-            }
-            invalidate();
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
     }
 }

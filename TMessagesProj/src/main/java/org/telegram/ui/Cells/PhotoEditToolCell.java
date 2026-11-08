@@ -23,7 +23,6 @@ import android.widget.TextView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.PhotoEditorSeekBar;
 
@@ -70,7 +69,7 @@ public class PhotoEditToolCell extends FrameLayout {
         addView(nameTextView, LayoutHelper.createFrame(80, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
 
         valueTextView = new TextView(context);
-        ThemeBind.textColor(valueTextView, Theme.key_chat_editMediaButton, resourcesProvider);
+        valueTextView.setTextColor(getThemedColor(Theme.key_chat_editMediaButton));
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
         valueTextView.setGravity(Gravity.RIGHT);
         valueTextView.setSingleLine(true);

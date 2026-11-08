@@ -44,7 +44,7 @@ import xyz.nextalone.nagram.NaConfig;
 public class ChatThemeController extends BaseController {
 
     private final long reloadTimeoutMs = 2 * 60 * 60 * 1000;
-    public static volatile DispatchQueue2 chatThemeQueue = new DispatchQueue2("chatThemeQueue");
+    public static volatile DispatchQueue chatThemeQueue = new DispatchQueue("chatThemeQueue");
 
     private final HashMap<Long, Bitmap> themeIdWallpaperThumbMap = new HashMap<>();
     private List<EmojiThemes> allChatThemes;

@@ -14,7 +14,6 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.LayoutHelper;
@@ -58,11 +57,11 @@ public class BoostTypeCell extends BaseCell {
         if (type == TYPE_GIVEAWAY) {
             titleTextView.setText(getString(R.string.BoostingCreateGiveaway));
             setSubtitle(getString(R.string.BoostingWinnersRandomly));
-            ThemeBind.textColor(subtitleTextView, Theme.key_dialogTextGray3, resourcesProvider);
+            subtitleTextView.setTextColor(Theme.getColor(Theme.key_dialogTextGray3, resourcesProvider));
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_GIFT);
             avatarDrawable.setColor(0xFF16A5F2, 0xFF1180F7);
             setDivider(true);
-            ThemeBind.themedBackground(this, getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow);
+            setBackground(Theme.getThemedDrawableByKey(getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
         } else if (type == TYPE_SPECIFIC_USERS) {
             titleTextView.setText(LocaleController.getString(R.string.BoostingAwardSpecificUsers));
             if (count == 1 && singleUser != null) {
@@ -74,11 +73,11 @@ public class BoostTypeCell extends BaseCell {
             } else {
                 setSubtitle(withArrow(getString(R.string.BoostingSelectRecipients)));
             }
-            ThemeBind.textColor(subtitleTextView, Theme.key_dialogTextBlue2, resourcesProvider);
+            subtitleTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2, resourcesProvider));
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_FILTER_GROUPS);
             avatarDrawable.setColor(0xFFC468F2, 0xFF965CFA);
             setDivider(false);
-            ThemeBind.themedBackground(this, getContext(), R.drawable.greydivider_top, Theme.key_windowBackgroundGrayShadow);
+            setBackground(Theme.getThemedDrawableByKey(getContext(), R.drawable.greydivider_top, Theme.key_windowBackgroundGrayShadow));
         } else if (type == TYPE_PREMIUM) {
             titleTextView.setText(getString(R.string.BoostingPremium));
             if (count == 1 && singleUser != null) {
@@ -90,19 +89,19 @@ public class BoostTypeCell extends BaseCell {
             } else {
                 setSubtitle(withArrow(getString(R.string.BoostingWinnersRandomly)));
             }
-            ThemeBind.textColor(subtitleTextView, Theme.key_dialogTextBlue2, resourcesProvider);
+            subtitleTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2, resourcesProvider));
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_PREMIUM);
             avatarDrawable.setColor(0xFFC468F2, 0xFF965CFA);
             setDivider(true);
-            ThemeBind.themedBackground(this, getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow);
+            setBackground(Theme.getThemedDrawableByKey(getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
         } else if (type == TYPE_STARS) {
             titleTextView.setText(TextCell.applyNewSpan(getString(R.string.BoostingStars)));
             setSubtitle(getString(R.string.BoostingWinnersRandomly));
-            ThemeBind.textColor(subtitleTextView, Theme.key_dialogTextGray3, resourcesProvider);
+            subtitleTextView.setTextColor(Theme.getColor(Theme.key_dialogTextGray3, resourcesProvider));
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_STARS);
             avatarDrawable.setColor(0xFFFDC21B, 0xFFF67447);
             setDivider(false);
-            ThemeBind.themedBackground(this, getContext(), R.drawable.greydivider_top, Theme.key_windowBackgroundGrayShadow);
+            setBackground(Theme.getThemedDrawableByKey(getContext(), R.drawable.greydivider_top, Theme.key_windowBackgroundGrayShadow));
         }
         radioButton.setChecked(isSelected, animated);
         imageView.setImageDrawable(avatarDrawable);

@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LocaleController;
@@ -26,7 +25,7 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.CombinedDrawable;
 
-public class AlbumButton extends View implements Theme.Colorable {
+public class AlbumButton extends View {
     private final ImageReceiver imageReceiver = new ImageReceiver(this);
     private final CharSequence title, subtitle;
 
@@ -38,24 +37,8 @@ public class AlbumButton extends View implements Theme.Colorable {
     private StaticLayout countLayout;
     private float countLayoutWidth, countLayoutLeft;
 
-    private final Theme.ResourcesProvider resourcesProvider;
-
-    @Override
-    public void updateColors() {
-        try {
-            final int color = Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider);
-            namePaintLayout.setColor(color);
-            countPaintLayout.setColor(color);
-            countPaintLayout.setAlpha((int) (.4f * 0xFF));
-            invalidate();
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
     public AlbumButton(Context context, MediaController.PhotoEntry cover, CharSequence name, int count, Theme.ResourcesProvider resourcesProvider) {
         super(context);
-        this.resourcesProvider = resourcesProvider;
 
         setPadding(dp(16), 0, dp(16), 0);
         setBackground(Theme.getSelectorDrawable(false));

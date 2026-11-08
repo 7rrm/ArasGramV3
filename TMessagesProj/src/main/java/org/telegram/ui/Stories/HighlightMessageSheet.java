@@ -23,7 +23,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.ColoredImageSpan;
@@ -304,7 +303,7 @@ public class HighlightMessageSheet {
         public TierValueView(Context context, CharSequence subtitle, Theme.ResourcesProvider resourcesProvider) {
             super(context);
 
-            ThemeBind.fillBackground(this, Theme.createRoundRectDrawable(dp(12), Theme.multAlpha(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), 0.06f)), ThemeBind.multAlpha(Theme.key_dialogTextBlack, 0.06f), resourcesProvider);
+            setBackground(Theme.createRoundRectDrawable(dp(12), Theme.multAlpha(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), 0.06f)));
 
             final LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.VERTICAL);
@@ -313,7 +312,7 @@ public class HighlightMessageSheet {
             titleTextView = new AnimatedTextView(context, false, true, true);
             titleTextView.setAnimationProperties(.6f, 0, 450, CubicBezierInterpolator.EASE_OUT_QUINT);
             titleTextView.setTextSize(dp(17));
-            ThemeBind.textColor(titleTextView, Theme.key_dialogTextBlack, resourcesProvider);
+            titleTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
             titleTextView.setScaleProperty(0.7f);
             titleTextView.setGravity(Gravity.CENTER);
             titleTextView.setTypeface(AndroidUtilities.bold());
@@ -322,7 +321,7 @@ public class HighlightMessageSheet {
 
             subtitleTextView = new TextView(context);
             subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
-            ThemeBind.textColor(subtitleTextView, Theme.key_dialogTextBlack, resourcesProvider);
+            subtitleTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
             subtitleTextView.setGravity(Gravity.CENTER);
             layout.addView(subtitleTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 0));
             subtitleTextView.setText(subtitle);

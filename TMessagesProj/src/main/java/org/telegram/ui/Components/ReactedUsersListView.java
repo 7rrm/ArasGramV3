@@ -28,7 +28,6 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.ReactedUserHolderView;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 
@@ -124,7 +123,7 @@ public class ReactedUsersListView extends FrameLayout {
 
                         FrameLayout frameLayout = new FrameLayout(context);
                         View gap = new View(context);
-                        ThemeBind.backgroundColor(gap, ThemeBind.multAlpha(Theme.key_actionBarDefaultSubmenuItem, 0.06f), resourcesProvider);
+                        gap.setBackgroundColor(Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), 0.06f));
                         frameLayout.addView(gap, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 8));
                         frameLayout.addView(messageContainsEmojiButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, 0, 0, 8, 0, 0));
 

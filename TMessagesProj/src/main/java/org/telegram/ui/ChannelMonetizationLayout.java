@@ -2,6 +2,7 @@ package org.telegram.ui;
 
 import static org.telegram.messenger.AndroidUtilities.REPLACING_TAG_TYPE_LINK_NBSP;
 import static org.telegram.messenger.AndroidUtilities.dp;
+import static org.telegram.messenger.AndroidUtilities.makeBlurBitmap;
 import static org.telegram.messenger.LocaleController.formatPluralString;
 import static org.telegram.messenger.LocaleController.formatString;
 import static org.telegram.messenger.LocaleController.getString;
@@ -39,6 +40,9 @@ import android.widget.Space;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.NestedScrollingParent3;
+import androidx.core.view.NestedScrollingParentHelper;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -65,7 +69,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -82,21 +85,18 @@ import org.telegram.ui.Components.OutlineTextContainerView;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.Components.ViewPagerFixed;
-import org.telegram.ui.Components.RecyclerPagerView;
-import org.telegram.ui.Components.SiblingRecyclerPagerLayout;
-import org.telegram.utils.glass.BaseFragmentSimpleGlass;
-import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
+import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
 import org.telegram.ui.Stars.BotStarsActivity;
 import org.telegram.ui.Stars.BotStarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.bots.AffiliateProgramFragment;
 import org.telegram.ui.bots.ChannelAffiliateProgramsFragment;
-import org.telegram.utils.glass.GlassEngine;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -105,12 +105,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 
-public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implements Theme.Colorable {
-
-    // Temporary scroll/swipe fixture. Set false to restore production behavior.
-    private static final boolean TEST_TRANSACTION_PAGES = false;
-    private static final int TEST_TRANSACTION_REPETITIONS = 30;
-    private static final int TEST_EXTRA_TRANSACTION_PAGES = 4;
+public class ChannelMonetizationLayout extends SizeNotifierFrameLayout implements NestedScrollingParent3 {
 
     public static ChannelMonetizationLayout instance;
 
@@ -149,50 +144,25 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
     private long starsBalanceEditTextValue;
     private EditTextBoldCursor starsBalanceEditText;
 
-    @Override
-    public void updateColors() {
-        try {
-            if (starsBalanceEditText != null) {
-                starsBalanceEditText.setHandlesColor(Theme.getColor(Theme.key_chat_TextSelectionCursor, resourcesProvider));
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
     private Bulletin withdrawalBulletin;
 
     private boolean transfering;
 
-    private boolean transactionGesture = true;
-    private int transactionsRow = RecyclerView.NO_POSITION;
-    private Runnable tabsPinnedChangedListener;
-    private final View transactionsBoundary;
-    private int insetTop;
-    private int insetBottom;
-    private int bottomControlsHeight;
-
     public final UniversalRecyclerView listView;
+    public IBlur3Capture iBlur3Capture;
     private final FrameLayout progress;
 
     private DecimalFormat formatter;
 
-    public final ChannelTransactionsView transactionsLayout;
+    private final ChannelTransactionsView transactionsLayout;
     public void updateList() {
         if (listView != null) {
-            boolean pinned = areTabsPinned();
-            boolean hadBoundary = transactionsRow != RecyclerView.NO_POSITION;
-            listView.adapter.update(hadBoundary == transactionsLayout.hasTransactions());
-            if (pinned && transactionsRow != RecyclerView.NO_POSITION) {
-                alignCommonBoundaryToPin();
-            }
+            listView.adapter.update(true);
         }
     }
 
     public final boolean tonRevenueAvailable;
     public final boolean starsRevenueAvailable;
-
-    private final GlassEngine glassEngine;
 
     public ChannelMonetizationLayout(
         Context context,
@@ -200,14 +170,12 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         int currentAccount,
         long dialogId,
         Theme.ResourcesProvider resourcesProvider,
-        GlassEngine glassEngine,
 
         boolean tonRevenueAvailable,
         boolean starsRevenueAvailable
     ) {
         super(context);
 
-        this.glassEngine = glassEngine;
         this.tonRevenueAvailable = tonRevenueAvailable;
         this.starsRevenueAvailable = starsRevenueAvailable;
 
@@ -242,27 +210,8 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             Browser.openUrl(getContext(), getString(R.string.MonetizationStarsInfoLink));
         }), true);
 
-        setCommonInsetsManagedExternally(true);
-        setGeometry(new Geometry() {
-            @Override
-            public float tabsPinnedTop(SiblingRecyclerPagerLayout parent) {
-                // the glass of the tabs (inset by 9.66dp) 7dp under the header's buttons
-                return Math.max(0, BaseFragmentSimpleGlass.getPillGlassTop(insetTop) - dp(9.66f));
-            }
+        setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
 
-            @Override
-            public int pageBottomInset(SiblingRecyclerPagerLayout parent) {
-                return insetBottom + bottomControlsHeight;
-            }
-
-            @Override
-            public void onTabsPinnedChanged(boolean pinned) {
-                if (tabsPinnedChangedListener != null) {
-                    tabsPinnedChangedListener.run();
-                }
-            }
-        });
-        transactionsBoundary = createBoundarySpacer(context);
         transactionsLayout = new ChannelTransactionsView(context, currentAccount, dialogId, fragment.getClassGuid(), this::updateList, resourcesProvider);
 
         balanceLayout = new LinearLayout(context) {
@@ -275,12 +224,12 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             }
         };
         balanceLayout.setOrientation(LinearLayout.VERTICAL);
-        ThemeBind.backgroundColor(balanceLayout, Theme.key_windowBackgroundWhite, resourcesProvider);
+        balanceLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
         balanceLayout.setPadding(0, 0, 0, dp(17));
 
         balanceTitle = new AnimatedTextView(context, false, true, true);
         balanceTitle.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(balanceTitle, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        balanceTitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         balanceTitle.setTextSize(dp(32));
         balanceTitle.setGravity(Gravity.CENTER);
         balanceTitleSizeSpan = new RelativeSizeSpan(65f / 96f);
@@ -288,7 +237,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
         balanceSubtitle = new AnimatedTextView(context, true, true, true);
         balanceSubtitle.setGravity(Gravity.CENTER);
-        ThemeBind.textColor(balanceSubtitle, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
+        balanceSubtitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
         balanceSubtitle.setTextSize(dp(14));
         balanceLayout.addView(balanceSubtitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 17, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 22, 4, 22, 0));
 
@@ -321,12 +270,12 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             }
         };
         starsBalanceLayout.setOrientation(LinearLayout.VERTICAL);
-        ThemeBind.backgroundColor(starsBalanceLayout, Theme.key_windowBackgroundWhite, resourcesProvider);
+        starsBalanceLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
         starsBalanceLayout.setPadding(0, 0, 0, dp(17));
 
         starsBalanceTitle = new AnimatedTextView(context, false, true, true);
         starsBalanceTitle.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(starsBalanceTitle, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        starsBalanceTitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         starsBalanceTitle.setTextSize(dp(32));
         starsBalanceTitle.setGravity(Gravity.CENTER);
         starsBalanceTitleSizeSpan = new RelativeSizeSpan(65f / 96f);
@@ -334,7 +283,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
         starsBalanceSubtitle = new AnimatedTextView(context, true, true, true);
         starsBalanceSubtitle.setGravity(Gravity.CENTER);
-        ThemeBind.textColor(starsBalanceSubtitle, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
+        starsBalanceSubtitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
         starsBalanceSubtitle.setTextSize(dp(14));
         starsBalanceLayout.addView(starsBalanceSubtitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 17, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 22, 4, 22, 0));
 
@@ -365,7 +314,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             }
         };
         starsBalanceEditText.setFocusable(false);
-        ThemeBind.textColor(starsBalanceEditText, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        starsBalanceEditText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         starsBalanceEditText.setCursorSize(AndroidUtilities.dp(20));
         starsBalanceEditText.setCursorWidth(1.5f);
         starsBalanceEditText.setBackground(null);
@@ -375,8 +324,8 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         starsBalanceEditText.setPadding(dp(6), padding, padding, padding);
         starsBalanceEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
         starsBalanceEditText.setTypeface(Typeface.DEFAULT);
-        ThemeBind.highlightColor(starsBalanceEditText, Theme.key_chat_inTextSelectionHighlight, resourcesProvider);
-        ThemeBind.editHandlesColor(starsBalanceEditText, Theme.key_chat_TextSelectionCursor, resourcesProvider);
+        starsBalanceEditText.setHighlightColor(Theme.getColor(Theme.key_chat_inTextSelectionHighlight, resourcesProvider));
+        starsBalanceEditText.setHandlesColor(Theme.getColor(Theme.key_chat_TextSelectionCursor, resourcesProvider));
         starsBalanceEditText.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         starsBalanceEditText.setOnFocusChangeListener((v, hasFocus) -> starsBalanceEditTextContainer.animateSelection(hasFocus ? 1f : 0f));
         starsBalanceEditText.addTextChangedListener(new TextWatcher() {
@@ -534,27 +483,15 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         };
 
         listView = new UniversalRecyclerView(fragment, this::fillItems, this::onClick, this::onLongClick);
-        listView.setLayoutManager(listView.layoutManager = createCommonLayoutManager(context));
         listView.setClipToPadding(false);
         listView.setSections();
-        listView.setCaptureSectionsDecoratorAllowed(true);
-        listView.adapter.setApplyBackground(false);
-        setCommonRecyclerView(listView, () -> transactionsRow);
-        setPager(transactionsLayout, transactionsLayout.viewPager,
-                page -> ((ChannelTransactionsView.Page) page).listView);
-        setTabs(transactionsLayout.tabsContainer, LayoutHelper.WRAP_CONTENT);
-        transactionsLayout.tabsContainer.setLayoutParams(LayoutHelper.createFrame(
-                LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, -4, 0, -4, 0));
-
-        if (glassEngine != null) {
-            glassEngine.addScrolledView(listView);
-        }
+        addView(listView);
 
         LinearLayout progressLayout = new LinearLayout(context);
         progressLayout.setOrientation(LinearLayout.VERTICAL);
 
         progress = new FrameLayout(context);
-        ThemeBind.backgroundColor(progress, Theme.key_windowBackgroundGray, resourcesProvider);
+        progress.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
         progress.addView(progressLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
 
         RLottieImageView imageView = new RLottieImageView(context);
@@ -565,14 +502,14 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         TextView loadingTitle = new TextView(context);
         loadingTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         loadingTitle.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(loadingTitle, Theme.key_player_actionBarTitle);
+        loadingTitle.setTextColor(Theme.getColor(Theme.key_player_actionBarTitle));
         loadingTitle.setTag(Theme.key_player_actionBarTitle);
         loadingTitle.setText(getString("LoadingStats", R.string.LoadingStats));
         loadingTitle.setGravity(Gravity.CENTER_HORIZONTAL);
 
         TextView loadingSubtitle = new TextView(context);
         loadingSubtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-        ThemeBind.textColor(loadingSubtitle, Theme.key_player_actionBarSubtitle);
+        loadingSubtitle.setTextColor(Theme.getColor(Theme.key_player_actionBarSubtitle));
         loadingSubtitle.setTag(Theme.key_player_actionBarSubtitle);
         loadingSubtitle.setText(getString(R.string.LoadingStatsDescription));
         loadingSubtitle.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -621,7 +558,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                     builder.setView(linearLayout);
 
                     TextView messageTextView = new TextView(parentActivity);
-                    ThemeBind.textColor(messageTextView, Theme.key_dialogTextBlack);
+                    messageTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                     messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                     messageTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
                     messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.WithdrawChannelAlertText)));
@@ -634,10 +571,10 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                     ImageView dotImageView = new ImageView(parentActivity);
                     dotImageView.setImageResource(R.drawable.list_circle);
                     dotImageView.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(11) : 0, AndroidUtilities.dp(9), LocaleController.isRTL ? 0 : AndroidUtilities.dp(11), 0);
-                    ThemeBind.colorFilter(dotImageView, Theme.key_dialogTextBlack, PorterDuff.Mode.MULTIPLY);
+                    dotImageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogTextBlack), PorterDuff.Mode.MULTIPLY));
 
                     messageTextView = new TextView(parentActivity);
-                    ThemeBind.textColor(messageTextView, Theme.key_dialogTextBlack);
+                    messageTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                     messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                     messageTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
                     messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.EditAdminTransferAlertText1)));
@@ -656,10 +593,10 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                     dotImageView = new ImageView(parentActivity);
                     dotImageView.setImageResource(R.drawable.list_circle);
                     dotImageView.setPadding(LocaleController.isRTL ? AndroidUtilities.dp(11) : 0, AndroidUtilities.dp(9), LocaleController.isRTL ? 0 : AndroidUtilities.dp(11), 0);
-                    ThemeBind.colorFilter(dotImageView, Theme.key_dialogTextBlack, PorterDuff.Mode.MULTIPLY);
+                    dotImageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogTextBlack), PorterDuff.Mode.MULTIPLY));
 
                     messageTextView = new TextView(parentActivity);
-                    ThemeBind.textColor(messageTextView, Theme.key_dialogTextBlack);
+                    messageTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                     messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                     messageTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
                     messageTextView.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.EditAdminTransferAlertText2)));
@@ -676,7 +613,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
                     } else {
                         messageTextView = new TextView(parentActivity);
-                        ThemeBind.textColor(messageTextView, Theme.key_dialogTextBlack);
+                        messageTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                         messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                         messageTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
                         messageTextView.setText(LocaleController.getString(R.string.EditAdminTransferAlertText3));
@@ -973,7 +910,6 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
     private final static int BUTTON_AFFILIATE =4;
 
     private void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        transactionsRow = RecyclerView.NO_POSITION;
         int stats_dc = -1;
         TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
         TLRPC.ChatFull chatFull = MessagesController.getInstance(currentAccount).getChatFull(-dialogId);
@@ -1024,8 +960,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             items.add(UItem.asShadow(-7, null));
         }
         if (transactionsLayout.hasTransactions()) {
-            transactionsRow = items.size();
-            items.add(UItem.asCustomShadow(transactionsBoundary, LayoutHelper.WRAP_CONTENT));
+            items.add(UItem.asFullscreenCustom(transactionsLayout, dp(24), true));
         } else {
             items.add(UItem.asShadow(-10, null));
         }
@@ -1154,18 +1089,18 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                 cryptoAmountView[i] = new AnimatedEmojiSpan.TextViewEmojis(context);
                 cryptoAmountView[i].setTypeface(AndroidUtilities.bold());
                 cryptoAmountView[i].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-                ThemeBind.textColor(cryptoAmountView[i], Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+                cryptoAmountView[i].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
                 amountContainer[i].addView(cryptoAmountView[i], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 0, 0, 5, 0));
 
                 amountView[i] = new AnimatedEmojiSpan.TextViewEmojis(context);
                 amountView[i].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11.5f);
-                ThemeBind.textColor(amountView[i], Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
+                amountView[i].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
                 amountContainer[i].addView(amountView[i], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM));
             }
 
             titleView = new TextView(context);
             titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-            ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
+            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
             addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.FILL_HORIZONTAL, 22, 5, 22, 9));
 
             DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
@@ -1292,7 +1227,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
             titleView = new TextView(context);
             titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-            ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             layout.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
 //            addressView = new TextView(context);
@@ -1305,7 +1240,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
             dateView = new TextView(context);
             dateView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-            ThemeBind.textColor(dateView, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
+            dateView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
             layout.addView(dateView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
 
             valueText = new AnimatedEmojiSpan.TextViewEmojis(context);
@@ -1354,7 +1289,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                 return;
             }
 
-            ThemeBind.textColor(dateView, failed ? Theme.key_text_RedRegular : Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
+            dateView.setTextColor(Theme.getColor(failed ? Theme.key_text_RedRegular : Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
 
             SpannableStringBuilder value = new SpannableStringBuilder();
             value.append(type < 0 ? "-" : "+");
@@ -1365,7 +1300,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                 value.setSpan(new RelativeSizeSpan(1.15f), 0, index + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
             valueText.setText(replaceTON(value, valueText.getPaint(), 1.1f, dp(.33f), false));
-            ThemeBind.textColor(valueText, type < 0 ? Theme.key_text_RedBold : Theme.key_avatar_nameInMessageGreen, resourcesProvider);
+            valueText.setTextColor(Theme.getColor(type < 0 ? Theme.key_text_RedBold : Theme.key_avatar_nameInMessageGreen, resourcesProvider));
 
             setWillNotDraw(!(needDivider = divider));
         }
@@ -1498,7 +1433,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         textView.setGravity(Gravity.CENTER);
         textView.setTypeface(AndroidUtilities.bold());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-        ThemeBind.textColor(textView, type < 0 ? Theme.key_text_RedBold : Theme.key_avatar_nameInMessageGreen);
+        textView.setTextColor(Theme.getColor(type < 0 ? Theme.key_text_RedBold : Theme.key_avatar_nameInMessageGreen));
         SpannableStringBuilder amountText = new SpannableStringBuilder();
         amountText.append(type < 0 ? "-" : "+");
         amountText.append(formatter.format(Math.round(Math.abs(amount) / 1_000_000_000.0 * 100000.0) / 100000.0));
@@ -1513,7 +1448,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         textView = new TextView(context);
         textView.setGravity(Gravity.CENTER);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
         if (pending) {
             textView.setText(getString(R.string.MonetizationTransactionPending));
         } else if (dateFrom == 0) {
@@ -1524,7 +1459,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             textView.setText(LocaleController.formatShortDateTime(dateFrom) + " - " + LocaleController.formatShortDateTime(dateTo));
         }
         if (failed) {
-            ThemeBind.textColor(textView, Theme.key_text_RedBold, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_text_RedBold, resourcesProvider));
             textView.setText(TextUtils.concat(textView.getText(), " — ", getString(R.string.MonetizationTransactionNotCompleted)));
         }
         layout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 0));
@@ -1533,7 +1468,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         textView.setGravity(Gravity.CENTER);
         textView.setTypeface(AndroidUtilities.bold());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setText(title);
         layout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 27, 0, 0));
 
@@ -1555,7 +1490,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 //        } else {
         if (transaction instanceof TL_stats.TL_broadcastRevenueTransactionProceeds) {
             FrameLayout chipLayout = new FrameLayout(context);
-            ThemeBind.fillBackground(chipLayout, Theme.createRoundRectDrawable(dp(28), dp(28), Theme.getColor(Theme.key_groupcreate_spanBackground, resourcesProvider)), ThemeBind.of(Theme.key_groupcreate_spanBackground), resourcesProvider);
+            chipLayout.setBackground(Theme.createRoundRectDrawable(dp(28), dp(28), Theme.getColor(Theme.key_groupcreate_spanBackground, resourcesProvider)));
 
             String ownerName;
             TLObject owner;
@@ -1577,7 +1512,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             chipLayout.addView(chipAvatar, LayoutHelper.createFrame(28, 28, Gravity.LEFT | Gravity.TOP));
 
             TextView chipText = new TextView(context);
-            ThemeBind.textColor(chipText, Theme.key_dialogTextBlack, resourcesProvider);
+            chipText.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
             chipText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             chipText.setSingleLine();
             chipText.setText(ownerName);
@@ -1617,14 +1552,14 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         imageView.setScaleType(ImageView.ScaleType.CENTER);
         imageView.setImageResource(R.drawable.large_monetize);
         imageView.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
-        ThemeBind.fillBackground(imageView, Theme.createCircleDrawable(dp(80), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)), ThemeBind.of(Theme.key_featuredStickers_addButton), resourcesProvider);
+        imageView.setBackground(Theme.createCircleDrawable(dp(80), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
         layout.addView(imageView, LayoutHelper.createLinear(80, 80, Gravity.CENTER_HORIZONTAL, 0, 16, 0, 16));
 
         TextView textView = new TextView(context);
         textView.setGravity(Gravity.CENTER);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         textView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setText(getString(bots ? R.string.BotMonetizationInfoTitle : R.string.MonetizationInfoTitle));
         layout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 8, 0, 8, 25));
 
@@ -1644,14 +1579,14 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         );
 
         View separator = new View(context);
-        ThemeBind.backgroundColor(separator, Theme.key_divider, resourcesProvider);
+        separator.setBackgroundColor(Theme.getColor(Theme.key_divider, resourcesProvider));
         layout.addView(separator, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1f / AndroidUtilities.density, Gravity.TOP | Gravity.FILL_HORIZONTAL, 12, 0, 12, 0));
 
         textView = new AnimatedEmojiSpan.TextViewEmojis(context);
         textView.setGravity(Gravity.CENTER);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         textView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         SpannableString animatedDiamond = new SpannableString("💎");
         ColoredImageSpan span = new ColoredImageSpan(R.drawable.mini_gram_72);
         span.recolorDrawable = false;
@@ -1665,8 +1600,8 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
         textView = new LinkSpanDrawable.LinksTextView(context, resourcesProvider);
         textView.setGravity(Gravity.CENTER);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-        ThemeBind.linkTextColor(textView, Theme.key_chat_messageLinkIn, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+        textView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
         textView.setText(AndroidUtilities.withLearnMore(AndroidUtilities.replaceTags(getString(bots ? R.string.BotMonetizationInfoTONText : R.string.MonetizationInfoTONText)), () -> Browser.openUrl(context, getString(bots ? R.string.BotMonetizationInfoTONLink : R.string.MonetizationInfoTONLink))));
         layout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 28, 9, 28, 0));
 
@@ -1688,7 +1623,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
             ImageView imageView = new ImageView(context);
             imageView.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(imageView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider, PorterDuff.Mode.SRC_IN);
+            imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), PorterDuff.Mode.SRC_IN));
             imageView.setImageResource(icon);
             addView(imageView, LayoutHelper.createFrame(24, 24, Gravity.TOP | Gravity.LEFT, 0, 5, 18, 0));
 
@@ -1699,15 +1634,15 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             LinkSpanDrawable.LinksTextView textView = new LinkSpanDrawable.LinksTextView(context);
             textView.setTypeface(AndroidUtilities.bold());
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-            ThemeBind.linkTextColor(textView, Theme.key_chat_messageLinkIn, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+            textView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
             textView.setText(header);
             layout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.FILL_HORIZONTAL, 0, 0, 0, 2));
 
             textView = new LinkSpanDrawable.LinksTextView(context);
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
-            ThemeBind.linkTextColor(textView, Theme.key_chat_messageLinkIn, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
+            textView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
             textView.setText(text);
             layout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.FILL_HORIZONTAL, 0, 0, 0, 0));
         }
@@ -1721,10 +1656,9 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
     public class ChannelTransactionsView extends LinearLayout {
 
         private final int currentAccount;
-        public final ViewPagerFixed viewPager;
+        private final ViewPagerFixed viewPager;
         private final PageAdapter adapter;
         private final ViewPagerFixed.TabsView tabsView;
-        private final FrameLayout tabsContainer;
         private final long dialogId;
         private final Runnable updateParentList;
 
@@ -1762,12 +1696,6 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                     items.add(UItem.asSpace(TON_TRANSACTIONS));
                 if (!starsTransactions.isEmpty())
                     items.add(UItem.asSpace(STARS_TRANSACTIONS));
-                if (TEST_TRANSACTION_PAGES && hasTransactions()) {
-                    for (int i = 0; i < TEST_EXTRA_TRANSACTION_PAGES; i++) {
-                        // Separate view types keep each test page's RecyclerView independent.
-                        items.add(UItem.asSpace(2 + i));
-                    }
-                }
             }
 
             @Override
@@ -1777,13 +1705,11 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
             @Override
             public View createView(int viewType) {
-                return new Page(context, dialogId, viewType, currentAccount, classGuid, () -> loadTransactions(getTransactionType(viewType)), resourcesProvider);
+                return new Page(context, dialogId, viewType, currentAccount, classGuid, () -> loadTransactions(viewType), resourcesProvider);
             }
 
             @Override
-            public void bindView(View view, int position, int viewType) {
-                ((RecyclerPagerView) viewPager).onPageBound(view);
-            }
+            public void bindView(View view, int position, int viewType) {}
 
             @Override
             public int getItemViewType(int position) {
@@ -1795,22 +1721,12 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             @Override
             public String getItemTitle(int position) {
                 final int viewType = getItemViewType(position);
-                if (TEST_TRANSACTION_PAGES && viewType >= 2) {
-                    return "Test " + (viewType - 1);
-                }
                 switch (viewType) {
                     case STARS_TRANSACTIONS: return getString(R.string.MonetizationTransactionsStars);
                     case TON_TRANSACTIONS: return getString(R.string.MonetizationTransactionsTON);
                     default: return "";
                 }
             }
-        }
-
-        private int getTransactionType(int pageType) {
-            if (!TEST_TRANSACTION_PAGES || pageType < 2) return pageType;
-            int preferredType = (pageType - 2) % 2;
-            if (hasTransactions(preferredType)) return preferredType;
-            return hasTransactions(STARS_TRANSACTIONS) ? STARS_TRANSACTIONS : TON_TRANSACTIONS;
         }
 
         public RecyclerListView getCurrentListView() {
@@ -1827,64 +1743,27 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
             setOrientation(VERTICAL);
 
-            setClipChildren(false);
-            setClipToPadding(false);
-            viewPager = new RecyclerPagerView(context, resourcesProvider, ChannelMonetizationLayout.this) {
-                @Override
-                public boolean canScrollHorizontally(int direction) {
-                    // The outer pager probes descendants before this pager receives DOWN.
-                    return transactionGesture && super.canScrollHorizontally(direction);
-                }
-            };
+            viewPager = new ViewPagerFixed(context);
             viewPager.setAdapter(adapter = new PageAdapter(context, currentAccount, dialogId, classGuid, resourcesProvider));
-            tabsView = viewPager.createTabsView(true, ViewPagerFixed.SELECTOR_TYPE_BUBBLE_STYLE);
-            if (glassEngine != null) {
-                glassEngine.addScrolledView(viewPager);
-            }
+            tabsView = viewPager.createTabsView(true, 3);
 
-            tabsContainer = new FrameLayout(context) {
-                @Override
-                public boolean dispatchTouchEvent(MotionEvent event) {
-                    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                        // Tabs live outside the coordinator, so stop its flings explicitly.
-                        ChannelMonetizationLayout.this.listView.stopScroll();
-                        for (View page : viewPager.getViewPages()) {
-                            if (page instanceof Page) {
-                                ((Page) page).listView.stopScroll();
-                            }
-                        }
-                    }
-                    return super.dispatchTouchEvent(event);
-                }
-            };
-            tabsContainer.setPadding(dp(4), dp(4), dp(4), dp(4));
-            tabsContainer.addView(tabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP));
+            View separatorView = new View(context);
+            separatorView.setBackgroundColor(Theme.getColor(Theme.key_divider, resourcesProvider));
+
+            addView(tabsView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
+            addView(separatorView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1f / AndroidUtilities.density));
             addView(viewPager, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+            setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
 
             loadTransactions(TON_TRANSACTIONS);
             loadTransactions(STARS_TRANSACTIONS);
         }
 
         private void updateTabs() {
-            int selectedType = adapter.getItemCount() == 0 ? -1 : adapter.getItemViewType(viewPager.getCurrentPosition());
-            int oldMask = 0;
-            for (int i = 0; i < adapter.getItemCount(); i++) {
-                oldMask |= 1 << adapter.getItemViewType(i);
-            }
             adapter.fill();
-            int newMask = 0;
-            int selectedPosition = 0;
-            for (int i = 0; i < adapter.getItemCount(); i++) {
-                int type = adapter.getItemViewType(i);
-                newMask |= 1 << type;
-                if (type == selectedType) selectedPosition = i;
-            }
-            if (oldMask == newMask) return;
-            viewPager.onTouchEvent(null);
-            viewPager.setPosition(selectedPosition);
-            viewPager.updateCurrent();
             viewPager.fillTabs(false);
-            ChannelMonetizationLayout.this.onPagerChanged();
+            viewPager.updateCurrent();
         }
 
         public void reloadTransactions() {
@@ -1996,7 +1875,7 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
         public class Page extends FrameLayout {
 
-            public final UniversalRecyclerView listView;
+            private final UniversalRecyclerView listView;
             private final Theme.ResourcesProvider resourcesProvider;
             private final int currentAccount;
             private final int type;
@@ -2013,13 +1892,6 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                 this.loadMore = loadMore;
 
                 listView = new UniversalRecyclerView(context, currentAccount, classGuid, true, this::fillItems, this::onClick, null, resourcesProvider);
-                setClipChildren(false);
-                setClipToPadding(false);
-                listView.setClipToPadding(false);
-                listView.setSections(dp(12), dp(16), false);
-                listView.adapter.setApplyBackground(false);
-                listView.setCaptureSectionsDecoratorAllowed(true);
-                listView.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
                 addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
                 listView.setOnScrollListener(new RecyclerView.OnScrollListener() {
                     @Override
@@ -2029,9 +1901,6 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
                         }
                     }
                 });
-                if (glassEngine != null) {
-                    glassEngine.addScrolledView(listView);
-                }
             }
 
             public void checkMore() {
@@ -2055,23 +1924,24 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
             }
 
             private void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-                int transactionType = getTransactionType(type);
-                ArrayList<TL_stars.StarsTransaction> source = transactionType == STARS_TRANSACTIONS
-                        ? starsTransactions : tonTransactions;
-                int repetitions = TEST_TRANSACTION_PAGES ? TEST_TRANSACTION_REPETITIONS : 1;
-                for (int copy = 0; copy < repetitions; copy++) {
-                    for (TL_stars.StarsTransaction transaction : source) {
-                        UItem item = StarsIntroActivity.StarsTransactionView.Factory.asTransaction(transaction, true);
-                        // Distinguish copies in DiffUtil without modifying real transaction IDs.
-                        if (TEST_TRANSACTION_PAGES) item.id = copy;
-                        items.add(item);
+                if (type == STARS_TRANSACTIONS) {
+                    for (TL_stars.StarsTransaction t : starsTransactions) {
+                        items.add(StarsIntroActivity.StarsTransactionView.Factory.asTransaction(t, true));
                     }
-                }
-                String nextOffset = transactionType == STARS_TRANSACTIONS ? starsLastOffset : tonTransactionsLastOffset;
-                if (!TextUtils.isEmpty(nextOffset)) {
-                    items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
-                    items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
-                    items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
+                    if (!TextUtils.isEmpty(starsLastOffset)) {
+                        items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
+                        items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
+                        items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
+                    }
+                } else if (type == TON_TRANSACTIONS) {
+                    for (TL_stars.StarsTransaction t : tonTransactions) {
+                        items.add(StarsIntroActivity.StarsTransactionView.Factory.asTransaction(t, true));
+                    }
+                    if (!TextUtils.isEmpty(tonTransactionsLastOffset)) {
+                        items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
+                        items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
+                        items.add(UItem.asFlicker(items.size(), FlickerLoadingView.DIALOG_CELL_TYPE));
+                    }
                 }
             }
 
@@ -2087,55 +1957,125 @@ public class ChannelMonetizationLayout extends SiblingRecyclerPagerLayout implem
 
     }
 
-    /** Applies system insets and space reserved for the outer screen's bottom controls. */
-    public void setScreenInsets(int top, int bottom, int controlsHeight) {
-        insetTop = top;
-        insetBottom = bottom;
-        bottomControlsHeight = controlsHeight;
-        int marginTop = Math.min(-dp(8), top - dp(48));
-        int marginBottom = Math.min(-dp(8), bottom - dp(48));
-        AndroidUtilities.setViewLayoutMargins(listView, 0, marginTop, 0, marginBottom);
-        listView.setPadding(listView.getPaddingLeft(), top + ActionBar.getCurrentActionBarHeight() - marginTop,
-                listView.getPaddingRight(), bottom + controlsHeight - marginBottom);
-        setVerticalBleed(-marginTop, -marginBottom);
-        invalidateGeometry();
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
-    /** Configures detached transaction tabs after the screen's glass source is initialized. */
-    public void configureTabsGlass(BaseFragmentSimpleGlass glass) {
-        FrameLayout tabs = transactionsLayout.tabsContainer;
-        tabs.setBackground(glass.factory.create(tabs)
-                .setColorProvider(BlurredBackgroundProviderImpl.simpleActionBar(resourcesProvider))
-                .setPadding(dp(9.66f)).setRadius(dp(18)));
+    private NestedScrollingParentHelper nestedScrollingParentHelper = new NestedScrollingParentHelper(this);
+
+    @Override
+    public void onNestedScroll(View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type, int[] consumed) {
+        try {
+            if (target == listView && transactionsLayout.isAttachedToWindow()) {
+                RecyclerListView innerListView = transactionsLayout.getCurrentListView();
+                int bottom = ((View) transactionsLayout.getParent()).getBottom();
+                if (actionBar != null) {
+                    actionBar.setCastShadows(!isAttachedToWindow() || listView.getHeight() - bottom < 0);
+                }
+                if (listView.getHeight() - bottom >= (listView.getPaddingBottom() + dp(8))) {
+                    consumed[1] = dyUnconsumed;
+                    innerListView.scrollBy(0, dyUnconsumed);
+                }
+            }
+        } catch (Throwable e) {
+            FileLog.e(e);
+            AndroidUtilities.runOnUIThread(() -> {
+                try {
+                    RecyclerListView innerListView = transactionsLayout.getCurrentListView();
+                    if (innerListView != null && innerListView.getAdapter() != null) {
+                        innerListView.getAdapter().notifyDataSetChanged();
+                    }
+                } catch (Throwable e2) {
+
+                }
+            });
+        }
     }
 
-    /** Returns tabs that may be moved to an overlay with this page's size and coordinate origin. */
-    public View getTransactionTabs() {
-        return transactionsLayout.tabsContainer;
+    @Override
+    public void onNestedScroll(View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type) {
+
     }
 
-    /** Reports pin-state changes; query areTabsPinned() from the listener. Null removes it. */
-    public void setTabsPinnedChangedListener(Runnable listener) {
-        tabsPinnedChangedListener = listener;
+    @Override
+    public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
+        return super.onNestedPreFling(target, velocityX, velocityY);
     }
 
-    /** Whether an external tabs overlay may be shown above this page's loading layer. */
-    public boolean isTransactionTabsOverlayVisible() {
-        return getVisibility() == VISIBLE && progress.getVisibility() != VISIBLE;
+    @Override
+    public void onNestedPreScroll(View target, int dx, int dy, int[] consumed, int type) {
+        if (target == listView && transactionsLayout.isAttachedToWindow()) {
+            boolean searchVisible = false;
+            int t = ((View) transactionsLayout.getParent()).getTop() - AndroidUtilities.statusBarHeight - ActionBar.getCurrentActionBarHeight();
+            int bottom = ((View) transactionsLayout.getParent()).getBottom();
+            if (dy < 0) {
+                boolean scrolledInner = false;
+                if (actionBar != null) {
+                    actionBar.setCastShadows(!isAttachedToWindow() || listView.getHeight() - bottom < 0);
+                }
+                if (listView.getHeight() - bottom >= (listView.getPaddingBottom() + dp(8))) {
+                    RecyclerListView innerListView = transactionsLayout.getCurrentListView();
+                    LinearLayoutManager linearLayoutManager = (LinearLayoutManager) innerListView.getLayoutManager();
+                    int pos = linearLayoutManager.findFirstVisibleItemPosition();
+                    if (pos != RecyclerView.NO_POSITION) {
+                        RecyclerView.ViewHolder holder = innerListView.findViewHolderForAdapterPosition(pos);
+                        int top = holder != null ? holder.itemView.getTop() : -1;
+                        int paddingTop = innerListView.getPaddingTop();
+                        if (top != paddingTop || pos != 0) {
+                            consumed[1] = pos != 0 ? dy : Math.max(dy, (top - paddingTop));
+                            innerListView.scrollBy(0, dy);
+                            scrolledInner = true;
+                        }
+                    }
+                }
+                if (searchVisible) {
+                    if (!scrolledInner && t < 0) {
+                        consumed[1] = dy - Math.max(t, dy);
+                    } else {
+                        consumed[1] = dy;
+                    }
+                }
+            } else {
+                if (searchVisible) {
+                    RecyclerListView innerListView = transactionsLayout.getCurrentListView();
+                    consumed[1] = dy;
+                    if (t > 0) {
+                        consumed[1] -= dy;
+                    }
+                    if (innerListView != null && consumed[1] > 0) {
+                        innerListView.scrollBy(0, consumed[1]);
+                    }
+                } else if (dy > 0) {
+                    RecyclerListView innerListView = transactionsLayout.getCurrentListView();
+                    if (listView.getHeight() - bottom >= (listView.getPaddingBottom() + dp(8)) && innerListView != null && !innerListView.canScrollVertically(1)) {
+                        consumed[1] = dy;
+                        listView.stopScroll();
+                    }
+                }
+            }
+        }
     }
 
-    /** Records a DOWN in local coordinates and returns whether the outer pager must stay idle. */
-    public boolean prepareTransactionGesture(float x, float y) {
-        transactionGesture = isTransactionTouch(x, y);
-        // On the first settled page, let the outer pager handle a backward swipe.
-        // Keep descendant detection enabled so a forward swipe still belongs to this pager.
-        // canScrollHorizontally also protects an ongoing inner drag or settling animation.
-        return transactionGesture && transactionsLayout.viewPager.canScrollHorizontally(-1);
+    @Override
+    public boolean onStartNestedScroll(@NonNull View child, @NonNull View target, int axes, int type) {
+        return axes == ViewCompat.SCROLL_AXIS_VERTICAL;
     }
 
-    /** Hit-tests the visible transaction region in local coordinates without changing gesture state. */
-    public boolean isTransactionTouch(float x, float y) {
-        return progress.getVisibility() != VISIBLE && canStartPageSwipe()
-                && x >= 0f && x < getWidth() && y >= getTabsTop() && y < getHeight();
+    @Override
+    public void onNestedScrollAccepted(@NonNull View child, @NonNull View target, int axes, int type) {
+        nestedScrollingParentHelper.onNestedScrollAccepted(child, target, axes);
     }
+
+    @Override
+    public void onStopNestedScroll(@NonNull View target, int type) {
+        nestedScrollingParentHelper.onStopNestedScroll(target);
+    }
+
+    @Override
+    public void onStopNestedScroll(@NonNull View child) {
+
+    }
+
+
 }

@@ -20,7 +20,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 
 public class ManageChatTextCell extends FrameLayout {
 
@@ -34,20 +33,20 @@ public class ManageChatTextCell extends FrameLayout {
         super(context);
 
         textView = new SimpleTextView(context);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         textView.setTextSize(16);
         textView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         addView(textView);
 
         valueTextView = new SimpleTextView(context);
-        ThemeBind.textColor(valueTextView, Theme.key_windowBackgroundWhiteValueText);
+        valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
         valueTextView.setTextSize(16);
         valueTextView.setGravity(LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT);
         addView(valueTextView);
 
         imageView = new ImageView(context);
         imageView.setScaleType(ImageView.ScaleType.CENTER);
-        ThemeBind.colorFilter(imageView, Theme.key_windowBackgroundWhiteGrayIcon, PorterDuff.Mode.MULTIPLY);
+        imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.MULTIPLY));
         addView(imageView);
     }
 
@@ -102,9 +101,9 @@ public class ManageChatTextCell extends FrameLayout {
     }
 
     public void setColors(int iconColorKey, int text) {
-        ThemeBind.textColor(textView, text);
+        textView.setTextColor(Theme.getColor(text));
         textView.setTag(text);
-        ThemeBind.colorFilter(imageView, iconColorKey, PorterDuff.Mode.MULTIPLY);
+        imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(iconColorKey), PorterDuff.Mode.MULTIPLY));
         imageView.setTag(iconColorKey);
     }
 

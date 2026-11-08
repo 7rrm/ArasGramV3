@@ -52,7 +52,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.RadioButtonCell;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.ChatUsersActivity;
@@ -72,7 +71,7 @@ import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
 import org.telegram.ui.PhotoViewer;
 
 import java.util.ArrayList;
@@ -82,24 +81,6 @@ import me.vkryl.android.animator.FactorAnimator;
 
 public class CommunityEditActivity extends BaseFragment implements ImageUpdater.ImageUpdaterDelegate,
         NotificationCenter.NotificationCenterDelegate, FactorAnimator.Target {
-
-    private GlassSourceColor glassSourceColor;
-
-    @Override
-    public void onThemeColorsChanged() {
-        super.onThemeColorsChanged();
-        try {
-            if (glassSourceColor != null) {
-                glassSourceColor.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
-            }
-            if (actionBar != null) {
-                actionBar.invalidate();
-            }
-        } catch (Exception e) {
-            org.telegram.messenger.FileLog.e(e);
-        }
-    }
-
     private static final int ROW_ID_HEADER = 140;
     private static final int ROW_ID_SET_PHOTO = 141;
     private static final int ROW_ID_ADMINS = 142;
@@ -153,7 +134,7 @@ public class CommunityEditActivity extends BaseFragment implements ImageUpdater.
         imageUpdater.parentFragment = this;
         imageUpdater.setDelegate(this);
 
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.chatInfoDidLoad);
+        getNotificationCenter().addObserver(this, NotificationCenter.chatInfoDidLoad);
 
         return super.onFragmentCreate();
     }
@@ -175,7 +156,7 @@ public class CommunityEditActivity extends BaseFragment implements ImageUpdater.
             }
         });
 
-        GlassSourceColor sourceColor = glassSourceColor = new GlassSourceColor();
+        BlurredBackgroundSourceColor sourceColor = new BlurredBackgroundSourceColor();
         sourceColor.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(sourceColor);
         actionBar.setupGlass(factory, BlurredBackgroundProviderImpl.topPanelChatActivity(resourceProvider));
@@ -204,7 +185,7 @@ public class CommunityEditActivity extends BaseFragment implements ImageUpdater.
                 return result;
             }
         };
-        ThemeBind.backgroundColor(containerView, Theme.key_windowBackgroundGray);
+        containerView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         avatarDrawable = new AvatarDrawable(currentChat);
         communityHeaderView = new CommunityHeaderView(context, resourceProvider);
@@ -234,7 +215,7 @@ public class CommunityEditActivity extends BaseFragment implements ImageUpdater.
                 super.onDraw(canvas);
             }
         };
-        ThemeBind.textColor(doneItem, Theme.key_featuredStickers_buttonText, getResourceProvider());
+        doneItem.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
         doneItem.setText(getString(R.string.Save));
         doneItem.setTypeface(AndroidUtilities.bold());
         doneItem.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
@@ -275,7 +256,6 @@ public class CommunityEditActivity extends BaseFragment implements ImageUpdater.
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
         listView.setClipToPadding(false);
         listView.adapter.setApplyBackground(false);
-        listView.adapter.setCompactTextCells(true);
         listView.setSections();
         actionBar.setBackground(null);
         containerView.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -656,9 +636,9 @@ public class CommunityEditActivity extends BaseFragment implements ImageUpdater.
                     return super.onTouchEvent(event);
                 }
             };
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-            ThemeBind.linkTextColor(textView, Theme.key_chat_messageLinkIn, resourcesProvider);
-            ThemeBind.hintTextColor(textView, Theme.key_windowBackgroundWhiteHintText, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+            textView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
+            textView.setHintTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText, resourcesProvider));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             textView.setMaxLines(Integer.MAX_VALUE);
             textView.setBackground(null);

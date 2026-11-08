@@ -258,7 +258,7 @@ public class WalletActionLayout {
         }
         observingAccount = account;
         if (account >= 0) {
-            NotificationCenter.getInstance(account).addWeakObserver(userInfoObserver, NotificationCenter.userInfoDidLoad);
+            NotificationCenter.getInstance(account).addObserver(userInfoObserver, NotificationCenter.userInfoDidLoad);
         }
     }
 
@@ -414,7 +414,6 @@ public class WalletActionLayout {
         }
         final int newRibbonColor = failed ? Theme.getColor(Theme.key_text_RedBold, resourcesProvider)
             : out ? RIBBON_SENT_COLOR : 0xFF4BB9FE;
-        ribbonFailed = failed;
         if (ribbonColorTo == 0) {
             ribbonColorFrom = ribbonColorTo = ribbonColorCurrent = newRibbonColor;
         } else if (newRibbonColor != ribbonColorTo) {
@@ -709,12 +708,11 @@ public class WalletActionLayout {
         }
 
         if (commentText != null) {
-            final int commentColor = Theme.isCompactMode(resourcesProvider) ? Theme.getColor(Theme.key_chat_compact_actionText, resourcesProvider) : 0xFFFFFFFF;
             if ((action.comment_encrypted || action.comment_encrypted_preparing) && !preparingCommentRevealed) {
                 canvas.save();
                 canvas.translate((getWidth() - commentText.getWidth()) / 2.0f, dp(143));
                 for (SpoilerEffect spoiler : commentSpoilers) {
-                    spoiler.setColor(commentColor);
+                    spoiler.setColor(0xFFFFFFFF);
                     spoiler.draw(canvas);
                 }
                 canvas.restore();
@@ -723,7 +721,7 @@ public class WalletActionLayout {
                     canvas,
                     (getWidth() - commentText.getWidth()) / 2.0f,
                     dp(143),
-                    commentColor,
+                    0xFFFFFFFF,
                     1.0f
                 );
             }
@@ -1020,13 +1018,7 @@ public class WalletActionLayout {
         parentView.postInvalidateOnAnimation();
     }
 
-    private boolean ribbonFailed;
-
     private void drawRibbon(Canvas canvas, float revealProgress) {
-        if (ribbonFailed && ribbonColorAnimation.get() >= 1f) {
-            // the failed ribbon is a theme color: follow theme changes
-            ribbonColorTo = Theme.getColor(Theme.key_text_RedBold, resourcesProvider);
-        }
         final float colorProgress = ribbonColorAnimation.set(1);
         ribbonColorCurrent = colorProgress >= 1f
             ? ribbonColorTo

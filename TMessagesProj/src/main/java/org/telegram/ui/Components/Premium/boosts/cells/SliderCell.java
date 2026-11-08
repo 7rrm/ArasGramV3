@@ -8,7 +8,6 @@ import android.widget.FrameLayout;
 
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.Premium.boosts.BoostRepository;
 import org.telegram.ui.Components.SlideChooseView;
@@ -27,10 +26,10 @@ public class SliderCell extends FrameLayout {
         this.resourcesProvider = resourcesProvider;
         backgroundView = new View(context);
         addView(backgroundView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
-        ThemeBind.backgroundColor(backgroundView, Theme.key_dialogBackground, resourcesProvider);
+        backgroundView.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
         this.slideChooseView = new SlideChooseView(context, resourcesProvider);
         addView(slideChooseView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP, 0, 0, 0, 0));
-        ThemeBind.themedBackground(this, getContext(), R.drawable.greydivider_top, Theme.key_windowBackgroundGrayShadow);
+        setBackground(Theme.getThemedDrawableByKey(getContext(), R.drawable.greydivider_top, Theme.key_windowBackgroundGrayShadow));
     }
 
     public void setCallBack(SlideChooseView.Callback callback) {

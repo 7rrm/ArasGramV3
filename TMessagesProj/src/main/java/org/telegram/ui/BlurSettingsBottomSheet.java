@@ -15,7 +15,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.SeekBarView;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
@@ -46,7 +45,7 @@ public class BlurSettingsBottomSheet extends BottomSheet {
 
         TextView saturationTextView = new TextView(context);
         saturationTextView.setText("Saturation " + (saturation * 5));
-        ThemeBind.textColor(saturationTextView, Theme.key_dialogTextBlue2);
+        saturationTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         saturationTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         saturationTextView.setLines(1);
         saturationTextView.setMaxLines(1);
@@ -75,7 +74,7 @@ public class BlurSettingsBottomSheet extends BottomSheet {
 
         TextView alphaTextView = new TextView(context);
         alphaTextView.setText("Alpha " + blurAlpha);
-        ThemeBind.textColor(alphaTextView, Theme.key_dialogTextBlue2);
+        alphaTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         alphaTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         alphaTextView.setLines(1);
         alphaTextView.setMaxLines(1);
@@ -104,7 +103,7 @@ public class BlurSettingsBottomSheet extends BottomSheet {
 
         TextView radiusTextView = new TextView(context);
         radiusTextView.setText("Blur Radius");
-        ThemeBind.textColor(radiusTextView, Theme.key_dialogTextBlue2);
+        radiusTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         radiusTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         radiusTextView.setLines(1);
         radiusTextView.setMaxLines(1);

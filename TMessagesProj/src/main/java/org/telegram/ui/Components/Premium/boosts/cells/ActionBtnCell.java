@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
@@ -51,7 +50,7 @@ public class ActionBtnCell extends FrameLayout {
         button.setEnabled(true);
         button.setCount(counter, animated);
         button.setText(LocaleController.getString(R.string.BoostingStartGiveaway), animated);
-        ThemeBind.backgroundColor(backgroundView, Theme.key_dialogBackground, resourcesProvider);
+        backgroundView.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
     }
 
     public void setGiftPremiumStyle(int counter, boolean animated, boolean isEnabled) {
@@ -61,14 +60,14 @@ public class ActionBtnCell extends FrameLayout {
         button.setEnabled(isEnabled);
         button.setCount(counter, animated);
         button.setText(LocaleController.getString(R.string.GiftPremium), animated);
-        ThemeBind.backgroundColor(backgroundView, Theme.key_dialogBackground, resourcesProvider);
+        backgroundView.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
     }
 
     public void setActivateForFreeStyle() {
         drawDivider = true;
         button.setEnabled(true);
         button.setText(LocaleController.getString(R.string.GiftPremiumActivateForFree), false);
-        ThemeBind.backgroundColor(backgroundView, Theme.key_dialogBackground, resourcesProvider);
+        backgroundView.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
     }
 
     @Override

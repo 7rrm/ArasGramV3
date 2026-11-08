@@ -35,8 +35,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.voip.VoIPService;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.Components.voip.GroupCallPipContent;
-import org.telegram.ui.Components.voip.RtmpStreamPipContent;
+import org.telegram.ui.Components.voip.RTMPStreamPipOverlay;
 import org.telegram.ui.GroupCallActivity;
 
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -56,8 +55,6 @@ public class GroupCallPip implements NotificationCenter.NotificationCenterDelega
     GroupCallPipAlertView pipAlertView;
     int currentAccount;
     WindowManager windowManager;
-    /** An overlay window; otherwise an in-app window on the activity, shown only while the app is on screen. */
-    boolean isOverlay;
     WindowManager.LayoutParams windowLayoutParams;
     AvatarsImageView avatarsImageView;
     RLottieDrawable deleteIcon;
@@ -452,14 +449,13 @@ public class GroupCallPip implements NotificationCenter.NotificationCenterDelega
     }
 
     public static boolean isShowing() {
-        if (RtmpStreamPipContent.isFloating()) {
+        if (RTMPStreamPipOverlay.isVisible()) {
             return true;
         }
         if (instance != null) {
             return true;
         }
         if (!checkInlinePermissions()) {
-            // the in-app window is shown only while the app is on screen: it is showing exactly when it exists
             return false;
         }
         VoIPService service = VoIPService.getSharedInstance();
@@ -725,15 +721,8 @@ public class GroupCallPip implements NotificationCenter.NotificationCenterDelega
         if (instance != null) {
             return;
         }
-        final boolean overlay = AndroidUtilities.checkInlinePermissions(ApplicationLoader.applicationContext);
-        final android.app.Activity activity = AndroidUtilities.findActivity(context);
-        if (!overlay && activity == null) {
-            return;
-        }
         instance = new GroupCallPip(context, account);
-        instance.isOverlay = overlay;
-        // in-app: the activity's window manager attaches the windows to the activity token
-        WindowManager wm = overlay ? (WindowManager) ApplicationLoader.applicationContext.getSystemService(Context.WINDOW_SERVICE) : activity.getWindowManager();
+        WindowManager wm = (WindowManager) ApplicationLoader.applicationContext.getSystemService(Context.WINDOW_SERVICE);
         instance.windowManager = wm;
 
 
@@ -774,11 +763,6 @@ public class GroupCallPip implements NotificationCenter.NotificationCenterDelega
         NotificationCenter.getInstance(instance.currentAccount).addObserver(instance, NotificationCenter.groupCallUpdated);
         NotificationCenter.getGlobalInstance().addObserver(instance, NotificationCenter.webRtcSpeakerAmplitudeEvent);
         NotificationCenter.getGlobalInstance().addObserver(instance, NotificationCenter.didEndCall);
-        GroupCallPipContent.onBubbleChanged();
-    }
-
-    public boolean isOverlay() {
-        return isOverlay;
     }
 
     private void onDestroy() {
@@ -826,7 +810,6 @@ public class GroupCallPip implements NotificationCenter.NotificationCenterDelega
 
             instance.onDestroy();
             instance = null;
-            GroupCallPipContent.onBubbleChanged();
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.groupCallVisibilityChanged);
         }
     }
@@ -1016,40 +999,22 @@ public class GroupCallPip implements NotificationCenter.NotificationCenterDelega
     }
 
     public static void updateVisibility(Context context) {
-        GroupCallPipContent.update();
         VoIPService service = VoIPService.getSharedInstance();
 
         boolean groupCall = false;
         if (service != null && service.groupCall != null && !service.isHangingUp()) {
             groupCall = true;
         }
-        final boolean overlay = AndroidUtilities.checkInlinePermissions(ApplicationLoader.applicationContext);
-        final android.app.Activity activity = AndroidUtilities.findActivity(context);
         boolean visible;
-        if (RtmpStreamPipContent.isFloating()) {
-            // the stream is in its own floating window
+        if (!AndroidUtilities.checkInlinePermissions(ApplicationLoader.applicationContext)) {
             visible = false;
-        } else if (overlay) {
-            visible = groupCall && !forceRemoved && (ApplicationLoader.mainInterfaceStopped || !GroupCallActivity.groupCallUiVisible);
         } else {
-            // in-app window: only over the app on screen, never inside system PiP (it would be drawn there)
-            visible = groupCall && !forceRemoved && activity != null && !ApplicationLoader.mainInterfaceStopped && !GroupCallActivity.groupCallUiVisible
-                && !AndroidUtilities.isInPictureInPictureMode(activity) && !GroupCallPipContent.isInSystemPip();
-        }
-        if (visible && instance != null && instance.isOverlay != overlay) {
-            // the overlay permission was granted or revoked: recreate as the other kind of window
-            finish();
+            visible = groupCall && !forceRemoved && (ApplicationLoader.mainInterfaceStopped || !GroupCallActivity.groupCallUiVisible);
         }
         if (visible) {
             show(context, service.getAccount());
-            if (instance != null) {
-                instance.showAvatars(true);
-            }
+            instance.showAvatars(true);
         } else {
-            if (instance != null && !instance.isOverlay) {
-                // gone at once: the app is leaving the screen or entering system PiP
-                instance.windowView.setVisibility(View.GONE);
-            }
             finish();
         }
     }

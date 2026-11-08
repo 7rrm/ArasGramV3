@@ -26,7 +26,6 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BulletinFactory;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.StickerImageView;
 
@@ -82,12 +81,7 @@ public class FilesMigrationService extends Service {
                 });
             }
         }.start();
-        try {
-            startForeground(301, notification);
-        } catch (Throwable e) {
-            // ForegroundServiceStartNotAllowedException, e.g. when the dataSync time limit is exhausted
-            FileLog.e(e);
-        }
+        startForeground(301, notification);
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -267,7 +261,7 @@ public class FilesMigrationService extends Service {
 
             TextView title = new TextView(context);
             title.setGravity(Gravity.START);
-            ThemeBind.textColor(title, Theme.key_dialogTextBlack);
+            title.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
             title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
             title.setTypeface(AndroidUtilities.bold());
             title.setText(LocaleController.getString(R.string.MigrateOldFolderTitle));
@@ -276,7 +270,7 @@ public class FilesMigrationService extends Service {
             TextView description = new TextView(context);
             description.setGravity(Gravity.START);
             description.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            ThemeBind.textColor(description, Theme.key_dialogTextBlack);
+            description.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
             description.setText(AndroidUtilities.replaceTags(LocaleController.getString(R.string.MigrateOldFolderDescription)));
             linearLayout.addView(description, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 21, 15, 21, 16));
 
@@ -288,7 +282,7 @@ public class FilesMigrationService extends Service {
             buttonTextView.setTypeface(AndroidUtilities.bold());
             buttonTextView.setText(LocaleController.getString(R.string.MigrateOldFolderButton));
 
-            ThemeBind.textColor(buttonTextView, Theme.key_featuredStickers_buttonText);
+            buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
             buttonTextView.setBackground(Theme.AdaptiveRipple.filledRectByKey(Theme.key_featuredStickers_addButton, 6));
 
             linearLayout.addView(buttonTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, 0, 16, 15, 16, 16));
@@ -322,15 +316,5 @@ public class FilesMigrationService extends Service {
             super.dismiss();
             filesMigrationBottomSheet = null;
         }
-    }
-
-    @Override
-    public void onTimeout(int startId, int fgsType) {
-        // dataSync time limit is exhausted (6 hours a day in background since Android 15), the service must stop now
-        FileLog.d("FilesMigrationService timeout, type = " + fgsType);
-        try {
-            stopForeground(true);
-        } catch (Throwable ignore) {}
-        stopSelf();
     }
 }

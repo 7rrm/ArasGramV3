@@ -58,7 +58,6 @@ import org.telegram.ui.PremiumFeatureCell;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -66,7 +65,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.HashSet;
 
 public class WalletKeysBackupFragment extends UniversalFragment implements NotificationCenter.NotificationCenterDelegate {
 
@@ -92,7 +90,7 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
 
     @Override
     public boolean onFragmentCreate() {
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.walletUpdate);
+        getNotificationCenter().addObserver(this, NotificationCenter.walletUpdate);
         return super.onFragmentCreate();
     }
 
@@ -183,8 +181,8 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
         topViewCell.setText(
                 Emoji.replaceEmoji(LocaleController.getString(R.string.WalletRecoveryPhraseLearnTitle), topViewCell.titleView.getPaint().getFontMetricsInt(), false),
                 Emoji.replaceEmoji(LocaleController.getString(R.string.WalletRecoveryPhraseLearnInfo), topViewCell.textView.getPaint().getFontMetricsInt(), false));
-        ThemeBind.textColor(topViewCell.titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-        ThemeBind.textColor(topViewCell.textView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+        topViewCell.titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+        topViewCell.textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         NotificationCenter.listenEmojiLoading(topViewCell.titleView);
         NotificationCenter.listenEmojiLoading(topViewCell.textView);
 
@@ -243,14 +241,14 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setGravity(Gravity.CENTER_HORIZONTAL);
-        ThemeBind.textColor(titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         titleView.setText(LocaleController.getString(R.string.WalletYourRecoveryPhrase));
         contentLayout.addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 0));
 
         TextView subtitleView = new TextView(context);
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         subtitleView.setGravity(Gravity.CENTER_HORIZONTAL);
-        ThemeBind.textColor(subtitleView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+        subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         subtitleView.setText(LocaleController.getString(R.string.WalletRecoveryPhraseInfo));
         subtitleView.setMaxWidth(dp(330));
         subtitleView.setPadding(dp(12), dp(4), dp(12), 0);
@@ -312,9 +310,6 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
 
         if (onDelete != null) {
             button.setColor(Theme.getColor(Theme.key_text_RedBold, resourcesProvider));
-            if (button.getBackground() != null) {
-                ThemeBind.fillBackground(button, button.getBackground(), ThemeBind.of(Theme.key_text_RedBold), resourcesProvider);
-            }
             button.setText(LocaleController.getString(R.string.WalletDelete));
             button.setOnClickListener(v -> {
                 new AlertDialog.Builder(context, resourcesProvider)
@@ -349,7 +344,7 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
             numberView.setGravity(Gravity.END);
             numberView.setIncludeFontPadding(false);
             numberView.setLineSpacing(0, 1.0f);
-            ThemeBind.textColor(numberView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+            numberView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
             numberView.setText((i + 1) + ".");
             row.addView(numberView, LayoutHelper.createLinear(26, LayoutHelper.WRAP_CONTENT, Gravity.END, 0, 0, 6, 0));
 
@@ -359,7 +354,7 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
             wordView.setTypeface(AndroidUtilities.bold());
             wordView.setIncludeFontPadding(false);
             wordView.setLineSpacing(0, 1.0f);
-            ThemeBind.textColor(wordView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            wordView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             wordView.setText(words.get(i));
             row.addView(wordView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
 
@@ -375,13 +370,13 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
 
         ImageView imageView = new ImageView(context);
         imageView.setScaleType(ImageView.ScaleType.CENTER);
-        ThemeBind.colorFilter(imageView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider, PorterDuff.Mode.SRC_IN);
+        imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), PorterDuff.Mode.SRC_IN));
         imageView.setImageResource(iconResId);
         bullet.addView(imageView, LayoutHelper.createLinear(28, 28, Gravity.CENTER_VERTICAL, 0, 0, 14, 0));
 
         TextView textView = new TextView(context);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setText(AndroidUtilities.replaceTags(text));
         bullet.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL));
 
@@ -428,7 +423,7 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
                 }
 
                 final CheckBoxCell updatePhraseCell = new CheckBoxCell(context, 1, getResourceProvider());
-                ThemeBind.selectorBackground(updatePhraseCell, Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP, dp(12)), null, ThemeBind.of(Theme.key_listSelector), getResourceProvider());
+                updatePhraseCell.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_ROUNDRECT_6DP, dp(12)));
                 updatePhraseCell.setText(LocaleController.getString(R.string.WalletUpdateSecretPhrase), "", false, false);
                 updatePhraseCell.setMultiline(true);
                 FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) updatePhraseCell.getCheckBoxView().getLayoutParams();
@@ -439,9 +434,9 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
 
                 final TextView updatePhraseInfo = new TextView(context);
                 updatePhraseInfo.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                ThemeBind.textColor(updatePhraseInfo, Theme.key_dialogTextBlack, getResourceProvider());
+                updatePhraseInfo.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
                 updatePhraseInfo.setGravity(Gravity.CENTER);
-                ThemeBind.fillBackground(updatePhraseInfo, Theme.createRoundRectDrawable(dp(10), getThemedColor(Theme.key_windowBackgroundGray)), ThemeBind.of(Theme.key_windowBackgroundGray), getResourceProvider());
+                updatePhraseInfo.setBackground(Theme.createRoundRectDrawable(dp(10), getThemedColor(Theme.key_windowBackgroundGray)));
                 updatePhraseInfo.setPadding(dp(16), dp(12), dp(16), dp(12));
                 updatePhraseInfo.setText(fee > 0
                     ? LocaleController.formatSpannable(R.string.WalletUpdateSecretPhraseInfoWithFee, GramWallet.formatGramCapital(fee), wallet.formatCurrency(fee, true))
@@ -792,11 +787,6 @@ public class WalletKeysBackupFragment extends UniversalFragment implements Notif
             addressView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             statusView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
             arrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider), PorterDuff.Mode.SRC_IN));
-        }
-        @Override
-        public void addColorKeys(HashSet<Integer> colors) {
-            colors.add(Theme.key_windowBackgroundWhiteBlackText);
-            colors.add(Theme.key_windowBackgroundWhiteGrayText2);
         }
 
         @Override

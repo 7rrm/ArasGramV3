@@ -42,7 +42,6 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.DotDividerSpan;
@@ -54,19 +53,7 @@ import org.telegram.ui.GradientClip;
 
 import java.io.File;
 
-public class AudioPlayerCell extends FrameLayout implements DownloadController.FileDownloadProgressListener, Theme.Colorable {
-
-    @Override
-    public void updateColors() {
-        try {
-            if (radialProgress != null && currentMessageObject != null && hasMiniProgress != 0) {
-                radialProgress.setMiniProgressBackgroundColor(getThemedColor(currentMessageObject.isOutOwner() ? Theme.key_chat_outLoader : Theme.key_chat_inLoader));
-                invalidate();
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
+public class AudioPlayerCell extends FrameLayout implements DownloadController.FileDownloadProgressListener {
 
     private boolean buttonPressed;
     private boolean miniButtonPressed;
@@ -110,8 +97,8 @@ public class AudioPlayerCell extends FrameLayout implements DownloadController.F
         optionsButton = new ImageView(context);
         optionsButton.setScaleType(ImageView.ScaleType.CENTER);
         optionsButton.setImageResource(R.drawable.ic_ab_other);
-        ThemeBind.colorFilter(optionsButton, Theme.key_windowBackgroundWhiteGrayIcon, resourcesProvider, PorterDuff.Mode.SRC_IN);
-        ThemeBind.selectorBackground(optionsButton, Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), Theme.RIPPLE_MASK_CIRCLE_20DP), null, ThemeBind.of(Theme.key_listSelector), resourcesProvider);
+        optionsButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon, resourcesProvider), PorterDuff.Mode.SRC_IN));
+        optionsButton.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), Theme.RIPPLE_MASK_CIRCLE_20DP));
         addView(optionsButton, LayoutHelper.createFrame(42, 42, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL, 5, 0, 5, 0));
         optionsButton.setOnClickListener(v -> {
 

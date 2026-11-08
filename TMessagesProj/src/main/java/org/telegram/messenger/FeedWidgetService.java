@@ -139,7 +139,7 @@ class FeedRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, N
             return;
         }
         AndroidUtilities.runOnUIThread(() -> {
-            accountInstance.getNotificationCenter().addWeakObserver(FeedRemoteViewsFactory.this, NotificationCenter.messagesDidLoad);
+            accountInstance.getNotificationCenter().addObserver(FeedRemoteViewsFactory.this, NotificationCenter.messagesDidLoad);
             if (classGuid == 0) {
                 classGuid = ConnectionsManager.generateClassGuid();
             }

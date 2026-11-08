@@ -16,7 +16,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.net.Uri;
@@ -44,7 +43,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.DocumentObject;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLocation;
@@ -66,7 +64,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Business.BusinessChatbotController;
 import org.telegram.ui.Business.ChatbotSheet;
@@ -91,10 +88,8 @@ import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.voip.CellFlickerDrawable;
-import org.telegram.utils.glass.BaseFragmentSimpleGlass;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Objects;
 
 public class SessionsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
@@ -172,7 +167,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                 }
             });
         }
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.newSessionReceived);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.newSessionReceived);
         return true;
     }
 
@@ -198,23 +193,18 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
     }
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
         globalFlickerLoadingView = new FlickerLoadingView(context);
         globalFlickerLoadingView.setIsSingleCell(true);
 
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setAllowOverlayTitle(true);
         if (currentType == 0) {
-            simpleActionBar.setTitle(getString(R.string.Devices));
+            actionBar.setTitle(getString(R.string.Devices));
         } else {
-            simpleActionBar.setTitle(getString(R.string.WebSessionsTitle));
+            actionBar.setTitle(getString(R.string.WebSessionsTitle));
         }
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -223,16 +213,18 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             }
         });
         if (parentLayout != null && parentLayout.isRightLayout()) {
-            simpleActionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
 
         listAdapter = new ListAdapter(context);
 
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         emptyView = new EmptyTextProgressView(context);
         emptyView.showProgress();
+        frameLayout.addView(emptyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER));
 
         listView = new RecyclerListView(context) {
             @Override
@@ -244,23 +236,22 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             }
         };
         listView.setSections();
+        actionBar.setAdaptiveBackground(listView);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false) {
             @Override
             public boolean supportsPredictiveItemAnimations() {
                 return true;
             }
         });
-        listView.setSectionsDrawBackground(true);
         listView.setVerticalScrollBarEnabled(false);
         listView.setEmptyView(emptyView);
         listView.setAnimateEmptyView(true, RecyclerListView.EMPTY_VIEW_ANIMATION_TYPE_ALPHA);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
-        frameLayout.addView(emptyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER));
         listView.setAdapter(listAdapter);
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
-        itemAnimator.setDurations(350);
-        itemAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
-        itemAnimator.setDelayAnimations(false);
+        itemAnimator.setDurations(150);
+        itemAnimator.setMoveInterpolator(CubicBezierInterpolator.DEFAULT);
+        itemAnimator.setTranslationInterpolator(CubicBezierInterpolator.DEFAULT);
         listView.setItemAnimator(itemAnimator);
         listView.setOnItemClickListener((view, position) -> {
             if (position == ttlRow) {
@@ -445,7 +436,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                 showDialog(alertDialog);
                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    ThemeBind.textColor(button, Theme.key_text_RedBold);
+                    button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                 }
             } else if (position >= botSessionsStartRow && position < botSessionsEndRow) {
                 if (getParentActivity() == null) return;
@@ -577,7 +568,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                 showDialog(alertDialog);
                 TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                 if (button != null) {
-                    ThemeBind.textColor(button, Theme.key_text_RedBold);
+                    button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                 }
             }
         });
@@ -609,14 +600,9 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
         }
 
         updateRows();
-
         return fragmentView;
     }
 
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
-    }
 
     private void showSessionBottomSheet(TLRPC.TL_authorization authorization, boolean isCurrentSession) {
         if (authorization == null) {
@@ -750,32 +736,6 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             }));
             ConnectionsManager.getInstance(currentAccount).bindRequestToGuid(reqId, classGuid);
         }
-    }
-
-    private static TLRPC.TL_authorization createLocalSession() {
-        final TLRPC.TL_authorization session = new TLRPC.TL_authorization();
-        session.flags = 1;
-        session.current = true;
-        session.platform = "Android";
-        session.device_model = Build.MANUFACTURER + " " + Build.MODEL;
-        session.system_version = "SDK " + Build.VERSION.SDK_INT;
-        session.app_name = "Telegram Android";
-        session.app_version = "";
-        try {
-            final PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
-            session.app_version = pInfo.versionName + " (" + pInfo.versionCode + ")";
-            if (BuildVars.DEBUG_PRIVATE_VERSION) {
-                session.app_version += " pbeta";
-            } else if (BuildVars.DEBUG_VERSION) {
-                session.app_version += " beta";
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-        session.country = "";
-        session.region = "";
-        session.ip = "";
-        return session;
     }
 
     private void updateRows() {
@@ -997,7 +957,11 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                 default:
                     SessionCell sessionCell = (SessionCell) holder.itemView;
                     if (position == currentSessionRow) {
-                        sessionCell.setSession(currentSession != null ? currentSession : createLocalSession(), !sessions.isEmpty() || !passwordSessions.isEmpty() || qrCodeRow != -1);
+                        if (currentSession == null) {
+                            sessionCell.showStub(globalFlickerLoadingView);
+                        } else {
+                            sessionCell.setSession(currentSession, !sessions.isEmpty() || !passwordSessions.isEmpty() || qrCodeRow != -1);
+                        }
                     } else if (position >= otherSessionsStartRow && position < otherSessionsEndRow) {
                         sessionCell.setSession(sessions.get(position - otherSessionsStartRow), position != otherSessionsEndRow - 1);
                     } else if (position >= botSessionsStartRow && position < botSessionsEndRow) {
@@ -1082,7 +1046,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
         }
     }
 
-    private class ScanQRCodeView extends FrameLayout implements Theme.Colorable, NotificationCenter.NotificationCenterDelegate {
+    private class ScanQRCodeView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
         BackupImageView imageView;
         TextView textView;
@@ -1122,10 +1086,10 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             textView = new LinkSpanDrawable.LinksTextView(context);
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 36, 152, 36, 0));
             textView.setGravity(Gravity.CENTER_HORIZONTAL);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            ThemeBind.linkTextColor(textView, Theme.key_windowBackgroundWhiteLinkText);
-            ThemeBind.highlightColor(textView, Theme.key_windowBackgroundWhiteLinkSelection);
+            textView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
+            textView.setHighlightColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkSelection));
 
             String text = getString(R.string.AuthAnotherClientInfo4);
             SpannableStringBuilder spanned = new SpannableStringBuilder(text);
@@ -1175,7 +1139,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             spannableStringBuilder.setSpan(new ColoredImageSpan(ContextCompat.getDrawable(getContext(), R.drawable.msg_mini_qr)), 0, 1, 0);
             buttonTextView.setText(spannableStringBuilder);
 
-            ThemeBind.textColor(buttonTextView, Theme.key_featuredStickers_buttonText);
+            buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
             buttonTextView.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(24), Theme.getColor(Theme.key_featuredStickers_addButton), Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
             ScaleStateListAnimator.apply(buttonTextView, .02f, 1.2f);
 
@@ -1203,7 +1167,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
         protected void onAttachedToWindow() {
             super.onAttachedToWindow();
             setSticker();
-            NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.diceStickersDidLoad);
+            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.diceStickersDidLoad);
         }
 
         @Override
@@ -1252,26 +1216,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                 MediaDataController.getInstance(currentAccount).loadStickersByEmojiOrName(AndroidUtilities.STICKERS_PLACEHOLDER_PACK_NAME, false, set == null);
             }
         }
-    
-        private int lastButtonColor, lastButtonPressedColor;
-
-        @Override
-        public void updateColors() {
-            try {
-                final int color = Theme.getColor(Theme.key_featuredStickers_addButton);
-                final int pressedColor = Theme.getColor(Theme.key_featuredStickers_addButtonPressed);
-                if (buttonTextView != null && (color != lastButtonColor || pressedColor != lastButtonPressedColor)) {
-                    lastButtonColor = color;
-                    lastButtonPressedColor = pressedColor;
-                    buttonTextView.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(24), color, pressedColor));
-                }
-                invalidate();
-        
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
-}
+    }
 
     private void openCameraScanActivity() {
         CameraScanActivity.showAsSheet(SessionsActivity.this, false, CameraScanActivity.TYPE_QR_LOGIN, new CameraScanActivity.CameraScanActivityDelegate() {
@@ -1341,21 +1286,41 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, HeaderCell.class, SessionCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
 //        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
 
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{View.class}, Theme.dividerPaint, null, null, Theme.key_divider));
 
         themeDescriptions.add(new ThemeDescription(emptyView, ThemeDescription.FLAG_PROGRESSBAR, null, null, null, null, Theme.key_progressCircle));
 
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_text_RedRegular));
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_TEXTCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueText4));
 
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{TextInfoPrivacyCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{HeaderCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueHeader));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SessionCell.class}, new String[]{"nameTextView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CHECKTAG, new Class[]{SessionCell.class}, new String[]{"onlineTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CHECKTAG, new Class[]{SessionCell.class}, new String[]{"onlineTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText3));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SessionCell.class}, new String[]{"detailTextView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SessionCell.class}, new String[]{"detailExTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText3));
 
+        themeDescriptions.add(new ThemeDescription(undoView, ThemeDescription.FLAG_BACKGROUNDFILTER, null, null, null, null, Theme.key_undo_background));
         themeDescriptions.add(new ThemeDescription(undoView, 0, new Class[]{UndoView.class}, new String[]{"undoImageView"}, null, null, null, Theme.key_text_RedRegular));
+        themeDescriptions.add(new ThemeDescription(undoView, 0, new Class[]{UndoView.class}, new String[]{"undoTextView"}, null, null, null, Theme.key_text_RedRegular));
+        themeDescriptions.add(new ThemeDescription(undoView, 0, new Class[]{UndoView.class}, new String[]{"infoTextView"}, null, null, null, Theme.key_undo_infoColor));
+        themeDescriptions.add(new ThemeDescription(undoView, 0, new Class[]{UndoView.class}, new String[]{"textPaint"}, null, null, null, Theme.key_undo_infoColor));
+        themeDescriptions.add(new ThemeDescription(undoView, 0, new Class[]{UndoView.class}, new String[]{"progressPaint"}, null, null, null, Theme.key_undo_infoColor));
+        themeDescriptions.add(new ThemeDescription(undoView, ThemeDescription.FLAG_IMAGECOLOR, new Class[]{UndoView.class}, new String[]{"leftImageView"}, null, null, null, Theme.key_undo_infoColor));
 
         return themeDescriptions;
     }
@@ -1381,7 +1346,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                             }
                         })
                         .setNegativeButton(getString(R.string.ContactsPermissionAlertNotNow), null)
-                        .setTopAnimation(R.raw.permission_request_camera, 72, false, Theme.getColor(Theme.key_dialogTopBackground)).setTopBackgroundColorKey(Theme.key_dialogTopBackground, null)
+                        .setTopAnimation(R.raw.permission_request_camera, 72, false, Theme.getColor(Theme.key_dialogTopBackground))
                         .show();
             }
         }
@@ -1406,9 +1371,10 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
     public boolean isSupportEdgeToEdge() {
         return true;
     }
-
     @Override
     public void onInsets(int left, int top, int right, int bottom) {
+        listView.setPadding(0, 0, 0, bottom);
+        listView.setClipToPadding(false);
         if (undoView != null) {
             FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) undoView.getLayoutParams();
             int bottomMargin = bottom + dp(8);
@@ -1417,25 +1383,5 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                 undoView.setLayoutParams(lp);
             }
         }
-    }
-
-    /** theme editor: colors this page shows (former ThemeDescription keys) */
-    @Override
-    public void addThemeColorKeys(HashSet<Integer> keys) {
-        super.addThemeColorKeys(keys);
-        keys.add(Theme.key_undo_infoColor);
-        keys.add(Theme.key_text_RedRegular);
-        keys.add(Theme.key_undo_background);
-        keys.add(Theme.key_windowBackgroundWhiteGrayText3);
-        keys.add(Theme.key_windowBackgroundWhiteBlackText);
-        keys.add(Theme.key_windowBackgroundWhiteBlueHeader);
-        keys.add(Theme.key_windowBackgroundWhiteGrayText4);
-        keys.add(Theme.key_windowBackgroundGrayShadow);
-        keys.add(Theme.key_divider);
-        keys.add(Theme.key_listSelector);
-        keys.add(Theme.key_actionBarDefaultSelector);
-        keys.add(Theme.key_actionBarDefaultTitle);
-        keys.add(Theme.key_actionBarDefaultIcon);
-        keys.add(Theme.key_actionBarDefault);
     }
 }

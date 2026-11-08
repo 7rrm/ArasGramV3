@@ -31,7 +31,6 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.FixedHeightEmptyCell;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -279,7 +278,7 @@ public class FeaturesPageView extends BaseListPageView {
                 TextView textView = new TextView(context);
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
                 textView.setTypeface(AndroidUtilities.bold());
-                ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+                textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
                 textView.setText(LocaleController.getString(R.string.UpgradedStories));
                 addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 111, 0, 0));
 
@@ -349,14 +348,14 @@ public class FeaturesPageView extends BaseListPageView {
                 TextView textView = new TextView(context);
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
                 textView.setTypeface(AndroidUtilities.bold());
-                ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+                textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
                 textView.setText(LocaleController.getString(R.string.TelegramBusiness));
                 textView.setGravity(Gravity.CENTER);
                 addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 33, 150, 33, 0));
 
                 textView = new TextView(context);
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider);
+                textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
                 textView.setText(LocaleController.getString(R.string.TelegramBusinessSubtitle2));
                 textView.setGravity(Gravity.CENTER);
                 addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 33, 183, 33, 20));
@@ -405,12 +404,12 @@ public class FeaturesPageView extends BaseListPageView {
 
             textView = new TextView(context);
             textView.setTypeface(AndroidUtilities.bold());
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 68, 8, 16, 0));
 
             description = new TextView(context);
-            ThemeBind.textColor(description, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
+            description.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
             description.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             addView(description, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 68, 28, 16, 8));
         }

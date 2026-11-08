@@ -17,7 +17,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.UserCell;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.LayoutHelper;
@@ -69,7 +68,7 @@ public class GiftedUserCell extends UserCell {
         counterDrawable = new CounterDrawable(getContext());
         badgeLayout = new FrameLayout(getContext());
         badgeTextView = new TextView(getContext());
-        badgeTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider)); // always overwritten by the fixed badge colors before shown
+        badgeTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         badgeTextView.setTypeface(AndroidUtilities.bold());
         badgeTextView.setTextSize(12);
         badgeTextView.setGravity(Gravity.CENTER);

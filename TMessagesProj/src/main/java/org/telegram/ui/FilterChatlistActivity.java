@@ -64,7 +64,7 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_chatlists;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.SimpleActionBarDoneButton;
+import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
@@ -72,14 +72,15 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.DialogCell;
 import org.telegram.ui.Cells.GroupCreateUserCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
+import org.telegram.ui.Components.CircularProgressDrawable;
 import org.telegram.ui.Components.ColoredImageSpan;
+import org.telegram.ui.Components.CrossfadeDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.FolderBottomSheet;
@@ -109,7 +110,8 @@ public class FilterChatlistActivity extends BaseFragment {
     private ArrayList<Long> allowedPeers = new ArrayList<>();
     private ArrayList<Long> peers = new ArrayList<>();
 
-    private SimpleActionBarDoneButton doneButton;
+    private CrossfadeDrawable doneButtonDrawable;
+    private ActionBarMenuItem doneButton;
 
     private int shiftDp = -5;
     private long lastClickedDialogId, lastClicked;
@@ -135,23 +137,18 @@ public class FilterChatlistActivity extends BaseFragment {
     private void updateActionBarTitle(boolean animated) {
         String title = TextUtils.isEmpty(invite == null ? null : invite.title) ? LocaleController.getString(R.string.FilterShare) : invite.title;
         if (animated) {
-            simpleActionBar.setTitleAnimated(title, false, 220);
+            actionBar.setTitleAnimated(title, false, 220);
         } else {
-            simpleActionBar.setTitle(title);
+            actionBar.setTitle(title);
         }
     }
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setAllowOverlayTitle(true);
         updateActionBarTitle(false);
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -159,16 +156,25 @@ public class FilterChatlistActivity extends BaseFragment {
                         finishFragment();
                     }
                 } else if (id == 1) {
-                    save();
+                    if (Math.abs(doneButtonAlpha - 1) < 0.1f) {
+                        save();
+                    } else if (Math.abs(doneButtonAlpha - 0.5f) < 0.1f) {
+                        shakeHeader();
+                    }
                 }
             }
         });
 
-        doneButton = simpleActionBar.createDoneButton(1, LocaleController.getString(R.string.Save));
+        ActionBarMenu menu = actionBar.createMenu();
+        Drawable checkmark = context.getResources().getDrawable(R.drawable.ic_ab_done).mutate();
+        checkmark.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_actionBarDefaultIcon), PorterDuff.Mode.MULTIPLY));
+        doneButtonDrawable = new CrossfadeDrawable(checkmark, new CircularProgressDrawable(Theme.getColor(Theme.key_actionBarDefaultIcon)));
+        doneButton = menu.addItemWithWidth(1, doneButtonDrawable, AndroidUtilities.dp(56), LocaleController.getString(R.string.Done));
         checkDoneButton();
 
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         listView = new RecyclerListView(context) {
             @Override
@@ -178,9 +184,7 @@ public class FilterChatlistActivity extends BaseFragment {
         };
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
-                listView.setSections();
-        listView.setSectionsDrawBackground(true);
-frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(adapter = new ListAdapter());
         listView.setOnItemClickListener((view, position) -> {
             if (getParentActivity() == null) {
@@ -550,7 +554,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
                         builder.setView(linearLayout);
 
                         editText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-                        ThemeBind.textColor(editText, Theme.key_dialogTextBlack);
+                        editText.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                         editText.setMaxLines(1);
                         editText.setLines(1);
                         editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
@@ -558,8 +562,8 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
                         editText.setSingleLine(true);
                         editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
                         editText.setHint(filter.name);
-                        ThemeBind.hintTextColor(editText, Theme.key_dialogTextHint);
-                        ThemeBind.cursorColor(editText, Theme.key_dialogTextBlack);
+                        editText.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+                        editText.setCursorColor(Theme.getColor(Theme.key_dialogTextBlack));
                         editText.setCursorSize(AndroidUtilities.dp(20));
                         editText.setCursorWidth(1.5f);
                         editText.setPadding(0, AndroidUtilities.dp(4), 0, 0);
@@ -625,15 +629,15 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
                     }
                 };
                 actionView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                ThemeBind.backgroundColor(actionView, Theme.key_windowBackgroundWhite);
+                actionView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                 view = actionView;
             } else if (viewType == 4) {
                 GroupCreateUserCell userCell = new GroupCreateUserCell(getContext(), 1, 0, false);
-                ThemeBind.backgroundColor(userCell, Theme.key_windowBackgroundWhite);
+                userCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                 view = userCell;
             } else if (viewType == 5) {
                 FolderBottomSheet.HeaderCell headerCell = new FolderBottomSheet.HeaderCell(getContext());
-                ThemeBind.backgroundColor(headerCell, Theme.key_windowBackgroundWhite);
+                headerCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                 view = headerCell;
             }
             return new RecyclerListView.Holder(view);
@@ -647,6 +651,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
                 updateHintCell(false);
             } else if (viewType == 2) {
                 TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+                cell.setBackground(Theme.getThemedDrawableByKey(getContext(), position == chatsSectionRow ? R.drawable.greydivider_bottom : R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                 if (position == chatsSectionRow) {
                     cell.setFixedSize(0);
                     if (invite == null || allowedPeers.isEmpty()) {
@@ -809,7 +814,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
             addView(imageView, LayoutHelper.createFrame(90, 90, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 14, 0, 0));
 
             subtitleTextView = new SpoilersTextView(context);
-            ThemeBind.textColor(subtitleTextView, Theme.key_windowBackgroundWhiteGrayText4);
+            subtitleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4));
             subtitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             subtitleTextView.setGravity(Gravity.CENTER);
             subtitleTextView.setLines(2);
@@ -832,18 +837,36 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
     }
 
     private Runnable enableDoneLoading = () -> updateDoneProgress(true);
+    private ValueAnimator doneButtonDrawableAnimator;
     private void updateDoneProgress(boolean loading) {
         if (!loading) {
             AndroidUtilities.cancelRunOnUIThread(enableDoneLoading);
         }
-        if (doneButton != null) {
-            doneButton.setLoading(loading, true);
+        if (doneButtonDrawable != null) {
+            if (doneButtonDrawableAnimator != null) {
+                doneButtonDrawableAnimator.cancel();
+            }
+            doneButtonDrawableAnimator = ValueAnimator.ofFloat(doneButtonDrawable.getProgress(), loading ? 1f : 0);
+            doneButtonDrawableAnimator.addUpdateListener(a -> {
+                doneButtonDrawable.setProgress((float) a.getAnimatedValue());
+                doneButtonDrawable.invalidateSelf();
+            });
+            doneButtonDrawableAnimator.setDuration((long) (200 * Math.abs(doneButtonDrawable.getProgress() - (loading ? 1f : 0))));
+            doneButtonDrawableAnimator.setInterpolator(CubicBezierInterpolator.DEFAULT);
+            doneButtonDrawableAnimator.start();
         }
     }
 
+    private float doneButtonAlpha = 1;
     private void checkDoneButton() {
-        // a dimmed accent button shakes when there is nothing selected yet
-        doneButton.setActive(peersChanged && !selectedPeers.isEmpty(), true);
+        boolean shown = peersChanged;
+        boolean enabled = !selectedPeers.isEmpty();
+        float alpha = shown ? (enabled ? 1 : .5f) : 0;
+
+        if (Math.abs(doneButtonAlpha - alpha) > .1f) {
+            doneButton.clearAnimation();
+            doneButton.animate().alpha(doneButtonAlpha = alpha).setDuration(320).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).start();
+        }
     }
 
     private void shakeHeader() {
@@ -887,7 +910,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
 
         BaseFragment parentFragment;
 
-        class ButtonsBox extends FrameLayout implements Theme.Colorable {
+        class ButtonsBox extends FrameLayout {
 
             private Paint paint = new Paint();
             private float[] radii = new float[8];
@@ -928,18 +951,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
                 path.addRoundRect(AndroidUtilities.rectTmp, radii, Path.Direction.CW);
                 canvas.drawPath(path, paint);
             }
-        
-            @Override
-            public void updateColors() {
-                try {
-                    paint.setColor(Theme.getColor(Theme.key_featuredStickers_addButton));
-                    invalidate();
-            
-                } catch (Exception e) {
-                    FileLog.e(e);
-                }
-            }
-}
+        }
 
         public InviteLinkCell(Context context, BaseFragment fragment) {
             super(context);
@@ -947,13 +959,13 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
             parentFragment = fragment;
 
             linkBox = new FrameLayout(context);
-            ThemeBind.selectorBackground(linkBox, Theme.createSimpleSelectorRoundRectDrawable(dp(8), Theme.getColor(Theme.key_graySection), Theme.blendOver(Theme.getColor(Theme.key_graySection), Theme.getColor(Theme.key_listSelector))), ThemeBind.of(Theme.key_graySection), ThemeBind.blendOver(Theme.key_graySection, Theme.key_listSelector));
+            linkBox.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(8), Theme.getColor(Theme.key_graySection), Theme.blendOver(Theme.getColor(Theme.key_graySection), Theme.getColor(Theme.key_listSelector))));
             linkBox.setOnClickListener(e -> copy());
             addView(linkBox, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.FILL_HORIZONTAL, 22, 9, 22, 0));
 
             spoilerTextView = new SimpleTextView(context);
             spoilerTextView.setTextSize(16);
-            ThemeBind.textColor(spoilerTextView, Theme.key_windowBackgroundWhiteBlackText);
+            spoilerTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             SpannableString spoileredText = new SpannableString("t.me/folder/N3k/dImA/bIo");
             TextStyleSpan.TextStyleRun run = new TextStyleSpan.TextStyleRun();
             run.flags |= FLAG_STYLE_SPOILER;
@@ -964,7 +976,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
 
             textView = new SimpleTextView(context);
             textView.setTextSize(16);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             textView.setText(spoileredText);
             textView.setAlpha(0);
             linkBox.addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.FILL_HORIZONTAL, 20, 0, 40, 0));
@@ -972,7 +984,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
             optionsIcon = new ImageView(context);
             optionsIcon.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_ab_other));
             optionsIcon.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(optionsIcon, Theme.key_dialogTextGray3, PorterDuff.Mode.SRC_IN);
+            optionsIcon.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogTextGray3), PorterDuff.Mode.SRC_IN));
             optionsIcon.setAlpha(0f);
             optionsIcon.setVisibility(GONE);
             optionsIcon.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
@@ -998,7 +1010,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
                 }
             };
             copyButton.setGravity(Gravity.CENTER);
-            ThemeBind.textColor(copyButton, Theme.key_featuredStickers_buttonText);
+            copyButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
             copyButton.setBackground(Theme.createRadSelectorDrawable(0x30ffffff, 8, 8));
             copyButton.setTypeface(AndroidUtilities.bold());
             copyButton.setTextSize(14);
@@ -1023,7 +1035,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
                 }
             };
             shareButton.setGravity(Gravity.CENTER);
-            ThemeBind.textColor(shareButton, Theme.key_featuredStickers_buttonText);
+            shareButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
             shareButton.setBackground(Theme.createRadSelectorDrawable(0x30ffffff, 8, 8));
             shareButton.setTypeface(AndroidUtilities.bold());
             shareButton.setTextSize(14);
@@ -1040,7 +1052,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
 
             generateButton = new TextView(context);
             generateButton.setGravity(Gravity.CENTER);
-            ThemeBind.textColor(generateButton, Theme.key_featuredStickers_buttonText);
+            generateButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
             generateButton.setBackground(Theme.createRadSelectorDrawable(0x30ffffff, 8, 8));
             generateButton.setTypeface(AndroidUtilities.bold());
             generateButton.setTextSize(14);
@@ -1183,7 +1195,7 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
 //            if (!isRevoked()) {
 //                subItem.setTextAndIcon(LocaleController.getString(R.string.RevokeLink), R.drawable.msg_delete);
 //                subItem.setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
-//                subItem.setSelectorColorKey(Theme.key_text_RedRegular, .12f);
+//                subItem.setSelectorColor(Theme.multAlpha(Theme.getColor(Theme.key_text_RedRegular), .12f));
 //                subItem.setOnClickListener(view1 -> {
 //                    if (actionBarPopupWindow != null) {
 //                        actionBarPopupWindow.dismiss();
@@ -1201,8 +1213,8 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
 //                });
 //            }
             subItem.setTextAndIcon(LocaleController.getString(R.string.DeleteLink), R.drawable.msg_delete);
-            subItem.setColorKeys(Theme.key_text_RedRegular, Theme.key_text_RedRegular);
-            subItem.setSelectorColorKey(Theme.key_text_RedRegular, .12f);
+            subItem.setColors(Theme.getColor(Theme.key_text_RedRegular), Theme.getColor(Theme.key_text_RedRegular));
+            subItem.setSelectorColor(Theme.multAlpha(Theme.getColor(Theme.key_text_RedRegular), .12f));
             subItem.setOnClickListener(view1 -> {
                 if (actionBarPopupWindow != null) {
                     actionBarPopupWindow.dismiss();
@@ -1355,13 +1367,4 @@ frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT
         }
     }
 
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
-    }
-
-    @Override
-    public boolean isSupportEdgeToEdge() {
-        return true;
-    }
 }

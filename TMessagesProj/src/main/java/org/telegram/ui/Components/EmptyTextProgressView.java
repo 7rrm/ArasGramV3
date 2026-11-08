@@ -24,7 +24,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 
 public class EmptyTextProgressView extends FrameLayout {
 
@@ -77,7 +76,7 @@ public class EmptyTextProgressView extends FrameLayout {
 
         textView = new TextView(context);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
-        ThemeBind.textColor(textView, Theme.key_emptyListPlaceholder, resourcesProvider);
+        textView.setTextColor(getThemedColor(Theme.key_emptyListPlaceholder));
         textView.setGravity(Gravity.CENTER_HORIZONTAL);
         textView.setText(LocaleController.getString(R.string.NoResult));
         textViewLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
@@ -109,7 +108,6 @@ public class EmptyTextProgressView extends FrameLayout {
     }
 
     public void setTextColor(int color) {
-        ThemeBind.clear(textView); // custom color from the caller: no longer follows the theme key
         textView.setTextColor(color);
     }
 
@@ -133,7 +131,7 @@ public class EmptyTextProgressView extends FrameLayout {
         } else {
             Drawable drawable = getContext().getResources().getDrawable(resId).mutate();
             if (drawable != null) {
-                ThemeBind.drawableColorFilter(this, drawable, Theme.key_emptyListPlaceholder, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+                drawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_emptyListPlaceholder), PorterDuff.Mode.MULTIPLY));
             }
             textView.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
             textView.setCompoundDrawablePadding(AndroidUtilities.dp(1));

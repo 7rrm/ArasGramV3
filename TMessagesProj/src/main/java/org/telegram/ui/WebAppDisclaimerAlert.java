@@ -16,7 +16,6 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Components.LayoutHelper;
 
@@ -38,7 +37,7 @@ public class WebAppDisclaimerAlert {
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         TextView textView = new TextView(context);
         textView.setLetterSpacing(0.025f);
-        ThemeBind.textColor(textView, Theme.key_dialogTextBlack);
+        textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         linearLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 24, 0, 24, 0));
 

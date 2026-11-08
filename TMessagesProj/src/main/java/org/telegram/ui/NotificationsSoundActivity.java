@@ -25,11 +25,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,12 +48,11 @@ import org.telegram.messenger.ringtone.RingtoneUploader;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.SimpleActionBarMenu;
+import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.CreationTextCell;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
@@ -66,6 +63,7 @@ import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.RadioButton;
 import org.telegram.ui.Components.RecyclerListView;
 
@@ -82,11 +80,10 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
     ArrayList<Tone> systemTones = new ArrayList<>();
     ArrayList<Tone> uploadingTones = new ArrayList<>();
 
+    NumberTextView selectedTonesCountTextView;
     RecyclerListView listView;
     Adapter adapter;
     Theme.ResourcesProvider resourcesProvider;
-
-    private FrameLayout containerView;
 
     int rowCount;
     int serverTonesHeaderRow;
@@ -186,69 +183,17 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
         return resourcesProvider;
     }
 
-    private int creationCellsBackgroundColor, creationCellsIconColor;
-
-    private static void recolorCreationCell(View view, int backgroundColor, int iconColor) {
-        if (!(view instanceof CreationTextCell)) {
-            return;
-        }
-        final CreationTextCell cell = (CreationTextCell) view;
-        for (int i = 0; i < cell.getChildCount(); ++i) {
-            final View child = cell.getChildAt(i);
-            if (child instanceof ImageView && ((ImageView) child).getDrawable() instanceof CombinedDrawable) {
-                final CombinedDrawable combinedDrawable = (CombinedDrawable) ((ImageView) child).getDrawable();
-                if (combinedDrawable.getBackground() != null) {
-                    combinedDrawable.getBackground().setColorFilter(new PorterDuffColorFilter(backgroundColor, PorterDuff.Mode.MULTIPLY));
-                }
-                if (combinedDrawable.getIcon() != null) {
-                    combinedDrawable.getIcon().setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.MULTIPLY));
-                }
-                child.invalidate();
-            }
-        }
-    }
-
-    @Override
-    public void onThemeColorsChanged() {
-        try {
-            // CreationTextCell icons: recolor only when the colors changed (no per-frame allocation)
-            final int backgroundColor = Theme.getColor(Theme.key_switchTrackChecked, resourcesProvider);
-            final int iconColor = Theme.getColor(Theme.key_checkboxCheck, resourcesProvider);
-            if (listView != null && (backgroundColor != creationCellsBackgroundColor || iconColor != creationCellsIconColor)) {
-                creationCellsBackgroundColor = backgroundColor;
-                creationCellsIconColor = iconColor;
-                for (int i = 0; i < listView.getChildCount(); ++i) {
-                    recolorCreationCell(listView.getChildAt(i), backgroundColor, iconColor);
-                }
-                for (int i = 0; i < listView.getCachedChildCount(); ++i) {
-                    recolorCreationCell(listView.getCachedChildAt(i), backgroundColor, iconColor);
-                }
-                for (int i = 0; i < listView.getHiddenChildCount(); ++i) {
-                    recolorCreationCell(listView.getHiddenChildAt(i), backgroundColor, iconColor);
-                }
-                for (int i = 0; i < listView.getAttachedScrapChildCount(); ++i) {
-                    recolorCreationCell(listView.getAttachedScrapChildAt(i), backgroundColor, iconColor);
-                }
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
-    @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
     @Override
     public View createView(final Context context) {
-        setHasOwnBackground(true);
-        simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_avatar_actionBarSelectorBlue, resourcesProvider), false);
+        actionBar.setItemsColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), false);
+        actionBar.setBackButtonDrawable(new BackDrawable(false));
+        actionBar.setAllowOverlayTitle(false);
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
-                    if (simpleActionBar.isActionModeShowed()) {
+                    if (actionBar.isActionModeShowed()) {
                         hideActionMode();
                     } else {
                         finishFragment();
@@ -267,7 +212,7 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
                     AlertDialog dialog = builder.show();
                     TextView button = (TextView) dialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     if (button != null) {
-                        ThemeBind.textColor(button, Theme.key_text_RedBold, resourcesProvider);
+                        button.setTextColor(Theme.getColor(Theme.key_text_RedBold, resourcesProvider));
                     }
                 } else if (id == shareId) {
                     if (selectedTones.size() == 1) {
@@ -350,53 +295,59 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
 
         if (dialogId == 0) {
             if (currentType == NotificationsController.TYPE_PRIVATE) {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundPrivate));
+                actionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundPrivate));
             } else if (currentType == NotificationsController.TYPE_GROUP) {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundGroup));
+                actionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundGroup));
             } else if (currentType == NotificationsController.TYPE_CHANNEL) {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundChannels));
+                actionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundChannels));
             } else if (currentType == NotificationsController.TYPE_STORIES) {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundStories));
+                actionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundStories));
             } else if (currentType == NotificationsController.TYPE_REACTIONS_STORIES || currentType == NotificationsController.TYPE_REACTIONS_MESSAGES) {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundReactions));
+                actionBar.setTitle(LocaleController.getString(R.string.NotificationsSoundReactions));
             }
         } else {
-            // the title and the subtitle are centered, the avatar is shown on the right side of the header
             avatarContainer = new ChatAvatarContainer(context, null, false, resourcesProvider);
+            avatarContainer.setOccupyStatusBar(!AndroidUtilities.isTablet());
+            actionBar.addView(avatarContainer, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, !inPreviewMode ? 56 : 0, 0, 40, 0));
             if (dialogId < 0) {
                 if (topicId != 0) {
                     TLRPC.TL_forumTopic forumTopic = getMessagesController().getTopicsController().findTopic(-dialogId, topicId);
                     ForumUtilities.setTopicIcon(avatarContainer.getAvatarImageView(), forumTopic, false, true, resourcesProvider);
-                    simpleActionBar.setTitle(forumTopic.title);
+                    avatarContainer.setTitle(forumTopic.title);
                 } else {
                     TLRPC.Chat chatLocal = getMessagesController().getChat(-dialogId);
                     avatarContainer.setChatAvatar(chatLocal);
-                    simpleActionBar.setTitle(chatLocal.title);
+                    avatarContainer.setTitle(chatLocal.title);
                 }
             } else {
                 TLRPC.User user = getMessagesController().getUser(dialogId);
                 if (user != null) {
                     avatarContainer.setUserAvatar(user);
-                    simpleActionBar.setTitle(ContactsController.formatName(user.first_name, user.last_name));
+                    avatarContainer.setTitle(ContactsController.formatName(user.first_name, user.last_name));
                 }
             }
-            simpleActionBar.setSubtitle(LocaleController.getString(R.string.NotificationsSound));
-            AndroidUtilities.removeFromParent(avatarContainer.avatarImageView);
-            simpleActionBar.addView(avatarContainer.avatarImageView, LayoutHelper.createFrame(42, 42, Gravity.RIGHT, 0, 0, 8, 0));
+            avatarContainer.setSubtitle(LocaleController.getString(R.string.NotificationsSound));
         }
 
-        final SimpleActionBarMenu actionMode = simpleActionBar.createActionMode();
+        final ActionBarMenu actionMode = actionBar.createActionMode();
 
+        selectedTonesCountTextView = new NumberTextView(actionMode.getContext());
+        selectedTonesCountTextView.setTextSize(18);
+        selectedTonesCountTextView.setTypeface(AndroidUtilities.bold());
+        selectedTonesCountTextView.setTextColor(Theme.getColor(Theme.key_actionBarActionModeDefaultIcon, resourcesProvider));
+        actionMode.addView(selectedTonesCountTextView, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 72, 0, 0, 0));
+        selectedTonesCountTextView.setOnTouchListener((v, event) -> true);
 
         actionMode.addItemWithWidth(shareId, R.drawable.msg_forward, AndroidUtilities.dp(54), LocaleController.getString(R.string.ShareFile));
         actionMode.addItemWithWidth(deleteId, R.drawable.msg_delete, AndroidUtilities.dp(54), LocaleController.getString(R.string.Delete));
 
-        fragmentView = containerView = new FrameLayout(context);
-        FrameLayout frameLayout = containerView;
+        fragmentView = new FrameLayout(context);
+        FrameLayout frameLayout = (FrameLayout) fragmentView;
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
 
         listView = new RecyclerListView(context);
         listView.setSections();
-        listView.setSectionsDrawBackground(true);
+        actionBar.setAdaptiveBackground(listView);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         adapter = new Adapter();
         adapter.setHasStableIds(true);
@@ -413,7 +364,7 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
             }
             if (view instanceof ToneCell) {
                 ToneCell cell = (ToneCell) view;
-                if (simpleActionBar.isActionModeShowed() || cell.tone == null) {
+                if (actionBar.isActionModeShowed() || cell.tone == null) {
                     checkSelection(cell.tone);
                     return;
                 }
@@ -499,10 +450,10 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
 
     private void updateActionMode() {
         if (selectedTones.size() > 0) {
-            simpleActionBar.setActionModeCount(selectedTones.size(), simpleActionBar.isActionModeShowed());
-            simpleActionBar.showActionMode();
+            selectedTonesCountTextView.setNumber(selectedTones.size(), actionBar.isActionModeShowed());
+            actionBar.showActionMode();
         } else {
-            simpleActionBar.hideActionMode();
+            actionBar.hideActionMode();
         }
     }
 
@@ -686,18 +637,18 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
             switch (viewType) {
                 case 0:
                     view = new ToneCell(context, resourcesProvider);
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, resourcesProvider);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
                     break;
                 default:
                 case 1:
                     view = new HeaderCell(context, resourcesProvider);
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, resourcesProvider);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
                     break;
                 case 2:
                     CreationTextCell creationTextCell = new CreationTextCell(context, 70, resourcesProvider);
                     creationTextCell.startPadding = 61;
                     view = creationTextCell;
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, resourcesProvider);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
                     break;
                 case 3:
                     view = new ShadowSectionCell(context, resourcesProvider);
@@ -743,8 +694,8 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
                     CreationTextCell textCell = (CreationTextCell) holder.itemView;
                     Drawable drawable1 = textCell.getContext().getResources().getDrawable(R.drawable.poll_add_circle);
                     Drawable drawable2 = textCell.getContext().getResources().getDrawable(R.drawable.poll_add_plus);
-                    ThemeBind.drawableColorFilter(textCell, drawable1, Theme.key_switchTrackChecked, resourcesProvider, PorterDuff.Mode.MULTIPLY);
-                    ThemeBind.drawableColorFilter(textCell, drawable2, Theme.key_checkboxCheck, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+                    drawable1.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_switchTrackChecked, resourcesProvider), PorterDuff.Mode.MULTIPLY));
+                    drawable2.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_checkboxCheck, resourcesProvider), PorterDuff.Mode.MULTIPLY));
                     CombinedDrawable combinedDrawable = new CombinedDrawable(drawable1, drawable2);
                     textCell.setTextAndIcon(LocaleController.getString(R.string.UploadSound), combinedDrawable, false);
                     break;
@@ -791,7 +742,7 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
 
             radioButton = new RadioButton(context);
             radioButton.setSize(AndroidUtilities.dp(20));
-            ThemeBind.radioColors(radioButton, Theme.key_radioBackground, Theme.key_radioBackgroundChecked, resourcesProvider);
+            radioButton.setColor(Theme.getColor(Theme.key_radioBackground, resourcesProvider), Theme.getColor(Theme.key_radioBackgroundChecked, resourcesProvider));
             addView(radioButton, LayoutHelper.createFrame(22, 22, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL, (LocaleController.isRTL ? 0 : 20), 0, (LocaleController.isRTL ? 20 : 0), 0));
 
 
@@ -803,7 +754,7 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
             checkBox.setChecked(true, false);
 
             textView = new TextView(context);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             textView.setLines(1);
             textView.setMaxLines(1);
@@ -838,7 +789,7 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
     @Override
     public void onResume() {
         super.onResume();
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.onUserRingtonesUpdated);
+        getNotificationCenter().addObserver(this, NotificationCenter.onUserRingtonesUpdated);
     }
 
     @Override
@@ -1082,10 +1033,9 @@ public class NotificationsSoundActivity extends BaseFragment implements ChatAtta
     public boolean isSupportEdgeToEdge() {
         return true;
     }
-
-    @Nullable
     @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
+    public void onInsets(int left, int top, int right, int bottom) {
+        listView.setClipToPadding(false);
+        listView.setPadding(0, 0, 0, bottom);
     }
 }

@@ -1636,10 +1636,7 @@ public abstract class BaseChartView<T extends ChartData, L extends LineViewData>
         int k = 0;
         private boolean invalidate = true;
 
-        private int pickerMaskColor;
-
         Bitmap getPickerMaskBitmap(int h, int w) {
-            final int maskColor = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
             if (h + w << 10 != k || invalidate) {
                 invalidate = false;
                 k = h + w << 10;
@@ -1647,11 +1644,7 @@ public abstract class BaseChartView<T extends ChartData, L extends LineViewData>
                 canvas = new Canvas(pickerRoundBitmap);
 
                 rectF.set(0, 0, w, h);
-                canvas.drawColor(pickerMaskColor = maskColor);
-                canvas.drawRoundRect(rectF, AndroidUtilities.dp(6), AndroidUtilities.dp(6), xRefP);
-            } else if (maskColor != pickerMaskColor && canvas != null && pickerRoundBitmap != null) {
-                pickerMaskColor = maskColor;
-                canvas.drawColor(maskColor, PorterDuff.Mode.SRC);
+                canvas.drawColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
                 canvas.drawRoundRect(rectF, AndroidUtilities.dp(6), AndroidUtilities.dp(6), xRefP);
             }
 

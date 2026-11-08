@@ -15,7 +15,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -30,12 +29,10 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.ChatSearchTabs;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.StickerEmptyView;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
@@ -52,16 +49,11 @@ public class TimezoneSelector extends BaseFragment implements NotificationCenter
     private final static int search = 1;
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        simpleActionBar.setTitle(getString(R.string.TimezoneTitle));
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setAllowOverlayTitle(true);
+        actionBar.setTitle(getString(R.string.TimezoneTitle));
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -70,7 +62,7 @@ public class TimezoneSelector extends BaseFragment implements NotificationCenter
             }
         });
 
-        searchItem = simpleActionBar.createMenu().addItem(search, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
+        searchItem = actionBar.createMenu().addItem(search, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
             @Override
             public void onSearchExpand() {
                 searching = true;
@@ -96,10 +88,11 @@ public class TimezoneSelector extends BaseFragment implements NotificationCenter
         searchItem.setSearchFieldHint(LocaleController.getString(R.string.Search));
 
         FrameLayout contentView = new FrameLayout(context);
+        contentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, null);
         listView.setSections();
-        listView.setSectionsDrawBackground(true);
+        actionBar.setAdaptiveBackground(listView);
         contentView.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         listView.setOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -120,7 +113,7 @@ public class TimezoneSelector extends BaseFragment implements NotificationCenter
         emptyView.addView(emptyImageView, LayoutHelper.createLinear(130, 130, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 42, 0, 12));
         TextView emptyTextView = new TextView(context);
         emptyTextView.setText(getString(R.string.TimezoneNotFound));
-        ThemeBind.textColor(emptyTextView, Theme.key_windowBackgroundWhiteGrayText, resourceProvider);
+        emptyTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourceProvider));
         emptyTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         emptyView.addView(emptyTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 0));
 
@@ -136,7 +129,7 @@ public class TimezoneSelector extends BaseFragment implements NotificationCenter
     public boolean onFragmentCreate() {
         systemTimezone = TimezonesController.getInstance(currentAccount).getSystemTimezoneId();
         useSystem = TextUtils.equals(systemTimezone, currentTimezone);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.timezonesUpdated);
+        getNotificationCenter().addObserver(this, NotificationCenter.timezonesUpdated);
         return super.onFragmentCreate();
     }
 
@@ -215,7 +208,7 @@ public class TimezoneSelector extends BaseFragment implements NotificationCenter
                 whenTimezoneSelected.run(currentTimezone);
             }
             if (searching) {
-                simpleActionBar.closeSearchField(true);
+                actionBar.closeSearchField(true);
             }
             listView.adapter.update(true);
         }
@@ -241,9 +234,9 @@ public class TimezoneSelector extends BaseFragment implements NotificationCenter
         return true;
     }
 
-    @Nullable
     @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
+    public void onInsets(int left, int top, int right, int bottom) {
+        listView.setPadding(0, 0, 0, bottom);
+        listView.setClipToPadding(false);
     }
 }

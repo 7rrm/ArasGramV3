@@ -80,9 +80,7 @@ public class ChatActivityEnterTopView extends FrameLayout {
 
         public void updateColors() {
             for (EditViewButton button : buttons) {
-                if (button != null) {
-                    button.updateColors();
-                }
+                button.updateColors();
             }
         }
     }

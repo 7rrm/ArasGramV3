@@ -17,7 +17,7 @@ import android.view.View;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 
-public class ContextProgressView extends View implements Theme.Colorable {
+public class ContextProgressView extends View {
 
     private Paint innerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint outerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -61,7 +61,6 @@ public class ContextProgressView extends View implements Theme.Colorable {
         updateColors();
     }
 
-    @Override
     public void updateColors() {
         if (innerKey >= 0) {
             innerPaint.setColor(Theme.getColor(innerKey));

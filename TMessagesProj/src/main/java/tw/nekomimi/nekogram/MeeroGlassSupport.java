@@ -96,10 +96,9 @@ public final class MeeroGlassSupport {
             return;
         }
         if (glass) {
-            // 13.2.1: RecyclerListView.setSections() no longer takes a
-            // drawSectionBackground callback (it uses the view's own painter).
             listView.setSections(keepRow,
                     AndroidUtilities.dp(uic(0, 12)), AndroidUtilities.dp(uic(1, 16)),
+                    (canvas, rect, rx, ry, alpha) -> { /* glass: no themed section paint */ },
                     true);
             listView.setSelectorDrawableColor(MeeroGlassTheme.press());
         } else {

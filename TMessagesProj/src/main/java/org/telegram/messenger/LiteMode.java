@@ -3,11 +3,9 @@ package org.telegram.messenger;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Build;
-import android.os.SystemClock;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.math.MathUtils;
@@ -15,13 +13,10 @@ import androidx.core.math.MathUtils;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
-import org.telegram.utils.glass.GlassEngine;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-
-import me.vkryl.core.BitwiseUtils;
 
 public class LiteMode {
 
@@ -108,8 +103,8 @@ public class LiteMode {
         if (!loaded) {
             loadPreference();
         }
-        if (!ignorePowerSaving) {
-            if (powerSaverLevel > 0 && isBatteryLow(getBatteryLevel())) {
+        if (!ignorePowerSaving && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (getBatteryLevel() <= powerSaverLevel && powerSaverLevel > 0) {
                 if (!lastPowerSaverApplied) {
                     onPowerSaverApplied(lastPowerSaverApplied = true);
                 }
@@ -122,73 +117,20 @@ public class LiteMode {
         return value;
     }
 
-    private static final long BATTERY_LEVEL_QUERY_INTERVAL = 60 * 1000;
+    private static int lastBatteryLevelCached = -1;
+    private static long lastBatteryLevelChecked;
 
-    private static volatile int lastBatteryLevel = -1;
-    private static volatile long lastBatteryLevelChecked;
-    private static volatile boolean batteryLevelQueryRunning;
-
-    private static boolean isBatteryLow(int batteryLevel) {
-        return powerSaverLevel >= 100 || batteryLevel >= 0 && batteryLevel <= powerSaverLevel;
-    }
-
-    // returns the cached level (-1 if unknown); BatteryReceiver is the main source, BatteryManager is only queried in background
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static int getBatteryLevel() {
-        final long time = SystemClock.elapsedRealtime();
-        if (!batteryLevelQueryRunning && (lastBatteryLevelChecked == 0 || time - lastBatteryLevelChecked > BATTERY_LEVEL_QUERY_INTERVAL)) {
-            batteryLevelQueryRunning = true;
-            lastBatteryLevelChecked = time;
-            Utilities.globalQueue.postRunnable(LiteMode::queryBatteryLevel);
-        }
-        return lastBatteryLevel;
-    }
-
-    private static void queryBatteryLevel() {
-        int level = -1;
-        try {
+        long time = 0;
+        if (lastBatteryLevelCached < 0 || (time = System.currentTimeMillis()) - lastBatteryLevelChecked > 1000 * 12) {
             BatteryManager batteryManager = (BatteryManager) ApplicationLoader.applicationContext.getSystemService(Context.BATTERY_SERVICE);
             if (batteryManager != null) {
-                level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                lastBatteryLevelCached = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                lastBatteryLevelChecked = time;
             }
-        } catch (Throwable e) {
-            FileLog.e(e);
         }
-        lastBatteryLevelChecked = SystemClock.elapsedRealtime();
-        batteryLevelQueryRunning = false;
-        if (level >= 0 && level <= 100) {
-            setBatteryLevel(level);
-        }
-    }
-
-    private static void setBatteryLevel(int level) {
-        lastBatteryLevelChecked = SystemClock.elapsedRealtime();
-        if (lastBatteryLevel == level) {
-            return;
-        }
-        lastBatteryLevel = level;
-        // check power saver applied
-        AndroidUtilities.runOnUIThread(() -> getValue(false));
-    }
-
-    private static void onBatteryChanged(Intent intent) {
-        if (intent == null) {
-            return;
-        }
-        final int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        final int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-        if (level >= 0 && scale > 0) {
-            setBatteryLevel(MathUtils.clamp(Math.round(level * 100f / scale), 0, 100));
-        }
-    }
-
-    public static void registerBatteryReceiver() {
-        try {
-            // ACTION_BATTERY_CHANGED is sticky, the current state is returned right away
-            final Intent intent = ApplicationLoader.applicationContext.registerReceiver(new BatteryReceiver(), new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-            onBatteryChanged(intent);
-        } catch (Throwable e) {
-            FileLog.e(e);
-        }
+        return lastBatteryLevelCached;
     }
 
     private static int preprocessFlag(int flag) {
@@ -423,9 +365,6 @@ public class LiteMode {
         if ((changedFlags & FLAG_CHAT_BACKGROUND) > 0) {
             Theme.reloadWallpaper(true);
         }
-        if (BitwiseUtils.hasFlag(changedFlags, FLAG_CHAT_BLUR) || BitwiseUtils.hasFlag(changedFlags, FLAG_LIQUID_GLASS)) {
-            GlassEngine.getCurrentGlassSettings();
-        }
     }
 
     private static HashSet<Utilities.Callback<Boolean>> onPowerSaverAppliedListeners;
@@ -442,10 +381,11 @@ public class LiteMode {
         }
     }
 
-    private static class BatteryReceiver extends BroadcastReceiver {
+    public static class BatteryReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            onBatteryChanged(intent);
+            lastBatteryLevelChecked = 0;
+            getValue();
         }
     }
 }

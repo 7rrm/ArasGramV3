@@ -13,13 +13,12 @@ import androidx.annotation.NonNull;
 import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.tl.TL_stars;
 import org.telegram.ui.ActionBar.Theme;
 
-public class StarRatingView extends View implements Theme.Colorable {
+public class StarRatingView extends View {
     private final BadgeLevelDrawable drawable;
     private final Colors colors = new Colors();
 
@@ -130,16 +129,6 @@ public class StarRatingView extends View implements Theme.Colorable {
 
 
     /**/
-
-    @Override
-    public void updateColors() {
-        try {
-            colors.update(colors.peerColor);
-            invalidate();
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
 
     public void updateColors(MessagesController.PeerColor peerColor) {
         colors.update(peerColor);

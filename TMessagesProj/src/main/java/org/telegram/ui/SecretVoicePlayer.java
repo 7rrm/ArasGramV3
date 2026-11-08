@@ -58,7 +58,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AudioVisualizerDrawable;
@@ -763,7 +762,7 @@ public class SecretVoicePlayer extends Dialog {
             backDialog.show();
             TextView button = (TextView) backDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
             if (button != null) {
-                ThemeBind.textColor(button, Theme.key_text_RedBold);
+                button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
             }
             return;
         }

@@ -14,11 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.blur3.drawable.GlassRim;
-import org.telegram.ui.Components.blur3.drawable.GlassRimRenderer;
+import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
-
-import java.util.Arrays;
 
 public class StrokeDrawable extends Drawable {
 
@@ -30,10 +27,8 @@ public class StrokeDrawable extends Drawable {
     private int padding;
 
     private final Paint paintFill = new Paint(Paint.ANTI_ALIAS_FLAG);
-    // the rim of the glass: the same crescents as BlurredBackgroundDrawable's
-    private final GlassRimRenderer rimRenderer = new GlassRimRenderer();
-    private final float[] radii = new float[8];
-    private GlassRim rim;
+    private final Paint paintStrokeTop = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint paintStrokeBottom = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     public void setBackgroundColor(int color) {
         paintFill.setColor(color);
@@ -46,19 +41,23 @@ public class StrokeDrawable extends Drawable {
 
     public void setColorProvider(BlurredBackgroundColorProvider colorProvider) {
         this.colorProvider = colorProvider;
+
+        paintStrokeTop.setStyle(Paint.Style.STROKE);
+        paintStrokeBottom.setStyle(Paint.Style.STROKE);
+
         updateColors();
     }
 
-    // not a view: nothing dispatches updateColors() for every owner on theme switches, so draw() refreshes once per theme update
-    private int themeGeneration = org.telegram.ui.ActionBar.ThemeBind.generation();
-
     public void updateColors() {
-        themeGeneration = org.telegram.ui.ActionBar.ThemeBind.generation();
         if (colorProvider == null) return;
 
         strokeColorTop = Theme.multAlpha(colorProvider.getStrokeColorTop(), alpha);
         strokeColorBottom = Theme.multAlpha(colorProvider.getStrokeColorBottom(), alpha);
-        rim = GlassRim.of(GlassRim.LIGHT_TOP, dpf2(1), strokeColorTop, dpf2(2 / 3f), strokeColorBottom, 0, 0);
+
+        paintStrokeTop.setColor(strokeColorTop);
+        paintStrokeTop.setStrokeWidth(dpf2(1));
+        paintStrokeBottom.setColor(strokeColorBottom);
+        paintStrokeBottom.setStrokeWidth(dpf2(2 / 3f));
     }
 
     public boolean nonRound;
@@ -66,13 +65,6 @@ public class StrokeDrawable extends Drawable {
 
     @Override
     public void draw(@NonNull Canvas canvas) {
-        if (themeGeneration != org.telegram.ui.ActionBar.ThemeBind.generation()) {
-            try {
-                updateColors();
-            } catch (Exception e) {
-                org.telegram.messenger.FileLog.e(e);
-            }
-        }
         final float cx = getBounds().centerX();
         final float cy = getBounds().centerY();
         float radius = Math.min(getBounds().width(), getBounds().height()) / 2.0f - padding;
@@ -86,9 +78,11 @@ public class StrokeDrawable extends Drawable {
         if (Color.alpha(paintFill.getColor()) > 0) {
             canvas.drawCircle(cx, cy, radius, paintFill);
         }
-        if (rim != null) {
-            Arrays.fill(radii, radius);
-            rimRenderer.draw(canvas, rect.left, rect.top, rect.right, rect.bottom, radii, rim, 1f);
+        if (strokeColorTop != 0) {
+            BlurredBackgroundDrawable.drawStroke(canvas, rect, radius, dpf2(1), true, paintStrokeTop);
+        }
+        if (strokeColorBottom != 0) {
+            BlurredBackgroundDrawable.drawStroke(canvas, rect, radius, dpf2(2 / 3f), false, paintStrokeBottom);
         }
     }
 

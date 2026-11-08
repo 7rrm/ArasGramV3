@@ -17,7 +17,6 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.BottomSheetWithRecyclerListView;
@@ -65,7 +64,7 @@ public class CommunityInviteOnlySheet extends BottomSheetWithRecyclerListView {
         cell.setPadding(dp(20), 0, dp(20), dp(17));
         cell.avatarImage.setForUserOrChat(chat, new AvatarDrawable(chat));
         cell.titleView.setText(DialogObject.getName(chat));
-        ThemeBind.textColor(cell.titleView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        cell.titleView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
 
         SpannableStringBuilder ssb = new SpannableStringBuilder();
         ssb.append("* ");
@@ -74,7 +73,7 @@ public class CommunityInviteOnlySheet extends BottomSheetWithRecyclerListView {
             R.string.CommunityInviteOnlyChannelInfo :
             R.string.CommunityInviteOnlyGroupInfo
         ));
-        ThemeBind.textColor(cell.textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        cell.textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
         cell.textView.setText(ssb);
 
         containerView.addView(messageButton, LayoutHelper.createFrameMarginPx(

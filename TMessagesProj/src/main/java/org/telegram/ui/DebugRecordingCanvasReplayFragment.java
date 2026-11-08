@@ -64,8 +64,6 @@ public class DebugRecordingCanvasReplayFragment extends BaseFragment {
         replayView = new View(context) {
             @Override
             protected void onDraw(@NonNull Canvas canvas) {
-                canvas.drawColor(0xFFFF00FF);
-
                 Trace.beginSection("render_" + currentFrame + "_" + framesCount);
                 super.onDraw(canvas);
                 if (!isPlaying) {

@@ -7,7 +7,6 @@ import static org.telegram.messenger.LocaleController.formatSpannable;
 import static org.telegram.messenger.LocaleController.formatString;
 import static org.telegram.messenger.LocaleController.getString;
 
-import org.telegram.messenger.FileLog;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -60,7 +59,6 @@ import org.telegram.tgnet.tl.TL_stars;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.ChatActionCell;
 import org.telegram.ui.Cells.EditEmojiTextCell;
 import org.telegram.ui.ChatActivity;
@@ -85,7 +83,7 @@ import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
-import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.ProfileActivity;
@@ -248,7 +246,7 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         final Drawable drawable = PreviewView.getBackgroundDrawable(null, currentAccount, dialogId, Theme.isCurrentThemeDark());
         chatView.setBackgroundImage(drawable, false);
         Integer color = null;
-        GlassSourceColor sourceColor = new GlassSourceColor();
+        BlurredBackgroundSourceColor sourceColor = new BlurredBackgroundSourceColor();
         if (drawable instanceof ColorDrawable) {
             color = ((ColorDrawable) drawable).getColor();
         } else if (drawable instanceof MotionBackgroundDrawable) {
@@ -262,8 +260,7 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
             }
         }
         sourceColor.setColor(color != null ? color : getThemedColor(Theme.key_dialogBackground));
-        themedBlurSourceColor = color == null ? sourceColor : null;
-        BlurredBackgroundDrawable msgDrawable = new BlurredBackgroundDrawable(sourceColor);
+        BlurredBackgroundDrawable msgDrawable = sourceColor.createDrawable();
         msgDrawable.setColorProvider(new BlurredBackgroundColorProviderThemed(resourcesProvider, Theme.key_dialogBackground));
         msgDrawable.setRadius(dp(20));
         msgDrawable.setPadding(dp(4));
@@ -402,17 +399,17 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         containerView.addView(buttonContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.BOTTOM));
 
         final View buttonShadow = new View(context);
-        ThemeBind.backgroundColor(buttonShadow, Theme.key_dialogGrayLine, resourcesProvider);
+        buttonShadow.setBackgroundColor(Theme.getColor(Theme.key_dialogGrayLine, resourcesProvider));
         buttonContainer.addView(buttonShadow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1f / AndroidUtilities.density, Gravity.FILL_HORIZONTAL | Gravity.TOP));
 
         final float limitedProgress = Utilities.clamp(starGift == null ? 0 : (float) starGift.availability_remains / starGift.availability_total, 1f, 0);
         limitContainer = new FrameLayout(context);
-        ThemeBind.fillBackground(limitContainer, Theme.createRoundRectDrawable(dp(6), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)), ThemeBind.of(Theme.key_windowBackgroundGray), resourcesProvider);
+        limitContainer.setBackground(Theme.createRoundRectDrawable(dp(6), Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider)));
 
         if (starGift != null && starGift.auction) {
             limitContainerWrapper = new FrameLayout(context);
             limitContainerWrapper.addView(limitContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 30, 10, 14, 10, 14));
-            ThemeBind.backgroundColor(limitContainerWrapper, Theme.key_dialogBackground, resourcesProvider);
+            limitContainerWrapper.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
         } else {
             limitContainer.setVisibility(starGift != null && starGift.limited ? View.VISIBLE : View.GONE);
             buttonContainer.addView(limitContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 30, 10, 10, 10, 0));
@@ -423,7 +420,7 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         leftTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         leftTextView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
         leftTextView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(leftTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        leftTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         if (starGift != null) {
             leftTextView.setText(LocaleController.formatPluralStringComma("Gift2AvailabilityLeft", starGift.availability_remains));
         }
@@ -433,7 +430,7 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
         soldTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         soldTextView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
         soldTextView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(soldTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        soldTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         if (starGift != null) {
             soldTextView.setText(LocaleController.formatPluralStringComma("Gift2AvailabilitySold", starGift.availability_total - starGift.availability_remains));
         }
@@ -449,7 +446,7 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
                 super.onMeasure(MeasureSpec.makeMeasureSpec((int) (MeasureSpec.getSize(widthMeasureSpec) * limitedProgress), MeasureSpec.EXACTLY), heightMeasureSpec);
             }
         };
-        ThemeBind.fillBackground(limitProgressView, Theme.createRoundRectDrawable(dp(6), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)), ThemeBind.of(Theme.key_featuredStickers_addButton), resourcesProvider);
+        limitProgressView.setBackground(Theme.createRoundRectDrawable(dp(6), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
         limitContainer.addView(limitProgressView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
 
         valueContainerView = new FrameLayout(context) {
@@ -632,7 +629,7 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.starBalanceUpdated);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.starBalanceUpdated);
     }
 
     @Override
@@ -1020,35 +1017,5 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
             return;
         }
         super.onBackPressed();
-    }
-
-    private GlassSourceColor themedBlurSourceColor;
-
-    @Override
-    public void onThemeColorsChanged() {
-        try {
-            super.onThemeColorsChanged();
-            if (buttonContainer != null) {
-                final int bg = Theme.getColor(Theme.key_dialogBackground, resourcesProvider);
-                final Drawable current = buttonContainer.getBackground();
-                if (current instanceof InsetDrawable && ((InsetDrawable) current).getDrawable() instanceof ColorDrawable) {
-                    final ColorDrawable colorDrawable = (ColorDrawable) ((InsetDrawable) current).getDrawable();
-                    if (colorDrawable.getColor() != bg) {
-                        colorDrawable.setColor(bg);
-                        buttonContainer.invalidate();
-                    }
-                } else {
-                    buttonContainer.setBackground(new InsetDrawable(new ColorDrawable(bg), backgroundPaddingLeft, 0, backgroundPaddingLeft, 0));
-                }
-            }
-            if (themedBlurSourceColor != null) {
-                themedBlurSourceColor.setColor(getThemedColor(Theme.key_dialogBackground));
-                if (containerView != null) {
-                    containerView.invalidate();
-                }
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
     }
 }

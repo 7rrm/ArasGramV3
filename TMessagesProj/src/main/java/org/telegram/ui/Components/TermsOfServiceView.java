@@ -25,7 +25,6 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 
 public class TermsOfServiceView extends FrameLayout {
 
@@ -45,7 +44,7 @@ public class TermsOfServiceView extends FrameLayout {
 
     public TermsOfServiceView(final Context context) {
         super(context);
-        ThemeBind.backgroundColor(this, Theme.key_windowBackgroundWhite);
+        setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
 
         final int top = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? AndroidUtilities.statusBarHeight : 0;
 
@@ -63,15 +62,15 @@ public class TermsOfServiceView extends FrameLayout {
         linearLayout.addView(imageView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT, 0, 28, 0, 0));
 
         titleTextView = new TextView(context);
-        ThemeBind.textColor(titleTextView, Theme.key_windowBackgroundWhiteBlackText);
+        titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
         titleTextView.setTypeface(AndroidUtilities.bold());
         titleTextView.setText(LocaleController.getString(R.string.PrivacyPolicyAndTerms));
         linearLayout.addView(titleTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT, 0, 20, 0, 0));
 
         textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
-        ThemeBind.linkTextColor(textView, Theme.key_windowBackgroundWhiteLinkText);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        textView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         textView.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
         textView.setGravity(Gravity.LEFT | Gravity.TOP);
@@ -89,9 +88,9 @@ public class TermsOfServiceView extends FrameLayout {
         declineTextView.setText(LocaleController.getString(R.string.Decline).toUpperCase());
         declineTextView.setGravity(Gravity.CENTER);
         declineTextView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(declineTextView, Theme.key_windowBackgroundWhiteGrayText);
+        declineTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
         declineTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.selectorBackground(declineTextView, Theme.getRoundRectSelectorDrawable(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText)), null, ThemeBind.alpha(Theme.key_windowBackgroundWhiteGrayText, 0x19));
+        declineTextView.setBackground(Theme.getRoundRectSelectorDrawable(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText)));
         declineTextView.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(10), AndroidUtilities.dp(20), AndroidUtilities.dp(10));
         addView(declineTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 16, 0, 16, 16));
         declineTextView.setOnClickListener(view -> {
@@ -160,7 +159,7 @@ public class TermsOfServiceView extends FrameLayout {
         });
 
         final View lineView = new View(context);
-        ThemeBind.backgroundColor(lineView, Theme.key_divider);
+        lineView.setBackgroundColor(Theme.getColor(Theme.key_divider));
         final LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
         params.bottomMargin = AndroidUtilities.dp(75f);
         params.gravity = Gravity.BOTTOM;

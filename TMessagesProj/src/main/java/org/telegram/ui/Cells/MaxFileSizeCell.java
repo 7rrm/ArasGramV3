@@ -24,7 +24,6 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.SeekBarView;
 
@@ -44,7 +43,7 @@ public class MaxFileSizeCell extends FrameLayout {
         setWillNotDraw(false);
 
         textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_dialogTextBlack);
+        textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setLines(1);
         textView.setMaxLines(1);
@@ -55,7 +54,7 @@ public class MaxFileSizeCell extends FrameLayout {
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 21, 13, 21, 0));
 
         sizeTextView = new TextView(context);
-        ThemeBind.textColor(sizeTextView, Theme.key_dialogTextBlue2);
+        sizeTextView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
         sizeTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         sizeTextView.setLines(1);
         sizeTextView.setMaxLines(1);

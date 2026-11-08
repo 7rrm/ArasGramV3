@@ -52,7 +52,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.InputSerializedData;
 import org.telegram.tgnet.OutputSerializedData;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.BubbleActivity;
 import org.telegram.ui.Cells.PhotoEditRadioCell;
 import org.telegram.ui.Cells.PhotoEditToolCell;
@@ -518,7 +517,7 @@ public class PhotoFilterView extends FrameLayout implements FilterShaders.Filter
 
         doneTextView = new TextView(context);
         doneTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        ThemeBind.textColor(doneTextView, Theme.key_chat_editMediaButton, resourcesProvider);
+        doneTextView.setTextColor(getThemedColor(Theme.key_chat_editMediaButton));
         doneTextView.setGravity(Gravity.CENTER);
         doneTextView.setBackgroundDrawable(Theme.createSelectorDrawable(Theme.ACTION_BAR_PICKER_SELECTOR_COLOR, 0));
         doneTextView.setPadding(AndroidUtilities.dp(20), 0, AndroidUtilities.dp(20), 0);
@@ -532,12 +531,12 @@ public class PhotoFilterView extends FrameLayout implements FilterShaders.Filter
         tuneItem = new ImageView(context);
         tuneItem.setScaleType(ImageView.ScaleType.CENTER);
         tuneItem.setImageResource(R.drawable.msg_photo_settings);
-        ThemeBind.colorFilter(tuneItem, Theme.key_chat_editMediaButton, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+        tuneItem.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_editMediaButton), PorterDuff.Mode.MULTIPLY));
         tuneItem.setBackgroundDrawable(Theme.createSelectorDrawable(Theme.ACTION_BAR_WHITE_SELECTOR_COLOR));
         linearLayout.addView(tuneItem, LayoutHelper.createLinear(56, 48));
         tuneItem.setOnClickListener(v -> {
             selectedTool = 0;
-            ThemeBind.colorFilter(tuneItem, Theme.key_chat_editMediaButton, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            tuneItem.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_editMediaButton), PorterDuff.Mode.MULTIPLY));
             blurItem.setColorFilter(null);
             curveItem.setColorFilter(null);
             switchMode();
@@ -551,7 +550,7 @@ public class PhotoFilterView extends FrameLayout implements FilterShaders.Filter
         blurItem.setOnClickListener(v -> {
             selectedTool = 1;
             tuneItem.setColorFilter(null);
-            ThemeBind.colorFilter(blurItem, Theme.key_chat_editMediaButton, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            blurItem.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_editMediaButton), PorterDuff.Mode.MULTIPLY));
             curveItem.setColorFilter(null);
             switchMode();
         });
@@ -568,7 +567,7 @@ public class PhotoFilterView extends FrameLayout implements FilterShaders.Filter
             selectedTool = 2;
             tuneItem.setColorFilter(null);
             blurItem.setColorFilter(null);
-            ThemeBind.colorFilter(curveItem, Theme.key_chat_editMediaButton, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            curveItem.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_editMediaButton), PorterDuff.Mode.MULTIPLY));
             switchMode();
         });
 
@@ -714,7 +713,7 @@ public class PhotoFilterView extends FrameLayout implements FilterShaders.Filter
     private void updateSelectedBlurType() {
         if (blurType == 0) {
             Drawable drawable = blurOffButton.getContext().getResources().getDrawable(R.drawable.msg_blur_off).mutate();
-            ThemeBind.drawableColorFilter(this, drawable, Theme.key_chat_editMediaButton, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            drawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_editMediaButton), PorterDuff.Mode.MULTIPLY));
             blurOffButton.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
             blurOffButton.setTextColor(getThemedColor(Theme.key_chat_editMediaButton));
 
@@ -728,7 +727,7 @@ public class PhotoFilterView extends FrameLayout implements FilterShaders.Filter
             blurOffButton.setTextColor(0xffffffff);
 
             Drawable drawable = blurOffButton.getContext().getResources().getDrawable(R.drawable.msg_blur_radial).mutate();
-            ThemeBind.drawableColorFilter(this, drawable, Theme.key_chat_editMediaButton, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            drawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_editMediaButton), PorterDuff.Mode.MULTIPLY));
             blurRadialButton.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
             blurRadialButton.setTextColor(getThemedColor(Theme.key_chat_editMediaButton));
 
@@ -742,7 +741,7 @@ public class PhotoFilterView extends FrameLayout implements FilterShaders.Filter
             blurRadialButton.setTextColor(0xffffffff);
 
             Drawable drawable = blurOffButton.getContext().getResources().getDrawable(R.drawable.msg_blur_linear).mutate();
-            ThemeBind.drawableColorFilter(this, drawable, Theme.key_chat_editMediaButton, resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            drawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_editMediaButton), PorterDuff.Mode.MULTIPLY));
             blurLinearButton.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
             blurLinearButton.setTextColor(getThemedColor(Theme.key_chat_editMediaButton));
         }

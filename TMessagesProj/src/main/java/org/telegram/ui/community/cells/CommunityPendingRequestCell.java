@@ -31,7 +31,6 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.utils.RenderNodeEffects;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.ColoredImageSpan;
@@ -43,10 +42,9 @@ import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.utils.glass.source.GlassSourceColor;
-import org.telegram.utils.glass.source.GlassSourceRenderNode;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
-import java.util.HashSet;
 
 @SuppressLint("ViewConstructor")
 public class CommunityPendingRequestCell extends FrameLayout implements Theme.Colorable {
@@ -63,7 +61,7 @@ public class CommunityPendingRequestCell extends FrameLayout implements Theme.Co
     private final ButtonWithCounterView addButton;
     private final ColoredImageSpan span;
 
-    private final GlassSourceRenderNode sourceRenderNode;
+    private final BlurredBackgroundSourceRenderNode sourceRenderNode;
     private BlurredBackgroundDrawable blurredBackgroundDrawable;
     private boolean needDivider;
 
@@ -74,13 +72,13 @@ public class CommunityPendingRequestCell extends FrameLayout implements Theme.Co
 
         final BlurredBackgroundDrawableViewFactory factory;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            sourceRenderNode = new GlassSourceRenderNode(null);
+            sourceRenderNode = new BlurredBackgroundSourceRenderNode(null);
             sourceRenderNode.setBlur(dp(7), RenderNodeEffects.createSaturationXRenderEffect(1.125f));
             sourceRenderNode.noClip();
             factory = new BlurredBackgroundDrawableViewFactory(sourceRenderNode);
         } else {
             sourceRenderNode = null;
-            final GlassSourceColor sourceColor = new GlassSourceColor();
+            final BlurredBackgroundSourceColor sourceColor = new BlurredBackgroundSourceColor();
             sourceColor.setColor(Color.BLACK);
             factory = new BlurredBackgroundDrawableViewFactory(sourceColor);
         }
@@ -147,8 +145,8 @@ public class CommunityPendingRequestCell extends FrameLayout implements Theme.Co
 
         hiddenLabelView = new TextView(context);
         hiddenLabelView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        ThemeBind.fillBackground(hiddenLabelView, Theme.createRoundRectDrawable(dp(12), Theme.multAlpha(
-                Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6, resourcesProvider), 0.14f)), ThemeBind.multAlpha(Theme.key_windowBackgroundWhiteGrayText6, 0.14f), resourcesProvider);
+        hiddenLabelView.setBackground(Theme.createRoundRectDrawable(dp(12), Theme.multAlpha(
+                Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6, resourcesProvider), 0.14f)));
         hiddenLabelView.setPadding(dp(4), dp(1), dp(8), dp(1.66f));
         hiddenLabelView.setSingleLine(true);
         {
@@ -174,9 +172,6 @@ public class CommunityPendingRequestCell extends FrameLayout implements Theme.Co
         declineButton.setNeutral();
         declineButton.setColor(Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider), 0.14f));
         declineButton.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        if (declineButton.getBackground() != null) {
-            ThemeBind.fillBackground(declineButton, declineButton.getBackground(), ThemeBind.multAlpha(Theme.key_windowBackgroundWhiteGrayText2, 0.14f), resourcesProvider);
-        }
         declineButton.setText(getString(R.string.Decline), false);
         declineButton.setOnClickListener(v -> {
             if (delegate != null) {
@@ -235,25 +230,8 @@ public class CommunityPendingRequestCell extends FrameLayout implements Theme.Co
         return super.drawChild(canvas, child, drawingTime);
     }
 
-    private int declineButtonThemeGeneration = ThemeBind.generation();
-
-    private void checkDeclineButtonThemeColors() {
-        if (declineButtonThemeGeneration == ThemeBind.generation()) {
-            return;
-        }
-        declineButtonThemeGeneration = ThemeBind.generation();
-        try {
-            if (declineButton != null) {
-                declineButton.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-            }
-        } catch (Exception e) {
-            org.telegram.messenger.FileLog.e(e);
-        }
-    }
-
     @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
-        checkDeclineButtonThemeColors();
         if (needDivider) {
             canvas.drawLine(dp(76), getHeight() - 1, getMeasuredWidth(), getHeight() - 1, Theme.dividerPaint);
         }
@@ -278,14 +256,17 @@ public class CommunityPendingRequestCell extends FrameLayout implements Theme.Co
         final TLRPC.User userToAdd = MessagesController.getInstance(currentAccount).getUser(dialogId);
 
         titleView.setText(DialogObject.getName(dialogId));
-        subtitleView.setText(AndroidUtilities.replaceSingleLinkKey(formatString(userToAdd != null ?
+        subtitleView.setText(AndroidUtilities.replaceSingleLink(
+            formatString(userToAdd != null ?
                 R.string.CommunityPendingRequestSuggestedBot : ChatObject.isChannelAndNotMegaGroup(chatToAdd) ?
                 R.string.CommunityPendingRequestSuggestedChannel :
-                R.string.CommunityPendingRequestSuggestedGroup, DialogObject.getShortName(user)), Theme.key_telegram_color_text, null, () -> {
+                R.string.CommunityPendingRequestSuggestedGroup, DialogObject.getShortName(user)),
+            Theme.getColor(Theme.key_telegram_color_text), () -> {
                 //if (delegate != null) {
                 //    delegate.onClickGroupOwner(userDialogId);
                 //}
-            }));
+            }
+        ));
 
         if (userToAdd != null) {
             membersCountView.setVisibility(GONE);
@@ -320,10 +301,6 @@ public class CommunityPendingRequestCell extends FrameLayout implements Theme.Co
         titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         hiddenLabelView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
-    }
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_windowBackgroundWhiteBlackText);
     }
 
     public interface ClickDelegate {

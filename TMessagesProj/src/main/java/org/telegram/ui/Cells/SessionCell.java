@@ -46,7 +46,6 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -107,7 +106,7 @@ public class SessionCell extends FrameLayout {
 
 
         nameTextView = new TextView(context);
-        ThemeBind.textColor(nameTextView, Theme.key_windowBackgroundWhiteBlackText);
+        nameTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         nameTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, type == 0 ? 15 : 16);
         nameTextView.setLines(1);
         nameTextView.setTypeface(AndroidUtilities.bold());
@@ -139,7 +138,7 @@ public class SessionCell extends FrameLayout {
         }
 
         detailTextView = new TextView(context);
-        ThemeBind.textColor(detailTextView, Theme.key_windowBackgroundWhiteBlackText);
+        detailTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         detailTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, type == 0 ? 13 : 14);
         detailTextView.setLines(1);
         detailTextView.setMaxLines(1);
@@ -149,7 +148,7 @@ public class SessionCell extends FrameLayout {
         addView(detailTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, leftMargin, type == 0 ? 28 : 36, rightMargin, 0));
 
         detailExTextView = new TextView(context);
-        ThemeBind.textColor(detailExTextView, Theme.key_windowBackgroundWhiteGrayText3);
+        detailExTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3));
         detailExTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, type == 0 ? 13 : 14);
         detailExTextView.setLines(1);
         detailExTextView.setMaxLines(1);
@@ -243,8 +242,6 @@ public class SessionCell extends FrameLayout {
             if (spannableStringBuilder.length() != 0) {
                 DotDividerSpan dotDividerSpan = new DotDividerSpan();
                 dotDividerSpan.setTopPadding(dp(1.5f));
-                dotDividerSpan.setSize(7);
-                dotDividerSpan.setDotSize(2);
                 spannableStringBuilder.append(" . ").setSpan(dotDividerSpan, spannableStringBuilder.length() - 2, spannableStringBuilder.length() - 1, 0);
             }
             spannableStringBuilder.append(timeText);
@@ -270,7 +267,7 @@ public class SessionCell extends FrameLayout {
 
             setTag(Theme.key_windowBackgroundWhiteGrayText3);
             onlineTextView.setText(LocaleController.stringForMessageListDate(session.date_active));
-            ThemeBind.textColor(onlineTextView, Theme.key_windowBackgroundWhiteGrayText3);
+            onlineTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3));
 
             StringBuilder stringBuilder = new StringBuilder();
             if (session.ip.length() != 0) {

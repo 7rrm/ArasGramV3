@@ -30,7 +30,6 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.LaunchActivity;
 
 public abstract class BottomSheetWithRecyclerListView extends BottomSheet {
@@ -486,11 +485,11 @@ public abstract class BottomSheetWithRecyclerListView extends BottomSheet {
                     return super.dispatchTouchEvent(ev);
                 }
             };
-            ThemeBind.backgroundColor(actionBar, Theme.key_dialogBackground, resourcesProvider);
-            ThemeBind.actionBarTitleColor(actionBar, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-            ThemeBind.actionBarItemsBackgroundColor(actionBar, Theme.key_actionBarActionModeDefaultSelector, resourcesProvider, false);
+            actionBar.setBackgroundColor(getThemedColor(Theme.key_dialogBackground));
+            actionBar.setTitleColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
+            actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), false);
             actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-            ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarActionModeDefaultIcon, resourcesProvider, false);
+            actionBar.setItemsColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), false);
 
             actionBar.setCastShadows(true);
             actionBar.setTitle(getTitle());

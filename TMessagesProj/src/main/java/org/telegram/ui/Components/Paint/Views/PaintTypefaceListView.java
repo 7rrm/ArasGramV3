@@ -65,7 +65,7 @@ public class PaintTypefaceListView extends RecyclerListView implements Notificat
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        NotificationCenter.getGlobalInstance().addWeakObserver(this, NotificationCenter.customTypefacesLoaded);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.customTypefacesLoaded);
     }
 
     @Override

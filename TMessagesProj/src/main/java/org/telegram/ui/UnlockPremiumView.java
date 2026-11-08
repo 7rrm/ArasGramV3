@@ -15,7 +15,6 @@ import androidx.core.graphics.ColorUtils;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.ColoredImageSpan;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.Premium.PremiumButtonView;
@@ -34,7 +33,7 @@ public class UnlockPremiumView extends FrameLayout {
 
 
         TextView descriptionTextView = new TextView(context);
-        ThemeBind.textColor(descriptionTextView, ThemeBind.alpha(Theme.key_windowBackgroundWhiteBlackText, 100), resourcesProvider);
+        descriptionTextView.setTextColor(ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), 100));
         descriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         descriptionTextView.setGravity(Gravity.CENTER);
         if (type == TYPE_STICKERS) {

@@ -25,7 +25,6 @@ import org.telegram.ui.Components.LayoutHelper;
 
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
-import java.util.HashSet;
 
 @SuppressLint("ViewConstructor")
 public class FoundStickerPackCell extends FrameLayout implements FactorAnimator.Target, Theme.Colorable {
@@ -100,19 +99,13 @@ public class FoundStickerPackCell extends FrameLayout implements FactorAnimator.
     @Override
     public void updateColors() {
         if (bgSelected != null) {
-            // recolor in place (called on every theme frame)
-            Theme.setDrawableColor(bgSelected, ColorUtils.setAlphaComponent(
+            bgSelected = Theme.createRoundRectDrawable(dp(10), ColorUtils.setAlphaComponent(
                 Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider),
                 (int) (255 * 0.1f)));
             bgSelected.setAlpha((int) (255 * isSelected.getFloatValue()));
-            invalidate();
         }
         textView.setTextColor(ColorUtils.setAlphaComponent(
             Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider),
             (int) (255 * 0.9f)));
-    }
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_glass_defaultIcon);
     }
 }

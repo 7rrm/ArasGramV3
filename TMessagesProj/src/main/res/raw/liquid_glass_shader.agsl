@@ -6,6 +6,7 @@
 
 uniform shader img;
 
+uniform float2 resolution;
 uniform float2 center;
 uniform float2 size;
 uniform float4 radius;
@@ -29,7 +30,7 @@ half4 srcOver(half4 src, half4 dst) {
 
 half4 main(in float2 fragCoord) {
   half2 p = fragCoord - center;
-  half sdRaw = sdfRect(p, radius);
+  half sd = sdfRect(p, radius);
   half2 uv = fragCoord;
 
   half3 sampled;

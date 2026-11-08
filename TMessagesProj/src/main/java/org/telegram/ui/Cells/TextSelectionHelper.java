@@ -65,7 +65,6 @@ import org.telegram.ui.ActionBar.FloatingActionMode;
 import org.telegram.ui.ActionBar.FloatingToolbar;
 import org.telegram.ui.iv.RichTextCell;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ArticleViewer;
 import org.telegram.ui.Components.AnimatedEmojiSpan;
 import org.telegram.ui.Components.CornerPath;
@@ -529,39 +528,6 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
     private ActionBarPopupWindow popupWindow;
     private ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout;
     private TextView deleteView;
-    private final ArrayList<TextView> popupItemViews = new ArrayList<>();
-    private int popupSelectorColor;
-
-    /** the copy / cut / paste popup recolors itself on theme changes through getThemedColor (subclasses may override it) */
-    private class SelectionPopupLayout extends ActionBarPopupWindow.ActionBarPopupWindowLayout implements Theme.Colorable {
-
-        SelectionPopupLayout(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void updateColors() {
-            try {
-                setBackgroundColor(TextSelectionHelper.this.getThemedColor(Theme.key_actionBarDefaultSubmenuBackground));
-                final int textColor = TextSelectionHelper.this.getThemedColor(Theme.key_actionBarDefaultSubmenuItem);
-                final int selectorColor = TextSelectionHelper.this.getThemedColor(Theme.key_listSelector);
-                final boolean selectorChanged = selectorColor != popupSelectorColor;
-                popupSelectorColor = selectorColor;
-                for (int i = 0; i < popupItemViews.size(); ++i) {
-                    final TextView view = popupItemViews.get(i);
-                    if (view == null) {
-                        continue;
-                    }
-                    view.setTextColor(textColor);
-                    if (selectorChanged && view.getBackground() != null) {
-                        Theme.setSelectorDrawableColor(view.getBackground(), selectorColor, true);
-                    }
-                }
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
-        }
-    }
     private Rect popupRect;
 
     protected final Runnable showActionsRunnable = () -> {
@@ -596,9 +562,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                 if (!movingHandle && isInSelectionMode() && canShowActions()) {
                     if (popupLayout == null) {
                         popupRect = new android.graphics.Rect();
-                        popupLayout = new SelectionPopupLayout(textSelectionOverlay.getContext());
-                        popupItemViews.clear();
-                        popupSelectorColor = 0;
+                        popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(textSelectionOverlay.getContext());
                         popupLayout.setPadding(dp(1), dp(1), dp(1), dp(1));
                         popupLayout.setBackgroundDrawable(textSelectionOverlay.getContext().getResources().getDrawable(R.drawable.menu_copy));
                         popupLayout.setAnimationEnabled(false);
@@ -613,14 +577,13 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                         popupLayout.setShownFromBottom(false);
 
                         deleteView = new TextView(textSelectionOverlay.getContext());
-                        deleteView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 2));
+                        deleteView.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 2));
                         deleteView.setGravity(Gravity.CENTER_VERTICAL);
                         deleteView.setPadding(dp(20), 0, dp(20), 0);
                         deleteView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
                         deleteView.setTypeface(AndroidUtilities.bold());
                         deleteView.setText(textSelectionOverlay.getContext().getString(android.R.string.copy));
                         deleteView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
-                        popupItemViews.add(deleteView);
                         deleteView.setOnClickListener(v -> {
                             copyText();
                         });
@@ -628,14 +591,13 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
 
                         if (canCut()) {
                             TextView cutView = new TextView(textSelectionOverlay.getContext());
-                            cutView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 2));
+                            cutView.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 2));
                             cutView.setGravity(Gravity.CENTER_VERTICAL);
                             cutView.setPadding(dp(20), 0, dp(20), 0);
                             cutView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
                             cutView.setTypeface(AndroidUtilities.bold());
                             cutView.setText(textSelectionOverlay.getContext().getString(android.R.string.cut));
                             cutView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
-                            popupItemViews.add(cutView);
                             cutView.setOnClickListener(v -> {
                                 onCutAction();
                                 hideActions();
@@ -645,14 +607,13 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
 
                         if (canPaste()) {
                             TextView pasteView = new TextView(textSelectionOverlay.getContext());
-                            pasteView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 2));
+                            pasteView.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 2));
                             pasteView.setGravity(Gravity.CENTER_VERTICAL);
                             pasteView.setPadding(dp(20), 0, dp(20), 0);
                             pasteView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
                             pasteView.setTypeface(AndroidUtilities.bold());
                             pasteView.setText(textSelectionOverlay.getContext().getString(android.R.string.paste));
                             pasteView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubmenuItem));
-                            popupItemViews.add(pasteView);
                             pasteView.setOnClickListener(v -> {
                                 onPasteAction();
                                 hideActions();
@@ -2483,7 +2444,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
             x -= offsetX;
             y -= offsetY;
 
-            Layout lastLayout;
+            StaticLayout lastLayout;
             float yOffset = 0;
 
             boolean isDescription = maybe ? maybeIsDescription : this.isDescription;
@@ -2499,8 +2460,8 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                     return -1;
                 }
                 TextLayoutBlock lastBlock = rich.textBlocks.get(rich.textBlocks.size() - 1);
-                // Any Layout: a widget's selectable text is a Layout of its own (WidgetText), not a StaticLayout.
-                lastLayout = lastBlock.getLayout();
+                Layout l = lastBlock.getLayout();
+                lastLayout = l instanceof StaticLayout ? (StaticLayout) l : null;
                 yOffset = lastBlock.getY();
             } else if (cell.hasCaptionLayout()) {
                 MessageObject.TextLayoutBlock lastBlock = cell.getCaptionLayout().textLayoutBlocks.get(cell.getCaptionLayout().textLayoutBlocks.size() - 1);
@@ -2624,7 +2585,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                         }
                         layoutBlock.xOffset = -(block.isRtl() ? (int) Math.ceil(captionLayout.textXOffset) - offsetX : 0);
                         if (block.code && !block.quote) {
-                            layoutBlock.xOffset += block.compactCode ? dp(MessageObject.TextLayoutBlock.COMPACT_CODE_HPAD) : dp(8);
+                            layoutBlock.xOffset += dp(8);
                         }
                         layoutBlock.charOffset = block.charactersOffset;
                         return;
@@ -2646,7 +2607,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                     }
                     layoutBlock.xOffset = -(block.isRtl() ? (int) Math.ceil(messageObject.textXOffset) - offsetX : 0);
                     if (block.code && !block.quote) {
-                        layoutBlock.xOffset += block.compactCode ? dp(MessageObject.TextLayoutBlock.COMPACT_CODE_HPAD) : dp(8);
+                        layoutBlock.xOffset += dp(8);
                     }
                     layoutBlock.charOffset = block.charactersOffset;
                     return;
@@ -2712,7 +2673,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                     }
                     layoutBlock.xOffset = -(firstBlock.isRtl() ? (int) Math.ceil(captionLayout.textXOffset) - offsetX : 0);
                     if (firstBlock.code && !firstBlock.quote) {
-                        layoutBlock.xOffset += firstBlock.compactCode ? dp(MessageObject.TextLayoutBlock.COMPACT_CODE_HPAD) : dp(8);
+                        layoutBlock.xOffset += dp(8);
                     }
                     layoutBlock.charOffset = 0;
                     return;
@@ -2730,7 +2691,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                         }
                         layoutBlock.xOffset = -(block.isRtl() ? (int) Math.ceil(captionLayout.textXOffset) - offsetX : 0);
                         if (block.code && !block.quote) {
-                            layoutBlock.xOffset += block.compactCode ? dp(MessageObject.TextLayoutBlock.COMPACT_CODE_HPAD) : dp(8);
+                            layoutBlock.xOffset += dp(8);
                         }
                         layoutBlock.charOffset = block.charactersOffset;
                         return;
@@ -2756,7 +2717,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                 }
                 layoutBlock.xOffset = -(firstBlock.isRtl() ? (int) Math.ceil(messageObject.textXOffset) - offsetX : 0);
                 if (firstBlock.code && !firstBlock.quote) {
-                    layoutBlock.xOffset += firstBlock.compactCode ? dp(MessageObject.TextLayoutBlock.COMPACT_CODE_HPAD) : dp(8);
+                    layoutBlock.xOffset += dp(8);
                 }
                 layoutBlock.charOffset = 0;
                 return;
@@ -2774,7 +2735,7 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                     }
                     layoutBlock.xOffset = -(block.isRtl() ? (int) Math.ceil(messageObject.textXOffset) - offsetX : 0);
                     if (block.code && !block.quote) {
-                        layoutBlock.xOffset += block.compactCode ? dp(MessageObject.TextLayoutBlock.COMPACT_CODE_HPAD) : dp(8);
+                        layoutBlock.xOffset += dp(8);
                     }
                     layoutBlock.charOffset = block.charactersOffset;
                     return;

@@ -70,13 +70,12 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.SimpleActionBarMenu;
+import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Business.QuickRepliesController;
 import org.telegram.ui.Cells.FeaturedStickerSetCell2;
@@ -95,6 +94,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EmojiPacksAlert;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ReorderingBulletinLayout;
@@ -107,7 +107,6 @@ import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
-import org.telegram.utils.glass.BaseFragmentSimpleGlass;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -132,7 +131,6 @@ import tw.nekomimi.nekogram.utils.AlertUtil;
 import tw.nekomimi.nekogram.utils.FileUtil;
 import tw.nekomimi.nekogram.utils.ShareUtil;
 import tw.nekomimi.nekogram.utils.StickersUtil;
-import org.telegram.ui.ActionBar.ActionBarMenu;
 
 public class StickersActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
@@ -147,6 +145,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
     private UniversalRecyclerView listView;
     @SuppressWarnings("FieldCanBeLocal")
     private LinearLayoutManager layoutManager;
+    private NumberTextView selectedCountTextView;
     private TrendingStickersAlert trendingStickersAlert;
 
     private ArrayList<TLRPC.TL_messages_stickerSet> sets;
@@ -228,12 +227,12 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
             MediaDataController.getInstance(currentAccount).checkStickers(TYPE_EMOJIPACKS);
         } else if (currentType == MediaDataController.TYPE_FEATURED_EMOJIPACKS) {
             MediaDataController.getInstance(currentAccount).checkFeaturedEmoji();
-            NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.featuredEmojiDidLoad);
+            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.featuredEmojiDidLoad);
         }
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.stickersDidLoad);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.archivedStickersCountDidLoad);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.featuredStickersDidLoad);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.stickersDidLoad);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.archivedStickersCountDidLoad);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.featuredStickersDidLoad);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
         return true;
     }
 
@@ -255,22 +254,17 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
-        simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
+        actionBar.setBackButtonDrawable(new BackDrawable(false));
+        actionBar.setAllowOverlayTitle(true);
         if (currentType == TYPE_IMAGE) {
-            simpleActionBar.setTitle(getString(R.string.StickersName));
+            actionBar.setTitle(getString(R.string.StickersName));
         } else if (currentType == TYPE_MASK) {
-            simpleActionBar.setTitle(getString(R.string.Masks));
+            actionBar.setTitle(getString(R.string.Masks));
         } else if (currentType == TYPE_EMOJIPACKS) {
-            simpleActionBar.setTitle(getString(R.string.Emoji));
+            actionBar.setTitle(getString(R.string.Emoji));
         }
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -290,7 +284,14 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
         otherItem.addSubItem(menu_export, R.drawable.msg_instant_link_solar, getString(R.string.ExportStickers));
         otherItem.addSubItem(menu_import, R.drawable.msg_photo_settings_solar, getString(R.string.ImportStickersX));
 
-        SimpleActionBarMenu actionMode = simpleActionBar.createActionMode();
+        ActionBarMenu actionMode = actionBar.createActionMode();
+        selectedCountTextView = new NumberTextView(actionMode.getContext());
+        selectedCountTextView.setTextSize(18);
+        selectedCountTextView.setTypeface(AndroidUtilities.bold());
+        selectedCountTextView.setTextColor(Theme.getColor(Theme.key_actionBarActionModeDefaultIcon));
+        actionMode.addView(selectedCountTextView, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 72, 0, 0, 0));
+        selectedCountTextView.setOnTouchListener((v, event) -> true);
+
         shareMenuItem = actionMode.addItemWithWidth(MENU_SHARE, R.drawable.msg_share, dp(54));
         exportMenuItem = actionMode.addItemWithWidth(MENU_EXPORT, R.drawable.msg_instant_link_solar, AndroidUtilities.dp(54));
         archiveMenuItem = actionMode.addItemWithWidth(MENU_ARCHIVE, R.drawable.msg_archive, dp(54));
@@ -305,11 +306,12 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
 
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
         listView.setSections();
+        actionBar.setAdaptiveBackground(listView);
         listView.setFocusable(true);
-        listView.setSectionsDrawBackground(true);
         listView.setTag(7);
         listView.listenReorder(this::whenReordered);
         layoutManager = new LinearLayoutManager(context) {
@@ -329,10 +331,6 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
         return fragmentView;
     }
 
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
-    }
 
     @Override
     public boolean onBackPressed(boolean invoked) {
@@ -846,12 +844,12 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
 
     private void checkActionMode() {
         final int selectedCount = getSelectedCount();
-        final boolean actionModeShowed = simpleActionBar.isActionModeShowed();
+        final boolean actionModeShowed = actionBar.isActionModeShowed();
         if (selectedCount > 0) {
             checkActionModeIcons();
-            simpleActionBar.setActionModeCount(selectedCount, actionModeShowed);
+            selectedCountTextView.setNumber(selectedCount, actionModeShowed);
             if (!actionModeShowed) {
-                simpleActionBar.showActionMode();
+                actionBar.showActionMode();
                 listView.allowReorder(true);
                 if (!SharedConfig.stickersReorderingHintUsed && currentType != MediaDataController.TYPE_EMOJIPACKS) {
                     SharedConfig.setStickersReorderingHintUsed(true);
@@ -860,7 +858,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
                 }
             }
         } else if (actionModeShowed) {
-            simpleActionBar.hideActionMode();
+            actionBar.hideActionMode();
             listView.allowReorder(false);
             sendReorder();
         }
@@ -1069,7 +1067,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
                     if (which == MENU_DELETE) {
                         TextView button = (TextView) dialog.getButton(DialogInterface.BUTTON_POSITIVE);
                         if (button != null) {
-                            ThemeBind.textColor(button, Theme.key_text_RedBold);
+                            button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                         }
                     }
                     break;
@@ -1167,16 +1165,38 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{StickerSetCell.class, TextSettingsCell.class, TextCheckCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
 
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_AM_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarActionModeDefaultIcon));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_AM_BACKGROUND, null, null, null, null, Theme.key_actionBarActionModeDefault));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_AM_TOPBACKGROUND, null, null, null, null, Theme.key_actionBarActionModeDefaultTop));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_AM_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarActionModeDefaultSelector));
+        themeDescriptions.add(new ThemeDescription(selectedCountTextView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_actionBarActionModeDefaultIcon));
 
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{View.class}, Theme.dividerPaint, null, null, Theme.key_divider));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrack));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackChecked));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LINKCOLOR, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteLinkText));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSetCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSetCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_USEBACKGROUNDDRAWABLE | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, new Class[]{StickerSetCell.class}, new String[]{"optionsButton"}, null, null, null, Theme.key_stickers_menuSelector));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSetCell.class}, new String[]{"optionsButton"}, null, null, null, Theme.key_stickers_menu));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{StickerSetCell.class}, new String[]{"reorderButton"}, null, null, null, Theme.key_stickers_menu));
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CHECKBOX, new Class[]{StickerSetCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CHECKBOXCHECK, new Class[]{StickerSetCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_checkboxCheck));
 
@@ -1192,26 +1212,10 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
         return true;
     }
 
-
-    /** theme editor: colors this page shows (former ThemeDescription keys) */
     @Override
-    public void addThemeColorKeys(HashSet<Integer> keys) {
-        super.addThemeColorKeys(keys);
-        keys.add(Theme.key_stickers_menu);
-        keys.add(Theme.key_stickers_menuSelector);
-        keys.add(Theme.key_windowBackgroundWhiteGrayText2);
-        keys.add(Theme.key_windowBackgroundWhiteBlackText);
-        keys.add(Theme.key_windowBackgroundWhiteValueText);
-        keys.add(Theme.key_windowBackgroundWhiteLinkText);
-        keys.add(Theme.key_windowBackgroundWhiteGrayText4);
-        keys.add(Theme.key_divider);
-        keys.add(Theme.key_listSelector);
-        keys.add(Theme.key_actionBarActionModeDefaultSelector);
-        keys.add(Theme.key_actionBarActionModeDefaultIcon);
-        keys.add(Theme.key_actionBarDefaultSelector);
-        keys.add(Theme.key_actionBarDefaultTitle);
-        keys.add(Theme.key_actionBarDefaultIcon);
-        keys.add(Theme.key_actionBarDefault);
+    public void onInsets(int left, int top, int right, int bottom) {
+        listView.setPadding(0, 0, 0, bottom);
+        listView.setClipToPadding(false);
     }
 
     private void openFilePicker() {

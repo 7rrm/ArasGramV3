@@ -15,7 +15,6 @@ public class DotDividerSpan extends ReplacementSpan {
     int color;
     int topPadding;
     private float size = 3;
-    private float dotSize = 3;
 
     @Override
     public int getSize(@NonNull Paint paint, CharSequence charSequence, int i, int i1, @Nullable Paint.FontMetricsInt fontMetricsInt) {
@@ -28,7 +27,7 @@ public class DotDividerSpan extends ReplacementSpan {
             p.setColor(paint.getColor());
         }
         float offset = AndroidUtilities.dpf2(size) / 2f;
-        float radius = AndroidUtilities.dpf2(dotSize) / 2f;
+        float radius = AndroidUtilities.dpf2(3) / 2f;
         canvas.drawCircle(x + offset, (bottom - top) / 2 + topPadding, radius, p);
     }
 
@@ -38,9 +37,5 @@ public class DotDividerSpan extends ReplacementSpan {
 
     public void setSize(float size) {
         this.size = size;
-    }
-
-    public void setDotSize(float dotSize) {
-        this.dotSize = dotSize;
     }
 }

@@ -1,7 +1,5 @@
 package org.telegram.ui;
 
-import static org.telegram.messenger.AndroidUtilities.dp;
-import static org.telegram.messenger.AndroidUtilities.find;
 import static org.telegram.ui.CacheControlActivity.TYPE_DOCUMENTS;
 import static org.telegram.ui.CacheControlActivity.TYPE_MUSIC;
 import static org.telegram.ui.CacheControlActivity.TYPE_VIDEOS;
@@ -9,7 +7,6 @@ import static org.telegram.ui.CacheControlActivity.UNKNOWN_CHATS_DIALOG_ID;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -19,7 +16,6 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -50,7 +46,6 @@ import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.SharedAudioCell;
 import org.telegram.ui.Cells.SharedDocumentCell;
 import org.telegram.ui.Cells.SharedPhotoVideoCell2;
@@ -63,18 +58,15 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.ListView.AdapterWithDiffUtils;
 import org.telegram.ui.Components.NestedSizeNotifierLayout;
 import org.telegram.ui.Components.RecyclerListView;
-import org.telegram.ui.Components.RecyclerPagerView;
-import org.telegram.ui.Components.SiblingRecyclerPagerLayout;
 import org.telegram.ui.Components.ViewPagerFixed;
 import org.telegram.ui.Storage.CacheModel;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
-import org.telegram.utils.glass.GlassEngine;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, NestedSizeNotifierLayout.ChildLayout {
+public class CachedMediaLayout extends FrameLayout implements NestedSizeNotifierLayout.ChildLayout {
 
     private static final int PAGE_TYPE_CHATS = 0;
     private static final int PAGE_TYPE_MEDIA = 1;
@@ -91,8 +83,8 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
     private final ArrayList<View> actionModeViews = new ArrayList<>();
     public final AnimatedTextView selectedMessagesCountTextView;
     private final ActionBarMenuItem clearItem;
-    public final FrameLayout tabsContainer;
     private final ViewPagerFixed.TabsView tabs;
+    private final View divider;
 
     BaseFragment parentFragment;
 
@@ -103,25 +95,11 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
     Page[] allPages = new Page[5];
 
     BasePlaceProvider placeProvider;
-    private int listPaddingTop;
-    private int listPaddingBottom;
-    private final SiblingRecyclerPagerLayout scrollCoordinator;
+    private int bottomPadding;
 
-    /** Creates the legacy embedded layout used by bottom sheets and existing callers. */
-    public CachedMediaLayout(@NonNull Context context, BaseFragment parentFragment, GlassEngine glassEngine) {
-        this(context, parentFragment, glassEngine, null);
-    }
-
-    /** Creates fullscreen composite pages when a sibling-scroll coordinator is supplied. */
-    public CachedMediaLayout(@NonNull Context context, BaseFragment parentFragment, GlassEngine glassEngine,
-                             SiblingRecyclerPagerLayout scrollCoordinator) {
+    public CachedMediaLayout(@NonNull Context context, BaseFragment parentFragment) {
         super(context);
         this.parentFragment = parentFragment;
-        this.scrollCoordinator = scrollCoordinator;
-        if (scrollCoordinator != null) {
-            setClipChildren(false);
-            setClipToPadding(false);
-        }
 
         int CacheTabChats;
         allPages[PAGE_TYPE_CHATS] = new Page(LocaleController.getString(R.string.FilterChats), PAGE_TYPE_CHATS, new DialogsAdapter());
@@ -138,21 +116,14 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             pages.add(i, allPages[i]);
         }
 
-        tabsContainer = new FrameLayout(context);
-        viewPagerFixed = scrollCoordinator == null ? new ViewPagerFixed(getContext())
-                : new RecyclerPagerView(context, parentFragment.getResourceProvider(), scrollCoordinator);
+        viewPagerFixed = new ViewPagerFixed(getContext());
         viewPagerFixed.setAllowDisallowInterceptTouch(false);
-        if (glassEngine != null) {
-            glassEngine.addScrolledView(viewPagerFixed);
-        }
-        addView(viewPagerFixed, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT,
-                Gravity.TOP, 0, glassEngine != null || scrollCoordinator != null ? 0 : 48, 0, 0));
-        tabsContainer.addView(tabs = viewPagerFixed.createTabsView(true, glassEngine != null ? ViewPagerFixed.SELECTOR_TYPE_BUBBLE_STYLE : 3), LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 6 + 6));
-        if (glassEngine != null) {
-            tabsContainer.setPadding(dp(4), dp(4), dp(4), dp(4));
-        }
-        addView(tabsContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, -4, 0, -4, 0));
-
+        addView(viewPagerFixed, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, 0, 0, 48, 0, 0));
+        addView(tabs = viewPagerFixed.createTabsView(true, 3), LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48));
+        divider = new View(getContext());
+        divider.setBackgroundColor(Theme.getColor(Theme.key_divider));
+        addView(divider, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 1, 0, 0, 48, 0, 0));
+        divider.getLayoutParams().height = 1;
         viewPagerFixed.setAdapter(new ViewPagerFixed.Adapter() {
 
             private ActionBarPopupWindow popupWindow;
@@ -173,31 +144,14 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             }
 
             @Override
-            public int getItemViewType(int position) {
-                return pages.get(position).type;
-            }
-
-            @Override
             public View createView(int viewType) {
                 RecyclerListView recyclerListView = new RecyclerListView(context);
-                if (glassEngine != null) {
-                    glassEngine.addScrolledView(recyclerListView);
-                }
 
                 DefaultItemAnimator itemAnimator = (DefaultItemAnimator) recyclerListView.getItemAnimator();
                 itemAnimator.setDelayAnimations(false);
                 itemAnimator.setSupportsChangeAnimations(false);
                 recyclerListView.setClipToPadding(false);
-                if (viewType != PAGE_TYPE_MEDIA && viewType != PAGE_TYPE_STORIES && glassEngine != null) {
-                    recyclerListView.setSections(false);
-                }
-
-                recyclerListView.setCaptureSectionsDecoratorAllowed(true);
-                if (viewType == PAGE_TYPE_MEDIA) {
-                    recyclerListView.setPadding(dp(2), listPaddingTop, 0, listPaddingBottom);
-                } else {
-                    recyclerListView.setPadding(0, listPaddingTop, 0, listPaddingBottom);
-                }
+                recyclerListView.setPadding(0, 0, 0, bottomPadding);
                 recyclerListView.setOnItemClickListener(new RecyclerListView.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
@@ -288,13 +242,12 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
                     }
                     return true;
                 });
-
-                return scrollCoordinator == null ? recyclerListView : new PageView(context, recyclerListView);
+                return recyclerListView;
             }
 
             @Override
             public void bindView(View view, int position, int viewType) {
-                RecyclerListView recyclerListView = getPageListView(view);
+                RecyclerListView recyclerListView = (RecyclerListView) view;
                 recyclerListView.setAdapter(pages.get(position).adapter);
                 if (pages.get(position).type == PAGE_TYPE_MEDIA || pages.get(position).type == PAGE_TYPE_STORIES) {
                     recyclerListView.setLayoutManager(new GridLayoutManager(view.getContext(), 3));
@@ -302,10 +255,6 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
                     recyclerListView.setLayoutManager(new LinearLayoutManager(view.getContext()));
                 }
                 recyclerListView.setTag(pages.get(position).type);
-                view.setTag(pages.get(position).type);
-                if (scrollCoordinator != null) {
-                    ((RecyclerPagerView) viewPagerFixed).onPageBound(view);
-                }
             }
 
             @Override
@@ -316,7 +265,7 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
         });
 
         actionModeLayout = new LinearLayout(context);
-        ThemeBind.backgroundColor(actionModeLayout, Theme.key_windowBackgroundWhite);
+        actionModeLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         actionModeLayout.setAlpha(0.0f);
         actionModeLayout.setClickable(true);
         addView(actionModeLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48));
@@ -326,32 +275,30 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
         closeButton.setScaleType(ImageView.ScaleType.CENTER);
         closeButton.setImageDrawable(backDrawable = new BackDrawable(true));
         backDrawable.setColor(Theme.getColor(Theme.key_actionBarActionModeDefaultIcon));
-        ThemeBind.selectorBackground(closeButton, Theme.createSelectorDrawable(Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), 1), null, ThemeBind.of(Theme.key_actionBarActionModeDefaultSelector));
+        closeButton.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), 1));
         closeButton.setContentDescription(LocaleController.getString(R.string.Close));
-        actionModeLayout.addView(closeButton, new LinearLayout.LayoutParams(dp(54), ViewGroup.LayoutParams.MATCH_PARENT));
+        actionModeLayout.addView(closeButton, new LinearLayout.LayoutParams(AndroidUtilities.dp(54), ViewGroup.LayoutParams.MATCH_PARENT));
         actionModeViews.add(closeButton);
-        closeButton.setOnClickListener(v -> delegate.clearSelection());
+        closeButton.setOnClickListener(v -> {
+            delegate.clearSelection();
+        });
 
         selectedMessagesCountTextView = new AnimatedTextView(context, true, true, true);
-        selectedMessagesCountTextView.setTextSize(dp(18));
+        selectedMessagesCountTextView.setTextSize(AndroidUtilities.dp(18));
         selectedMessagesCountTextView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.textColor(selectedMessagesCountTextView, Theme.key_actionBarActionModeDefaultIcon);
+        selectedMessagesCountTextView.setTextColor(Theme.getColor(Theme.key_actionBarActionModeDefaultIcon));
         actionModeLayout.addView(selectedMessagesCountTextView, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 18, 0, 0, 0));
         actionModeViews.add(selectedMessagesCountTextView);
 
         clearItem = new ActionBarMenuItem(context, null, Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), Theme.getColor(Theme.key_actionBarActionModeDefaultIcon), false);
         clearItem.setIcon(R.drawable.msg_clear);
-        if (clearItem.getBackground() != null) {
-            ThemeBind.selectorBackground(clearItem, clearItem.getBackground(), null, ThemeBind.of(Theme.key_actionBarActionModeDefaultSelector));
-        }
-        if (clearItem.getIconView() != null) {
-            ThemeBind.colorFilter(clearItem.getIconView(), Theme.key_actionBarActionModeDefaultIcon, PorterDuff.Mode.SRC_IN);
-        }
         clearItem.setContentDescription(LocaleController.getString(R.string.Delete));
         clearItem.setDuplicateParentStateEnabled(false);
-        actionModeLayout.addView(clearItem, new LinearLayout.LayoutParams(dp(54), ViewGroup.LayoutParams.MATCH_PARENT));
+        actionModeLayout.addView(clearItem, new LinearLayout.LayoutParams(AndroidUtilities.dp(54), ViewGroup.LayoutParams.MATCH_PARENT));
         actionModeViews.add(clearItem);
-        clearItem.setOnClickListener(v -> delegate.clear());
+        clearItem.setOnClickListener(v -> {
+            delegate.clear();
+        });
     }
 
     private void openPhoto(ItemInner itemInner, MediaAdapter adapter, RecyclerListView recyclerListView, SharedPhotoVideoCell2 view) {
@@ -368,7 +315,7 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
     }
 
     private void openItem(CacheModel.FileInfo fileInfo, CacheCell cacheCell) {
-        RecyclerListView recyclerListView = getListView();
+        RecyclerListView recyclerListView = (RecyclerListView) viewPagerFixed.getCurrentView();
         if (cacheCell.type == TYPE_DOCUMENTS) {
             if (!(recyclerListView.getAdapter() instanceof DocumentsAdapter)) {
                 return;
@@ -419,47 +366,6 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
         update();
     }
 
-    private int targetTabsPosition;
-    private boolean tabsExternallyManaged;
-
-    public FrameLayout takeTabsContainer() {
-        tabsExternallyManaged = true;
-        AndroidUtilities.removeFromParent(tabsContainer);
-        tabsContainer.setTranslationY(0);
-        return tabsContainer;
-    }
-
-    public void setTargetTabsPosition(int targetTabsPosition) {
-        this.targetTabsPosition = targetTabsPosition;
-    }
-
-    ViewTreeObserver.OnPreDrawListener onPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
-        @Override
-        public boolean onPreDraw() {
-            if (tabsExternallyManaged) {
-                return true;
-            }
-            final float y = getY();
-            final float ty = Math.max(0, targetTabsPosition - y);
-            if (tabsContainer.getTranslationY() != ty) {
-                tabsContainer.setTranslationY(ty);
-            }
-            return true;
-        }
-    };
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        getViewTreeObserver().addOnPreDrawListener(onPreDrawListener);
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
-    }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         //itemSize = ((MeasureSpec.getSize(widthMeasureSpec) - AndroidUtilities.dp(6 * 2) - AndroidUtilities.dp(5 * 2)) / 3);
@@ -493,6 +399,7 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
         if (pages.size() == 1 && cacheModel.isDialog) {
             tabs.setVisibility(View.GONE);
             ((MarginLayoutParams) viewPagerFixed.getLayoutParams()).topMargin = 0;
+            ((MarginLayoutParams) divider.getLayoutParams()).topMargin = 0;
         }
         boolean rebuildPager = false;
         if (oldPages.size() == pages.size()) {
@@ -506,34 +413,21 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             rebuildPager = true;
         }
         if (rebuildPager) {
-            // Data replacement is not a user page switch. ViewPagerFixed.rebuild uses reversed
-            // page slots for its animation; keep that separate from coordinated swipe geometry.
-            viewPagerFixed.rebuild(scrollCoordinator == null);
+            viewPagerFixed.rebuild(true);
         }
         for (int i = 0; i < pages.size(); i++) {
             if (pages.get(i).adapter != null) {
                 pages.get(i).adapter.update();
             }
         }
-        if (scrollCoordinator != null) {
-            scrollCoordinator.onPagerChanged();
-        }
-    }
-
-    /** Returns the pager for sibling-layer installation; legacy callers need not use this hook. */
-    public ViewPagerFixed getViewPager() {
-        return viewPagerFixed;
-    }
-
-    /** Resolves either a legacy bare list or a composite page; returns null for an empty page slot. */
-    public RecyclerListView getPageListView(View page) {
-        if (page == null) return null;
-        return page instanceof PageView ? ((PageView) page).list : (RecyclerListView) page;
     }
 
     @Override
     public RecyclerListView getListView() {
-        return getPageListView(viewPagerFixed.getCurrentView());
+        if (viewPagerFixed.getCurrentView() == null) {
+            return null;
+        }
+        return (RecyclerListView) viewPagerFixed.getCurrentView();
     }
 
     @Override
@@ -543,22 +437,17 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
 
     public void updateVisibleRows() {
         for (int i = 0; i < viewPagerFixed.getViewPages().length; i++) {
-            RecyclerListView recyclerListView = getPageListView(viewPagerFixed.getViewPages()[i]);
-            if (recyclerListView != null) {
-                AndroidUtilities.updateVisibleRows(recyclerListView);
-            }
+            RecyclerListView recyclerListView = (RecyclerListView) viewPagerFixed.getViewPages()[i];
+            AndroidUtilities.updateVisibleRows(recyclerListView);
         }
     }
 
-    /** Sets legacy embedded-page padding; coordinated pages receive geometry from their root. */
-    public void setListPadding(int top, int bottom) {
-        if (scrollCoordinator != null) return;
-        listPaddingTop = top;
-        listPaddingBottom = bottom;
+    public void setBottomPadding(int padding) {
+        this.bottomPadding = padding;
         for (int i = 0; i < viewPagerFixed.getViewPages().length; i++) {
-            RecyclerListView recyclerListView = getPageListView(viewPagerFixed.getViewPages()[i]);
+            RecyclerListView recyclerListView = (RecyclerListView) viewPagerFixed.getViewPages()[i];
             if (recyclerListView != null) {
-                recyclerListView.setPadding(recyclerListView.getPaddingLeft(), top, recyclerListView.getPaddingRight(), bottom);
+                recyclerListView.setPadding(0, 0, 0, padding);
             }
         }
     }
@@ -578,19 +467,6 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
 //    public boolean actionModeIsVisible() {
 //        return actionModeLayout.getVisibility() == View.VISIBLE;
 //    }
-
-    private static final class PageView extends FrameLayout {
-        final RecyclerListView list;
-
-        PageView(Context context, RecyclerListView list) {
-            super(context);
-            this.list = list;
-            setClipChildren(false);
-            setClipToPadding(false);
-            setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-            addView(list, new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        }
-    }
 
     private class Page {
         final public String title;
@@ -666,6 +542,7 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             switch (viewType) {
                 case VIEW_TYPE_CHAT:
                     CacheControlActivity.UserCell userCell = new CacheControlActivity.UserCell(getContext(), null);
+                    userCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     view = userCell;
                     break;
             }
@@ -689,7 +566,7 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
                         title = DialogObject.setDialogPhotoTitle(userCell.getImageView(), object);
                     }
                     userCell.dialogFileEntities = dialogFileEntities;
-                    userCell.getImageView().setRoundRadius(dp(object instanceof TLRPC.Chat && ((TLRPC.Chat) object).forum ? 12 : 19));
+                    userCell.getImageView().setRoundRadius(AndroidUtilities.dp(object instanceof TLRPC.Chat && ((TLRPC.Chat) object).forum ? 12 : 19));
                     userCell.setTextAndValue(title, AndroidUtilities.formatFileSize(dialogFileEntities.totalSize), position < getItemCount() - 1);
                     userCell.setChecked(cacheModel.isSelected(dialogFileEntities.dialogId), animated);
                     break;
@@ -907,7 +784,7 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             if (!animated) {
                 cell.setPhoto(file.file.getPath());
             }
-            cell.getImageView().setRoundRadius(file.messageType == MessageObject.TYPE_ROUND_VIDEO ?  dp(20) : dp(4));
+            cell.getImageView().setRoundRadius(file.messageType == MessageObject.TYPE_ROUND_VIDEO ?  AndroidUtilities.dp(20) : AndroidUtilities.dp(4));
             cacheCell.drawDivider = divider;
             cacheCell.sizeTextView.setText(AndroidUtilities.formatFileSize(file.size));
             cacheCell.checkBox.setChecked(cacheModel.isSelected(file), animated);
@@ -1055,7 +932,7 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
 
     private void updateRow(CacheModel.FileInfo fileInfo, int pageType) {
         for (int i = 0; i < viewPagerFixed.getViewPages().length; i++) {
-            RecyclerListView recyclerListView = getPageListView(viewPagerFixed.getViewPages()[i]);
+            RecyclerListView recyclerListView = (RecyclerListView) viewPagerFixed.getViewPages()[i];
             if (recyclerListView != null && ((BaseAdapter)recyclerListView.getAdapter()).type == pageType) {
                 BaseAdapter adapter = (BaseAdapter) recyclerListView.getAdapter();
                 for (int k = 0; k < adapter.itemInners.size(); k++) {
@@ -1160,7 +1037,7 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             sizeTextView = new TextView(context);
             sizeTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             sizeTextView.setGravity(Gravity.RIGHT);
-            ThemeBind.textColor(sizeTextView, Theme.key_windowBackgroundWhiteBlueText);
+            sizeTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
 
             if (LocaleController.isRTL) {
                 addView(checkBox, LayoutHelper.createFrame(24, 24, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 18, 0));
@@ -1180,9 +1057,9 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
             super.dispatchDraw(canvas);
             if (drawDivider) {
                 if (LocaleController.isRTL) {
-                    canvas.drawLine(0, getMeasuredHeight() - 1, getMeasuredWidth() - dp(48), getMeasuredHeight() - 1, Theme.dividerPaint);
+                    canvas.drawLine(0, getMeasuredHeight() - 1, getMeasuredWidth() - AndroidUtilities.dp(48), getMeasuredHeight() - 1, Theme.dividerPaint);
                 } else {
-                    canvas.drawLine(getMeasuredWidth() - dp(90), getMeasuredHeight() - 1, getMeasuredWidth(), getMeasuredHeight() - 1, Theme.dividerPaint);
+                    canvas.drawLine(getMeasuredWidth() - AndroidUtilities.dp(90), getMeasuredHeight() - 1, getMeasuredWidth(), getMeasuredHeight() - 1, Theme.dividerPaint);
                 }
             }
         }
@@ -1195,15 +1072,5 @@ public class CachedMediaLayout extends FrameLayout implements Theme.Colorable, N
     public static boolean fileIsMedia(File file) {
         String name = file.getName().toLowerCase();
         return file.getName().endsWith("mp4") || file.getName().endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || name.endsWith(".gif");
-    }
-
-    @Override
-    public void updateColors() {
-        try {
-            backDrawable.setColor(Theme.getColor(Theme.key_actionBarActionModeDefaultIcon));
-            invalidate();
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
     }
 }

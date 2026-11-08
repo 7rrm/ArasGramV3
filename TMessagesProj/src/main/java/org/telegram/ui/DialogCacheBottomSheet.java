@@ -1,7 +1,6 @@
 package org.telegram.ui;
 
 import android.content.Context;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
 import android.view.View;
@@ -18,7 +17,6 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.BottomSheetWithRecyclerListView;
@@ -72,10 +70,8 @@ public class DialogCacheBottomSheet extends BottomSheetWithRecyclerListView {
                 } else {
                     TextInfoPrivacyCell textInfoPrivacyCell = new TextInfoPrivacyCell(parent.getContext());
                     textInfoPrivacyCell.setFixedSize(12);
-                    final ColorDrawable backgroundDrawable = new ColorDrawable(Theme.getColor(Theme.key_windowBackgroundGray));
-                    ThemeBind.drawableColorFilter(textInfoPrivacyCell, backgroundDrawable, Theme.key_windowBackgroundGray, PorterDuff.Mode.SRC_IN);
                     CombinedDrawable combinedDrawable = new CombinedDrawable(
-                            backgroundDrawable,
+                            new ColorDrawable(Theme.getColor(Theme.key_windowBackgroundGray)),
                             Theme.getThemedDrawableByKey(parent.getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow)
                     );
                     combinedDrawable.setFullsize(true);
@@ -183,11 +179,7 @@ public class DialogCacheBottomSheet extends BottomSheetWithRecyclerListView {
                 checkBoxCell.setBackgroundDrawable(Theme.getSelectorDrawable(false));
                 linearLayout.addView(checkBoxCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
                 checkBoxCell.setText(name, AndroidUtilities.formatFileSize(size), true, true);
-                if (checkBoxCell.getTextView() != null) {
-                    ThemeBind.textColor(checkBoxCell.getTextView(), Theme.key_dialogTextBlack);
-                } else {
-                    checkBoxCell.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
-                }
+                checkBoxCell.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
                 checkBoxCell.setCheckBoxColor(color, Theme.key_windowBackgroundWhiteGrayIcon, Theme.key_checkboxCheck);
                 checkBoxCell.setOnClickListener(v -> {
                     int enabledCount = 0;
@@ -222,13 +214,13 @@ public class DialogCacheBottomSheet extends BottomSheetWithRecyclerListView {
             lastCreatedCheckbox.setNeedDivider(false);
         }
         circleDiagramView.setData(cacheModel, clearViewData);
-        cachedMediaLayout = new CachedMediaLayout(getContext(), baseFragment, null) {
+        cachedMediaLayout = new CachedMediaLayout(getContext(), baseFragment) {
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(contentHeight - ActionBar.getCurrentActionBarHeight() - AndroidUtilities.statusBarHeight, MeasureSpec.EXACTLY));
             }
         };
-        cachedMediaLayout.setListPadding(0, AndroidUtilities.dp(80));
+        cachedMediaLayout.setBottomPadding(AndroidUtilities.dp(80));
         cachedMediaLayout.setCacheModel(cacheModel);
         cachedMediaLayout.setDelegate(new CachedMediaLayout.Delegate() {
             @Override

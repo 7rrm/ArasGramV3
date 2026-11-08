@@ -25,7 +25,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Keep;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,7 +38,6 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.MaxFileSizeCell;
@@ -53,7 +51,6 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SlideChooseView;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Collections;
 
 public class DataAutoDownloadActivity extends BaseFragment {
@@ -140,25 +137,20 @@ public class DataAutoDownloadActivity extends BaseFragment {
     }
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         if (currentType == 0) {
-            simpleActionBar.setTitle(LocaleController.getString(R.string.AutoDownloadOnMobileData));
+            actionBar.setTitle(LocaleController.getString(R.string.AutoDownloadOnMobileData));
         } else if (currentType == 1) {
-            simpleActionBar.setTitle(LocaleController.getString(R.string.AutoDownloadOnWiFiData));
+            actionBar.setTitle(LocaleController.getString(R.string.AutoDownloadOnWiFiData));
         } else if (currentType == 2) {
-            simpleActionBar.setTitle(LocaleController.getString(R.string.AutoDownloadOnRoamingData));
+            actionBar.setTitle(LocaleController.getString(R.string.AutoDownloadOnRoamingData));
         }
         if (parentLayout != null && parentLayout.isLayersLayout()) {
-            simpleActionBar.setOccupyStatusBar(false);
+            actionBar.setOccupyStatusBar(false);
         }
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setAllowOverlayTitle(true);
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -170,12 +162,13 @@ public class DataAutoDownloadActivity extends BaseFragment {
         listAdapter = new ListAdapter(context);
 
         fragmentView = new FrameLayout(context);
+        fragmentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
         FrameLayout frameLayout = (FrameLayout) fragmentView;
 
         listView = new RecyclerListView(context);
         listView.setSections();
+        actionBar.setAdaptiveBackground(listView);
         listView.setVerticalScrollBarEnabled(false);
-        listView.setSectionsDrawBackground(true);
         ((DefaultItemAnimator) listView.getItemAnimator()).setDelayAnimations(false);
         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
@@ -428,7 +421,7 @@ public class DataAutoDownloadActivity extends BaseFragment {
                         linearLayout.addView(checkCell[0], LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
                         checkCell[0].setOnClickListener(v -> checkCell[0].setChecked(!checkCell[0].isChecked()));
 
-                        ThemeBind.backgroundColor(infoCell, Theme.key_windowBackgroundGray);
+                        infoCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
                         linearLayout.addView(infoCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
                         if (position == videosRow) {
@@ -445,7 +438,7 @@ public class DataAutoDownloadActivity extends BaseFragment {
                         checkCell[0] = null;
 
                         View divider = new View(getParentActivity());
-                        ThemeBind.backgroundColor(divider, Theme.key_divider);
+                        divider.setBackgroundColor(Theme.getColor(Theme.key_divider));
                         linearLayout.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
                     }
                     if (position == videosRow) {
@@ -471,7 +464,7 @@ public class DataAutoDownloadActivity extends BaseFragment {
 
                     TextView textView = new TextView(getParentActivity());
                     textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                    ThemeBind.textColor(textView, Theme.key_dialogTextBlue2);
+                    textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
                     textView.setGravity(Gravity.CENTER);
                     textView.setTypeface(AndroidUtilities.bold());
                     textView.setText(LocaleController.getString(R.string.Cancel).toUpperCase());
@@ -481,7 +474,7 @@ public class DataAutoDownloadActivity extends BaseFragment {
 
                     textView = new TextView(getParentActivity());
                     textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                    ThemeBind.textColor(textView, Theme.key_dialogTextBlue2);
+                    textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlue2));
                     textView.setGravity(Gravity.CENTER);
                     textView.setTypeface(AndroidUtilities.bold());
                     textView.setText(LocaleController.getString(R.string.Save).toUpperCase());
@@ -678,7 +671,7 @@ public class DataAutoDownloadActivity extends BaseFragment {
                         view.setDrawCheckRipple(true);
                         view.setTextAndCheck(LocaleController.getString(R.string.AutoDownloadMedia), typePreset.enabled, false);
                         view.setTag(typePreset.enabled ? Theme.key_windowBackgroundChecked : Theme.key_windowBackgroundUnchecked);
-                        ThemeBind.backgroundColor(view, typePreset.enabled ? Theme.key_windowBackgroundChecked : Theme.key_windowBackgroundUnchecked);
+                        view.setBackgroundColor(Theme.getColor(typePreset.enabled ? Theme.key_windowBackgroundChecked : Theme.key_windowBackgroundUnchecked));
                     }
                     break;
                 }
@@ -926,12 +919,23 @@ public class DataAutoDownloadActivity extends BaseFragment {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{HeaderCell.class, NotificationsCheckCell.class, SlideChooseView.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
 //        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_actionBarDefaultIcon));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, null, null, Theme.key_actionBarDefaultTitle));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
 
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{View.class}, Theme.dividerPaint, null, null, Theme.key_divider));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{HeaderCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueHeader));
 
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{TextCheckCell.class}, null, null, null, Theme.key_windowBackgroundChecked));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR | ThemeDescription.FLAG_CHECKTAG, new Class[]{TextCheckCell.class}, null, null, null, Theme.key_windowBackgroundUnchecked));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundCheckText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackBlue));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackBlueChecked));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackBlueThumb));
@@ -939,43 +943,17 @@ public class DataAutoDownloadActivity extends BaseFragment {
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackBlueSelector));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackBlueSelectorChecked));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrack));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{NotificationsCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackChecked));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextInfoPrivacyCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText4));
 
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SlideChooseView.class}, null, null, null, Theme.key_switchTrack));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SlideChooseView.class}, null, null, null, Theme.key_switchTrackChecked));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SlideChooseView.class}, null, null, null, Theme.key_windowBackgroundWhiteGrayText));
 
         return themeDescriptions;
-    }
-
-    @Nullable
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
-    }
-
-    @Override
-    public boolean isSupportEdgeToEdge() {
-        return true;
-    }
-
-    /** theme editor: colors this page shows (former ThemeDescription keys) */
-    @Override
-    public void addThemeColorKeys(HashSet<Integer> keys) {
-        super.addThemeColorKeys(keys);
-        keys.add(Theme.key_windowBackgroundWhiteGrayText);
-        keys.add(Theme.key_switchTrackChecked);
-        keys.add(Theme.key_switchTrack);
-        keys.add(Theme.key_windowBackgroundWhiteGrayText4);
-        keys.add(Theme.key_windowBackgroundWhiteGrayText2);
-        keys.add(Theme.key_windowBackgroundWhiteBlackText);
-        keys.add(Theme.key_windowBackgroundCheckText);
-        keys.add(Theme.key_windowBackgroundUnchecked);
-        keys.add(Theme.key_windowBackgroundChecked);
-        keys.add(Theme.key_windowBackgroundWhiteBlueHeader);
-        keys.add(Theme.key_listSelector);
-        keys.add(Theme.key_actionBarDefaultSelector);
-        keys.add(Theme.key_actionBarDefaultTitle);
-        keys.add(Theme.key_actionBarDefaultIcon);
-        keys.add(Theme.key_actionBarDefault);
     }
 }

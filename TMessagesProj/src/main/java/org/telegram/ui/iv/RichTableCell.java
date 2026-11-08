@@ -18,7 +18,6 @@ import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 
 import org.telegram.messenger.Emoji;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.tgnet.tl.TL_iv;
@@ -32,7 +31,6 @@ import org.telegram.ui.Components.UniversalRecyclerView;
 
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.HashSet;
 
 public class RichTableCell extends RichBlockCell implements Theme.Colorable, TextSelectionHelper.ArticleSelectableView {
 
@@ -986,23 +984,6 @@ public class RichTableCell extends RichBlockCell implements Theme.Colorable, Tex
             if (child instanceof RichTableCellHost) ((RichTableCellHost) child).editText.updateColors();
         }
         grid.applyColors();
-        updateDraggingBackgroundColor();
-    }
-
-    private void updateDraggingBackgroundColor() {
-        try {
-            if (getBackground() instanceof RichEditor.DraggingDrawable) {
-                ((RichEditor.DraggingDrawable) getBackground()).setColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
-    @Override
-    public void addColorKeys(HashSet<Integer> colors) {
-        colors.add(Theme.key_windowBackgroundWhiteBlackText);
-        colors.add(Theme.key_windowBackgroundWhite);
     }
 
     @Override

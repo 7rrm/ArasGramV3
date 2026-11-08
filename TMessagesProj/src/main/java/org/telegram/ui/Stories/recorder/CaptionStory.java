@@ -36,7 +36,6 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.BlobDrawable;
@@ -720,7 +719,7 @@ public class CaptionStory extends CaptionContainerView {
                 .show();
         TextView button = (TextView) d.getButton(DialogInterface.BUTTON_POSITIVE);
         if (button != null) {
-            ThemeBind.textColor(button, Theme.key_text_RedBold, resourcesProvider);
+            button.setTextColor(Theme.getColor(Theme.key_text_RedBold, resourcesProvider));
         }
     }
 

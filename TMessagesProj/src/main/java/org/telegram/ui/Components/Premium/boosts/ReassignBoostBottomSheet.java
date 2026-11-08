@@ -4,7 +4,6 @@ import static org.telegram.messenger.AndroidUtilities.REPLACING_TAG_TYPE_LINKBOL
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
-import android.graphics.PorterDuff;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
@@ -40,7 +39,6 @@ import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Components.AvatarDrawable;
@@ -103,7 +101,7 @@ public class ReassignBoostBottomSheet extends BottomSheetWithRecyclerListView {
         buttonContainer.setClickable(true);
         buttonContainer.setOrientation(LinearLayout.VERTICAL);
         buttonContainer.setPadding(dp(8), dp(8), dp(8), dp(8));
-        ThemeBind.backgroundColor(buttonContainer, Theme.key_dialogBackground, resourcesProvider);
+        buttonContainer.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
         actionButton = new GradientButtonWithCounterView(getContext(), true, resourcesProvider);
         actionButton.withCounterIcon();
         actionButton.setCounterColor(0xFF9874fc);
@@ -249,7 +247,6 @@ public class ReassignBoostBottomSheet extends BottomSheetWithRecyclerListView {
                         break;
                     case HOLDER_TYPE_DIVIDER:
                         view = new ShadowSectionCell(context, 12, Theme.getColor(Theme.key_windowBackgroundGray));
-                        ThemeBind.backgroundColor(view, Theme.key_windowBackgroundGray);
                         break;
                     case HOLDER_TYPE_SUBTITLE:
                         view = new HeaderCell(context, 22);
@@ -336,13 +333,13 @@ public class ReassignBoostBottomSheet extends BottomSheetWithRecyclerListView {
             title.setTypeface(AndroidUtilities.bold());
             title.setText(LocaleController.getString(R.string.BoostingReassignBoost));
             title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
-            ThemeBind.textColor(title, Theme.key_windowBackgroundWhiteBlackText);
+            title.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             addView(title, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 15, 0, 7));
 
             description = new LinkSpanDrawable.LinksTextView(getContext());
             description.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             description.setGravity(Gravity.CENTER_HORIZONTAL);
-            ThemeBind.textColor(description, Theme.key_dialogTextBlack);
+            description.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
 
             description.setLineSpacing(description.getLineSpacingExtra(), description.getLineSpacingMultiplier() * 1.1f);
             addView(description, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 28, 0, 28, 18));
@@ -504,12 +501,12 @@ public class ReassignBoostBottomSheet extends BottomSheetWithRecyclerListView {
             super(context);
             ImageView arrowImage = new ImageView(getContext());
             arrowImage.setImageResource(R.drawable.msg_arrow_avatar);
-            ThemeBind.colorFilter(arrowImage, Theme.key_windowBackgroundWhiteGrayText7, PorterDuff.Mode.SRC_ATOP);
+            arrowImage.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText7));
             addView(arrowImage);
         }
     }
 
-    private static class AvatarHolderView extends FrameLayout implements Theme.Colorable {
+    private static class AvatarHolderView extends FrameLayout {
         private final BackupImageView imageView;
         private final BoostIconView boostIconView;
         private final Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -538,15 +535,9 @@ public class ReassignBoostBottomSheet extends BottomSheetWithRecyclerListView {
             canvas.drawCircle(getMeasuredWidth() / 2f, getMeasuredHeight() / 2f, (getMeasuredHeight() / 2f) - dp(2f), bgPaint);
             super.dispatchDraw(canvas);
         }
-
-        @Override
-        public void updateColors() {
-            bgPaint.setColor(Theme.getColor(Theme.key_dialogBackground));
-            invalidate();
-        }
     }
 
-    private static class BoostIconView extends View implements Theme.Colorable {
+    private static class BoostIconView extends View {
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         Drawable boostDrawable = ContextCompat.getDrawable(getContext(), R.drawable.mini_boost_remove);
@@ -571,12 +562,6 @@ public class ReassignBoostBottomSheet extends BottomSheetWithRecyclerListView {
                     (int) (cy + iconSizeHalf)
             );
             boostDrawable.draw(canvas);
-        }
-
-        @Override
-        public void updateColors() {
-            paint.setColor(Theme.getColor(Theme.key_dialogBackground));
-            invalidate();
         }
     }
 }

@@ -18,7 +18,6 @@ import android.widget.TextView;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -42,12 +41,10 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
-import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.UserCell;
 import org.telegram.ui.Cells.UserCell2;
@@ -64,16 +61,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class SaveToGallerySettingsActivity extends BaseFragment {
-
-    private void bindColorfullIconBackground(TextCheckCell cell, int key) {
-        for (int i = 0; i < cell.getChildCount(); ++i) {
-            final View child = cell.getChildAt(i);
-            if (child instanceof RLottieImageView && child.getBackground() != null) {
-                ThemeBind.fillBackground(child, child.getBackground(), ThemeBind.of(key), getResourceProvider());
-                break;
-            }
-        }
-    }
 
     int type;
     long dialogId;
@@ -130,18 +117,12 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
     LongSparseArray<SaveToGallerySettingsHelper.DialogException> exceptionsDialogs = new LongSparseArray<>();
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
         FrameLayout frameLayout = new FrameLayout(context);
         fragmentView = frameLayout;
 
-        simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setBackButtonDrawable(new BackDrawable(false));
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -152,24 +133,23 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
         });
         if (dialogException != null) {
             if (isNewException) {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.NotificationsNewException));
+                actionBar.setTitle(LocaleController.getString(R.string.NotificationsNewException));
             } else {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.SaveToGalleryException));
+                actionBar.setTitle(LocaleController.getString(R.string.SaveToGalleryException));
             }
         } else {
             if (type == SAVE_TO_GALLERY_FLAG_PEER) {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.SaveToGalleryPrivate));
+                actionBar.setTitle(LocaleController.getString(R.string.SaveToGalleryPrivate));
             } else if (type == SAVE_TO_GALLERY_FLAG_GROUP) {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.SaveToGalleryGroups));
+                actionBar.setTitle(LocaleController.getString(R.string.SaveToGalleryGroups));
             } else {
-                simpleActionBar.setTitle(LocaleController.getString(R.string.SaveToGalleryChannels));
+                actionBar.setTitle(LocaleController.getString(R.string.SaveToGalleryChannels));
             }
         }
 
         recyclerListView = new RecyclerListView(context);
         recyclerListView.setSections();
-        recyclerListView.setSectionsDrawBackground(true);
-
+        actionBar.setAdaptiveBackground(recyclerListView);
         DefaultItemAnimator defaultItemAnimator = new DefaultItemAnimator();
         defaultItemAnimator.setDurations(400);
         defaultItemAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -262,6 +242,7 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
             return false;
         });
         frameLayout.addView(recyclerListView);
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         if (dialogException != null) {
             //  ((ViewGroup.MarginLayoutParams)recyclerListView.getLayoutParams()).bottomMargin = AndroidUtilities.dp()
@@ -274,7 +255,7 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
             textView.setText(isNewException ? LocaleController.getString(R.string.AddException) : LocaleController.getString(R.string.SaveException));
             textView.setGravity(Gravity.CENTER);
             textView.setTypeface(AndroidUtilities.bold());
-            ThemeBind.textColor(textView, Theme.key_featuredStickers_buttonText);
+            textView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
             button.addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
             button.setOnClickListener(v -> {
                 if (isNewException) {
@@ -386,21 +367,22 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                     }
                     userCell2.setData(object, null, null, 0);
                     view = userCell2;
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, SaveToGallerySettingsActivity.this.getResourceProvider());
+                    view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_CHAT:
                     view = new UserCell(parent.getContext(), 4, 0, false, false);
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_ADD_EXCEPTION:
                     TextCell textCell = new TextCell(parent.getContext());
                     textCell.setTextAndIcon(LocaleController.getString(R.string.NotificationsAddAnException), R.drawable.msg_contact_add, true);
                     textCell.setColors(Theme.key_windowBackgroundWhiteBlueIcon, Theme.key_windowBackgroundWhiteBlueButton);
                     view = textCell;
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_DIVIDER_LAST:
                     view = new ShadowSectionCell(parent.getContext());
+                    view.setBackgroundDrawable(Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, Theme.getColor(Theme.key_windowBackgroundGrayShadow, getResourceProvider())));
                     break;
                 case VIEW_TYPE_DIVIDER:
                     view = new ShadowSectionCell(parent.getContext());
@@ -410,17 +392,17 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                     textCell.setText(LocaleController.getString(R.string.NotificationsDeleteAllException), false);
                     textCell.setColors(-1, Theme.key_text_RedRegular);
                     view = textCell;
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_HEADER:
                     HeaderCell headerCell = new HeaderCell(parent.getContext());
                     view = headerCell;
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_TOGGLE:
                     TextCheckCell textCheckCell = new TextCheckCell(parent.getContext());
                     view = textCheckCell;
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_DIVIDER_INFO:
                     TextInfoPrivacyCell textInfoPrivacyCell = new TextInfoPrivacyCell(parent.getContext());
@@ -521,7 +503,7 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                     slideChooseView.delegate.onSeekBarDrag(false, slideChooseView.getProgress());
 
                     view = linearLayout;
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -539,11 +521,9 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
                 if (position == savePhotosRow) {
                     cell.setTextAndCheck(LocaleController.getString(R.string.SaveToGalleryPhotos), settings.savePhoto, true);
                     cell.setColorfullIcon(getThemedColor(Theme.key_statisticChartLine_lightblue), R.drawable.msg_filled_data_photos);
-                    bindColorfullIconBackground(cell, Theme.key_statisticChartLine_lightblue);
                 } else {
                     cell.setTextAndCheck(LocaleController.getString(R.string.SaveToGalleryVideos), settings.saveVideo, false);
                     cell.setColorfullIcon(getThemedColor(Theme.key_statisticChartLine_green), R.drawable.msg_filled_data_videos);
-                    bindColorfullIconBackground(cell, Theme.key_statisticChartLine_green);
                 }
 
             } else if (items.get(position).viewType == VIEW_TYPE_DIVIDER_INFO) {
@@ -656,17 +636,6 @@ public class SaveToGallerySettingsActivity extends BaseFragment {
     public void onResume() {
         super.onResume();
         updateRows();
-    }
-
-    @Override
-    public boolean isSupportEdgeToEdge() {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return recyclerListView;
     }
 
     private void onSettingsUpdated() {

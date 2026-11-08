@@ -285,13 +285,7 @@ public class BitmapsCache {
                     return;
                 }
 
-                int frameResult = source.getNextFrame(bitmap[index]);
-                if (frameResult == -1) {
-                    // render failed: abort without marking the cache as complete
-                    closed.set(true);
-                    continue;
-                }
-                if (frameResult != 1) {
+                if (source.getNextFrame(bitmap[index]) != 1) {
                     break;
                 }
                 countDownLatch[index] = new CountDownLatch(1);

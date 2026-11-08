@@ -34,7 +34,7 @@ import org.telegram.ui.Components.ChatAvatarContainer;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
 
 import tw.nekomimi.nekogram.NekoConfig;
 
@@ -105,7 +105,7 @@ public class MeeroHeaderPreviewView extends FrameLayout {
         // out half-stock/half-pill (ghost title + empty pill).
         menu.setCenteredTitle(lastCentered);
 
-        GlassSourceColor sourceColor = new GlassSourceColor();
+        BlurredBackgroundSourceColor sourceColor = new BlurredBackgroundSourceColor();
         sourceColor.setColor(fragment.getThemedColor(Theme.key_windowBackgroundWhite));
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(sourceColor);
         actionBar.setupGlass(factory, BlurredBackgroundProviderImpl.topPanelChatActivity(resourcesProvider));

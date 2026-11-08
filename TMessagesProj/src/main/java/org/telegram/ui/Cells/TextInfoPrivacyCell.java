@@ -8,7 +8,6 @@
 
 package org.telegram.ui.Cells;
 
-import org.telegram.messenger.FileLog;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
@@ -28,12 +27,11 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LinkSpanDrawable;
 
 import java.util.ArrayList;
 
-public class TextInfoPrivacyCell extends FrameLayout implements Theme.Colorable {
+public class TextInfoPrivacyCell extends FrameLayout {
 
     private LinkSpanDrawable.LinksTextView textView;
     private LinkSpanDrawable.LinkCollector links;
@@ -83,9 +81,9 @@ public class TextInfoPrivacyCell extends FrameLayout implements Theme.Colorable 
         textView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         textView.setPadding(0, AndroidUtilities.dp(10), 0, AndroidUtilities.dp(17));
         textView.setMovementMethod(LinkMovementMethod.getInstance());
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText4, resourcesProvider);
-        textView.setEmojiColor(emojiColor = getThemedColor(Theme.key_windowBackgroundWhiteGrayText4));
-        ThemeBind.linkTextColor(textView, linkTextColorKey, resourcesProvider);
+        textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText4));
+        textView.setEmojiColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText4));
+        textView.setLinkTextColor(getThemedColor(linkTextColorKey));
         textView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, padding, 0, padding, 0));
 
@@ -186,18 +184,11 @@ public class TextInfoPrivacyCell extends FrameLayout implements Theme.Colorable 
     }
 
     public void setTextColor(int color) {
-        // custom color from the caller: drop the text color binding, keep the link color binding and the current link color
-        final android.content.res.ColorStateList linkColors = textView.getLinkTextColors();
-        ThemeBind.clear(textView);
-        ThemeBind.linkTextColor(textView, linkTextColorKey, resourcesProvider);
-        if (linkColors != null) {
-            textView.setLinkTextColor(linkColors);
-        }
         textView.setTextColor(color);
     }
 
     public void setTextColorByKey(int key) {
-        ThemeBind.textColor(textView, key, resourcesProvider);
+        textView.setTextColor(getThemedColor(key));
         textView.setTag(key);
     }
 
@@ -234,20 +225,5 @@ public class TextInfoPrivacyCell extends FrameLayout implements Theme.Colorable 
 
     private int getThemedColor(int key) {
         return Theme.getColor(key, resourcesProvider);
-    }
-
-    private int emojiColor;
-
-    @Override
-    public void updateColors() {
-        try {
-            final int color = getThemedColor(Theme.key_windowBackgroundWhiteGrayText4);
-            if (textView != null && color != emojiColor) {
-                emojiColor = color;
-                textView.setEmojiColor(color);
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
     }
 }

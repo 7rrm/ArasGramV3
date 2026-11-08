@@ -282,10 +282,9 @@ public class LivePlayer implements NotificationCenter.NotificationCenterDelegate
                             if (destroyed || instance == null) {
                                 final TL_phone.leaveGroupCall leaveReq = new TL_phone.leaveGroupCall();
                                 leaveReq.call = inputCall;
-                                leaveReq.source = ssrc;
                                 ConnectionsManager.getInstance(currentAccount).sendRequest(leaveReq, (res2, err2) -> {
                                     if (res2 instanceof TLRPC.Updates) {
-                                        MessagesController.getInstance(currentAccount).processUpdates((TLRPC.Updates) res2, false);
+                                        MessagesController.getInstance(currentAccount).processUpdates((TLRPC.Updates) res, false);
                                     }
                                 });
                                 return;
@@ -599,8 +598,8 @@ public class LivePlayer implements NotificationCenter.NotificationCenterDelegate
     private float volume = 1.0f;
     public void setVolume(float volume) {
         volume = Utilities.clamp01(volume);
-        if (LiveStoryPipContent.isInPip(this))
-            volume = LiveStoryPipContent.getPipVolume();
+        if (LiveStoryPipOverlay.isVisible(this))
+            volume = 1.0f;
         FileLog.d("setVolume(" + volume + ")");
         if (Math.abs(volume - this.volume) < 0.01f) return;
         this.volume = volume;
@@ -673,7 +672,6 @@ public class LivePlayer implements NotificationCenter.NotificationCenterDelegate
         if (joined) {
             final TL_phone.leaveGroupCall req = new TL_phone.leaveGroupCall();
             req.call = inputCall;
-            req.source = mySource;
             ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> {
                 if (res instanceof TLRPC.Updates) {
                     MessagesController.getInstance(currentAccount).processUpdates((TLRPC.Updates) res, false);

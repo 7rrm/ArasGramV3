@@ -52,7 +52,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ChatActivity;
 
 import java.io.File;
@@ -70,27 +69,6 @@ public class PhonebookShareAlert extends BottomSheet {
     private TextView buttonTextView;
 
     private BaseFragment parentFragment;
-
-    private void updateButtonTextColor() {
-        if (buttonTextView == null) {
-            return;
-        }
-        final int color = getThemedColor(Theme.key_featuredStickers_buttonText);
-        final int textColor = buttonTextView.isEnabled() ? color : (color & 0x7fffffff);
-        if (buttonTextView.getCurrentTextColor() != textColor) {
-            buttonTextView.setTextColor(textColor);
-        }
-    }
-
-    @Override
-    public void onThemeColorsChanged() {
-        super.onThemeColorsChanged();
-        try {
-            updateButtonTextColor();
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
 
     private boolean inLayout;
 
@@ -144,7 +122,7 @@ public class PhonebookShareAlert extends BottomSheet {
             TextView textView = new TextView(context);
             textView.setTypeface(AndroidUtilities.bold());
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
-            ThemeBind.textColor(textView, Theme.key_dialogTextBlack, PhonebookShareAlert.this.resourcesProvider);
+            textView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
             textView.setSingleLine(true);
             textView.setEllipsize(TextUtils.TruncateAt.END);
             textView.setText(ContactsController.formatName(currentUser.first_name, currentUser.last_name));
@@ -153,7 +131,7 @@ public class PhonebookShareAlert extends BottomSheet {
             if (status != null) {
                 textView = new TextView(context);
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-                ThemeBind.textColor(textView, Theme.key_dialogTextGray3, PhonebookShareAlert.this.resourcesProvider);
+                textView.setTextColor(getThemedColor(Theme.key_dialogTextGray3));
                 textView.setSingleLine(true);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setText(status);
@@ -174,7 +152,7 @@ public class PhonebookShareAlert extends BottomSheet {
             super(context);
 
             textView = new TextView(context);
-            ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, PhonebookShareAlert.this.resourcesProvider);
+            textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
             textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             textView.setSingleLine(false);
             textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP);
@@ -182,7 +160,7 @@ public class PhonebookShareAlert extends BottomSheet {
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? (isImport ? 17 : 64) : 72, 10, LocaleController.isRTL ? 72 : (isImport ? 17 : 64), 0));
 
             valueTextView = new TextView(context);
-            ThemeBind.textColor(valueTextView, Theme.key_windowBackgroundWhiteGrayText2, PhonebookShareAlert.this.resourcesProvider);
+            valueTextView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText2));
             valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             valueTextView.setLines(1);
             valueTextView.setMaxLines(1);
@@ -192,7 +170,7 @@ public class PhonebookShareAlert extends BottomSheet {
 
             imageView = new ImageView(context);
             imageView.setScaleType(ImageView.ScaleType.CENTER);
-            ThemeBind.colorFilter(imageView, Theme.key_windowBackgroundWhiteGrayIcon, PhonebookShareAlert.this.resourcesProvider, PorterDuff.Mode.MULTIPLY);
+            imageView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.MULTIPLY));
             addView(imageView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 0 : 20, 20, LocaleController.isRTL ? 20 : 0, 0));
 
             if (!isImport) {
@@ -562,8 +540,9 @@ public class PhonebookShareAlert extends BottomSheet {
                                     break;
                                 }
                             }
+                            int color = getThemedColor(Theme.key_featuredStickers_buttonText);
                             buttonTextView.setEnabled(hasChecked);
-                            updateButtonTextColor();
+                            buttonTextView.setTextColor(hasChecked ? color : (color & 0x7fffffff));
                         }
                         TextCheckBoxCell cell = (TextCheckBoxCell) view;
                         cell.setChecked(item.checked);
@@ -616,11 +595,11 @@ public class PhonebookShareAlert extends BottomSheet {
                 containerView.invalidate();
             }
         };
-        ThemeBind.backgroundColor(actionBar, Theme.key_dialogBackground, resourcesProvider);
+        actionBar.setBackgroundColor(getThemedColor(Theme.key_dialogBackground));
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        ThemeBind.actionBarItemsColor(actionBar, Theme.key_dialogTextBlack, resourcesProvider, false);
-        ThemeBind.actionBarItemsBackgroundColor(actionBar, Theme.key_dialogButtonSelector, resourcesProvider, false);
-        ThemeBind.actionBarTitleColor(actionBar, Theme.key_dialogTextBlack, resourcesProvider);
+        actionBar.setItemsColor(getThemedColor(Theme.key_dialogTextBlack), false);
+        actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_dialogButtonSelector), false);
+        actionBar.setTitleColor(getThemedColor(Theme.key_dialogTextBlack));
         actionBar.setOccupyStatusBar(false);
         actionBar.setAlpha(0.0f);
         if (isImport) {
@@ -640,18 +619,18 @@ public class PhonebookShareAlert extends BottomSheet {
 
         actionBarShadow = new View(context);
         actionBarShadow.setAlpha(0.0f);
-        ThemeBind.backgroundColor(actionBarShadow, Theme.key_dialogShadowLine, resourcesProvider);
+        actionBarShadow.setBackgroundColor(getThemedColor(Theme.key_dialogShadowLine));
         containerView.addView(actionBarShadow, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 1));
 
         shadow = new View(context);
-        ThemeBind.backgroundColor(shadow, Theme.key_dialogShadowLine, resourcesProvider);
+        shadow.setBackgroundColor(getThemedColor(Theme.key_dialogShadowLine));
         shadow.setAlpha(0.0f);
         containerView.addView(shadow, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 1, Gravity.BOTTOM | Gravity.LEFT, 0, 0, 0, 77));
 
         buttonTextView = new TextView(context);
         buttonTextView.setPadding(AndroidUtilities.dp(34), 0, AndroidUtilities.dp(34), 0);
         buttonTextView.setGravity(Gravity.CENTER);
-        buttonTextView.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText)); // state color (enabled), re-applied in onThemeColorsChanged()
+        buttonTextView.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
         buttonTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         if (isImport) {
             buttonTextView.setText(LocaleController.getString(R.string.AddContactPhonebookTitle));
@@ -659,7 +638,7 @@ public class PhonebookShareAlert extends BottomSheet {
             buttonTextView.setText(LocaleController.getString(R.string.ShareContactTitle));
         }
         buttonTextView.setTypeface(AndroidUtilities.bold());
-        ThemeBind.selectorBackground(buttonTextView, Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(8), getThemedColor(Theme.key_featuredStickers_addButton), getThemedColor(Theme.key_featuredStickers_addButtonPressed)), ThemeBind.of(Theme.key_featuredStickers_addButton), ThemeBind.of(Theme.key_featuredStickers_addButtonPressed), resourcesProvider);
+        buttonTextView.setBackground(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(8), getThemedColor(Theme.key_featuredStickers_addButton), getThemedColor(Theme.key_featuredStickers_addButtonPressed)));
         frameLayout.addView(buttonTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.LEFT | Gravity.BOTTOM, 14, 14, 14, 14));
         buttonTextView.setOnClickListener(v -> {
             if (isImport) {

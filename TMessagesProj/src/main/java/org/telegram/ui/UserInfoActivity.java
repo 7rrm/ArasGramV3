@@ -2,6 +2,7 @@ package org.telegram.ui;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.replaceArrows;
+import static org.telegram.messenger.AndroidUtilities.replaceSingleLink;
 import static org.telegram.messenger.AndroidUtilities.replaceSingleTag;
 import static org.telegram.messenger.LocaleController.formatString;
 import static org.telegram.messenger.LocaleController.getString;
@@ -9,13 +10,16 @@ import static org.telegram.ui.Cells.TextCell.applyNewSpan;
 import static org.telegram.ui.Components.Premium.LimitReachedBottomSheet.TYPE_ACCOUNTS;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -24,8 +28,9 @@ import androidx.annotation.Keep;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.BotWebViewVibrationEffect;
+import org.telegram.messenger.BuildVars;
+import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
@@ -33,16 +38,16 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.SimpleActionBarDoneButton;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Business.BusinessChatbotController;
 import org.telegram.ui.Business.ChatbotsActivity;
 import org.telegram.ui.Business.LocationActivity;
@@ -50,6 +55,8 @@ import org.telegram.ui.Business.OpeningHoursActivity;
 import org.telegram.ui.Cells.EditTextCell;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.BulletinFactory;
+import org.telegram.ui.Components.CircularProgressDrawable;
+import org.telegram.ui.Components.CrossfadeDrawable;
 import org.telegram.ui.Components.IconBackgroundColors;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
@@ -84,16 +91,17 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
     }
 
     private static final int done_button = 1;
-    private SimpleActionBarDoneButton doneButton;
+    private CrossfadeDrawable doneButtonDrawable;
+    private ActionBarMenuItem doneButton;
 
     public UniversalRecyclerView listView;
 
     @Override
     public boolean onFragmentCreate() {
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.userInfoDidLoad);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.privacyRulesUpdated);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.updateInterfaces);
-        getNotificationCenter().addWeakObserver(this, NotificationCenter.updatedChatbot);
+        getNotificationCenter().addObserver(this, NotificationCenter.userInfoDidLoad);
+        getNotificationCenter().addObserver(this, NotificationCenter.privacyRulesUpdated);
+        getNotificationCenter().addObserver(this, NotificationCenter.updateInterfaces);
+        getNotificationCenter().addObserver(this, NotificationCenter.updatedChatbot);
         getContactsController().loadPrivacySettings();
         BusinessChatbotController.getInstance(currentAccount).load(null);
         return super.onFragmentCreate();
@@ -218,13 +226,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
     }
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
         firstNameEdit = new EditTextCell(context, getString(R.string.EditProfileFirstName), false, false, -1, resourceProvider) {
             @Override
             protected void onTextChanged(CharSequence newText) {
@@ -257,13 +259,13 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
         super.createView(context);
         this.listView = super.listView;
         listView.setSections();
-        listView.setSectionsDrawBackground(true);
         listView.setClipToPadding(false);
+        actionBar.setAdaptiveBackground(listView);
         if (parentLayout != null && parentLayout.isRightLayout()) {
-            simpleActionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
 
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
             if (id == -1) {
@@ -275,17 +277,15 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
             }
             }
         });
-        doneButton = simpleActionBar.createDoneButton(done_button, LocaleController.getString(R.string.Save));
+        Drawable checkmark = context.getResources().getDrawable(R.drawable.ic_ab_done).mutate();
+        checkmark.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_actionBarDefaultIcon), PorterDuff.Mode.MULTIPLY));
+        doneButtonDrawable = new CrossfadeDrawable(checkmark, new CircularProgressDrawable(Theme.getColor(Theme.key_actionBarDefaultIcon)));
+        doneButton = actionBar.createMenu().addItemWithWidth(done_button, doneButtonDrawable, dp(56), LocaleController.getString(R.string.Done));
         checkDone(false);
 
         setValue();
 
         return fragmentView;
-    }
-
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
     }
 
     private static final int BUTTON_BIRTHDAY = 1;
@@ -671,13 +671,20 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
     private void checkDone(boolean animated) {
         if (doneButton == null) return;
         final boolean hasChanges = hasChanges();
-        doneButton.setActive(hasChanges, animated);
+        doneButton.setEnabled(hasChanges);
+        if (animated) {
+            doneButton.animate().alpha(hasChanges ? 1.0f : 0.0f).scaleX(hasChanges ? 1.0f : 0.0f).scaleY(hasChanges ? 1.0f : 0.0f).setDuration(180).start();
+        } else {
+            doneButton.setAlpha(hasChanges ? 1.0f : 0.0f);
+            doneButton.setScaleX(hasChanges ? 1.0f : 0.0f);
+            doneButton.setScaleY(hasChanges ? 1.0f : 0.0f);
+        }
     }
 
     private boolean wasSaved = false;
     private int shiftDp = -4;
     private void processDone(boolean error) {
-        if (doneButton.isLoading()) return;
+        if (doneButtonDrawable.getProgress() > 0f) return;
 
         if (error && TextUtils.isEmpty(firstNameEdit.getText())) {
             BotWebViewVibrationEffect.APP_ERROR.vibrate();
@@ -685,7 +692,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
             return;
         }
 
-        doneButton.setLoading(true, true);
+        doneButtonDrawable.animateToProgress(1f);
         TLRPC.User user = getUserConfig().getCurrentUser();
         TLRPC.UserFull userFull = getMessagesController().getUserFull(getUserConfig().getClientUserId());
         if (user == null || userFull == null) return;
@@ -760,7 +767,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
             final TLObject req = requests.get(i);
             getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
                 if (err != null) {
-                    doneButton.setLoading(false, true);
+                    doneButtonDrawable.animateToProgress(0f);
                     if (req instanceof TL_account.updateBirthday && err.text != null && err.text.startsWith("FLOOD_WAIT_")) {
                         if (getContext() != null) {
                             showDialog(
@@ -784,7 +791,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
                         getMessagesStorage().updateUserInfo(userFull, false);
                     }
                 } else if (res instanceof TLRPC.TL_boolFalse) {
-                    doneButton.setLoading(false, true);
+                    doneButtonDrawable.animateToProgress(0f);
                     BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.UnknownError)).show();
                 } else {
                     wasSaved = true;
@@ -846,7 +853,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
         }
     }
 
-    private static class InfoCell extends LinearLayout implements Theme.Colorable {
+    private static class InfoCell extends LinearLayout {
 
         private final Theme.ResourcesProvider resourcesProvider;
 
@@ -895,16 +902,9 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
             );
         }
 
-        private int appliedIconColor;
-
-        @Override
-        public void updateColors() {
-            final int iconColor = Theme.getColor(red ? Theme.key_text_RedBold : accent ? Theme.key_windowBackgroundWhiteBlueText : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
-            if (iconColor != appliedIconColor || iconView.getColorFilter() == null || icon2View.getColorFilter() == null) {
-                appliedIconColor = iconColor;
-                iconView.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
-                icon2View.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
-            }
+        private void updateColors() {
+            iconView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(red ? Theme.key_text_RedBold : accent ? Theme.key_windowBackgroundWhiteBlueText : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), PorterDuff.Mode.SRC_IN));
+            icon2View.setColorFilter(new PorterDuffColorFilter(Theme.getColor(red ? Theme.key_text_RedBold : accent ? Theme.key_windowBackgroundWhiteBlueText : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), PorterDuff.Mode.SRC_IN));
             titleView.setTextColor(Theme.getColor(red ? Theme.key_text_RedRegular : accent ? Theme.key_windowBackgroundWhiteBlueText : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
             subtitleView.setTextColor(Theme.getColor(red ? Theme.key_text_RedRegular : accent ? Theme.key_windowBackgroundWhiteBlueText : Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
         }
@@ -952,8 +952,158 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
         }
     }
 
+    private static class ChooseChannelFragment extends UniversalFragment {
+
+        private AdminedChannelsFetcher channels;
+        private long selectedChannel;
+        private Utilities.Callback<TLRPC.Chat> whenSelected;
+
+        private String query;
+
+        public ChooseChannelFragment(
+            AdminedChannelsFetcher channels,
+            long selectedChannel,
+            Utilities.Callback<TLRPC.Chat> whenSelected
+        ) {
+            super();
+            this.channels = channels;
+            this.selectedChannel = selectedChannel;
+            this.whenSelected = whenSelected;
+            channels.subscribe(() -> {
+                if (listView != null) {
+                    listView.adapter.update(true);
+                }
+            });
+        }
+
+        private ActionBarMenuItem searchItem;
+
+        @Override
+        public View createView(Context context) {
+            searchItem = actionBar.createMenu().addItem(0, R.drawable.outline_header_search, getResourceProvider()).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
+                @Override
+                public void onSearchExpand() {}
+                @Override
+                public void onSearchCollapse() {
+                    query = null;
+                    if (listView != null) {
+                        listView.adapter.update(true);
+                    }
+                }
+
+                @Override
+                public void onTextChanged(EditText editText) {
+                    query = editText.getText().toString();
+                    if (listView != null) {
+                        listView.adapter.update(true);
+                    }
+                }
+            });
+            searchItem.setSearchFieldHint(LocaleController.getString(R.string.Search));
+            searchItem.setContentDescription(LocaleController.getString(R.string.Search));
+            searchItem.setVisibility(View.GONE);
+
+            super.createView(context);
+
+            listView.setSections();
+            actionBar.setAdaptiveBackground(listView);
+
+            return fragmentView;
+        }
+
+        @Override
+        protected CharSequence getTitle() {
+            return getString(R.string.EditProfileChannelTitle);
+        }
+
+        private final static int BUTTON_REMOVE = 1;
+        private final static int BUTTON_CREATE = 2;
+
+        @Override
+        protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+            if (TextUtils.isEmpty(query) && selectedChannel != 0) {
+                items.add(UItem.asButton(BUTTON_REMOVE, R.drawable.msg_archive_hide, getString(R.string.EditProfileChannelHide)).red());
+                items.add(UItem.asShadow(null));
+            }
+            if (TextUtils.isEmpty(query)) {
+                items.add(UItem.asHeader(getString(R.string.EditProfileChannelSelect)));
+            }
+            int count = 0;
+            for (TLRPC.Chat chat : channels.chats) {
+                if (chat == null || ChatObject.isMegagroup(chat)) continue;
+                count++;
+                if (!TextUtils.isEmpty(query)) {
+                    String lq = query.toLowerCase(), lq2 = AndroidUtilities.translitSafe(lq);
+                    String c = chat.title.toLowerCase(), c2 = AndroidUtilities.translitSafe(c);
+                    if (!(
+                        c.startsWith(lq) || c.contains(" " + lq) ||
+                        c2.startsWith(lq2) || c2.contains(" " + lq2)
+                    )) {
+                        continue;
+                    }
+                }
+                items.add(UItem.asFilterChat(true, -chat.id).setChecked(selectedChannel == chat.id));
+            }
+            if (TextUtils.isEmpty(query) && count == 0) {
+                items.add(UItem.asButton(BUTTON_CREATE, R.drawable.msg_channel_create, getString(R.string.EditProfileChannelStartNew)).accent());
+            }
+            items.add(UItem.asShadow(null));
+            if (searchItem != null) {
+                searchItem.setVisibility(count > 5 ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        private boolean invalidateAfterPause = false;
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            if (invalidateAfterPause) {
+                channels.invalidate();
+                channels.subscribe(() -> {
+                    if (listView != null) {
+                        listView.adapter.update(true);
+                    }
+                });
+                invalidateAfterPause = false;
+            }
+        }
+
+        @Override
+        protected void onClick(UItem item, View view, int position, float x, float y) {
+            if (item.id == BUTTON_REMOVE) {
+                whenSelected.run(null);
+                finishFragment();
+            } else if (item.id == BUTTON_CREATE) {
+                invalidateAfterPause = true;
+                SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+                if (!BuildVars.DEBUG_VERSION && preferences.getBoolean("channel_intro", false)) {
+                    Bundle args = new Bundle();
+                    args.putInt("step", 0);
+                    presentFragment(new ChannelCreateActivity(args));
+                } else {
+                    presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANNEL_CREATE));
+                    preferences.edit().putBoolean("channel_intro", true).apply();
+                }
+            } else if (item.viewType == UniversalAdapter.VIEW_TYPE_FILTER_CHAT_CHECK) {
+                finishFragment();
+                whenSelected.run(getMessagesController().getChat(-item.dialogId));
+            }
+        }
+
+        @Override
+        protected boolean onLongClick(UItem item, View view, int position, float x, float y) {
+            return false;
+        }
+    }
+
     @Override
     public boolean isSupportEdgeToEdge() {
         return true;
+    }
+    @Override
+    public void onInsets(int left, int top, int right, int bottom) {
+        listView.setPadding(0, 0, 0, bottom);
+        listView.setClipToPadding(false);
     }
 }
