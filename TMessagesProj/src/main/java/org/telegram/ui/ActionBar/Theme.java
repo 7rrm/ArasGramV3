@@ -10592,7 +10592,9 @@ public class Theme {
     public interface Colorable {
         public void updateColors();
         public default int[] getColorKeys() { return null; }
-    }
+    
+        public default void addColorKeys(java.util.HashSet<Integer> colors) {}
+}
 
     private static final Paint PAINT_FILLING = new Paint(Paint.ANTI_ALIAS_FLAG);
     public static final Paint PAINT_CLEAR = new Paint(Paint.ANTI_ALIAS_FLAG); static {
@@ -10705,4 +10707,6 @@ public class Theme {
             compactColorMap[key] = (mode << 16) | compactKey;
         }
     }
+
+    private static final int COMPACT_DIRECT = 1, COMPACT_OVER_OUT_BUBBLE = 2, COMPACT_OVER_BACKGROUND = 3;
 }

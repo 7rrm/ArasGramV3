@@ -572,6 +572,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public interface ChatMessageCellDelegate {
+        default void didPressRichCodeCopy(ChatMessageCell cell, String code, String language) {
+
+        }
         default boolean isReplyOrSelf() {
             return false;
         }
@@ -912,6 +915,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
         default void forceUpdateNoAnimation(ChatMessageCell cell, boolean anchorScroll) {
 
+        }
+
+        default void forceUpdateNoAnimation(ChatMessageCell cell, boolean anchorScroll, boolean scrollByTop) {
+            forceUpdateNoAnimation(cell, anchorScroll);
         }
 
         default void didPressAdmin(ChatMessageCell cell) {
@@ -16757,7 +16764,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
             }
 
-            if (button.draw(canvas, rect, drawProgress, hasInvoicePreview && hasInvoicePrice, resourcesProvider)) {
+            if (button.draw(canvas, rect, drawProgress, hasInvoicePreview && hasInvoicePrice, isCompactLayout(), resourcesProvider)) {
                 invalidate = true;
             }
         }
@@ -29273,5 +29280,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public boolean isCompactLayout() {
         return false;
+    }
+
+    ChatMessageFactCheck factCheck;
+
+    boolean hasFactCheck() {
+        return factCheck != null;
     }
 }

@@ -10,4 +10,8 @@ public interface GlassSource {
     default long getGenerationId() {
         return 0;
     }
+
+    default int getVisiblePositions(java.util.List<android.graphics.RectF> positions, int index, int expand) {
+        return 0;
+    }
 }

@@ -640,14 +640,4 @@ public class ProfileGalleryBlurView extends View {
                 return 8;
         }
     }
-
-
-    // ArasGram: ported member for 13.2.1 compatibility
-    public void setActionsView(ProfileActionsView actionsView) {
-        this.actionsView = actionsView;
-    }
-
-    public void setMusicView(ProfileMusicView musicView) {
-        this.musicView = musicView;
-    }
 }

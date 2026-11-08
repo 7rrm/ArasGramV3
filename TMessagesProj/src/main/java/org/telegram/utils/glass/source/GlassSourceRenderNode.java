@@ -257,4 +257,26 @@ public final class GlassSourceRenderNode implements GlassSource, BlurredBackgrou
 
 
     private Runnable onDrawablesRelativePositionChangeListener;
+
+    public int getVisiblePositions(java.util.List<android.graphics.RectF> positions, int index, int expand) {
+        int count = 0;
+        for (BlurredBackgroundDrawable d : drawables) {
+            final android.graphics.Rect padded = d.getPaddedBounds();
+            if (d.hasDisplayList() && d.getAlpha() > 0 && padded != null && !padded.isEmpty()) {
+                final android.graphics.RectF rectf;
+                if (index < positions.size()) {
+                    rectf = positions.get(index);
+                } else {
+                    rectf = new android.graphics.RectF();
+                    positions.add(rectf);
+                }
+                rectf.set(padded.left + d.getSourceOffsetX(), padded.top + d.getSourceOffsetY(),
+                          padded.right + d.getSourceOffsetX(), padded.bottom + d.getSourceOffsetY());
+                rectf.inset(-expand, -expand);
+                index++;
+                count++;
+            }
+        }
+        return count;
+    }
 }

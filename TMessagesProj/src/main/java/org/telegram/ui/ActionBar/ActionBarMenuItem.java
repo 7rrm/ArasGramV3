@@ -2941,4 +2941,8 @@ public class ActionBarMenuItem extends FrameLayout {
         cell.setLayoutParams(layoutParams);
         return cell;
     }
+
+    void onOverlayMenuClosed() {
+        onDismiss();
+    }
 }

@@ -3078,4 +3078,21 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
     // ArasGram: ported for 13.2.1 compatibility
     private boolean centerTitleAndGlass;
+
+    int getTitleColorToSet() {
+        return titleColorToSet;
+    }
+
+    int getSubtitleColorInternal() {
+        return subtitleTextView != null ? subtitleTextView.getTextColor() : 0;
+    }
+
+    boolean isActionModeView(View view) {
+        return actionMode != null && actionMode == view;
+    }
+
+    /** ThemeBind: the color an action mode view keeps (it is not a real background while the bar is blurred) */
+    int getActionModeColorFor(View view) {
+        return actionMode != null && actionMode == view ? actionModeColor : 0;
+    }
 }

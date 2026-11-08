@@ -389,4 +389,14 @@ public abstract class BaseLocationAdapter extends AdapterWithDiffUtils {
         setDelegate(delegate);
     }
 
+
+    // 13.2.1: the Foursquare venue search is gone upstream (addresses come from the Geocoder now),
+    // these overloads stay for the fork's call sites.
+    public void searchPlacesWithQuery(final String query, final android.location.Location coordinate, boolean searchUser) {
+        searchPlacesWithQuery(query, coordinate, searchUser, false);
+    }
+
+    public void searchPlacesWithQuery(final String query, final android.location.Location coordinate, boolean searchUser, boolean animated) {
+        searchDelayed(query, coordinate);
+    }
 }

@@ -217,7 +217,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
     private TLRPC.UserFull userInfo;
 
     private boolean forum, canForum;
-    private boolean forumTabs;
+    private boolean forumTabs, forumSidebar;
 
     private boolean isChannel;
 
@@ -1147,9 +1147,10 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                     }
                     EnableTopicsActivity fragment = new EnableTopicsActivity(-chatId);
                     fragment.setResourceProvider(resourceProvider);
-                    fragment.setOnForumChanged(forum, forumTabs, (newForum, newTabs) -> {
+                    fragment.setOnForumChanged(forum, forumTabs, forumSidebar, (newForum, newTabs, newSidebar) -> {
                         forum = newForum;
                         forumTabs = newTabs;
+                        forumSidebar = newSidebar;
                         avatarImage.animateToRoundRadius(forum ? dp(16) : dp(32));
                         ((TextCell) v).setChecked(forum);
                         updateFields(false, true);

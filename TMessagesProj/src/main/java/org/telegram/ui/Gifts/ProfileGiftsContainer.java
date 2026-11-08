@@ -120,8 +120,6 @@ import java.util.Objects;
 import me.vkryl.android.animator.BoolAnimator;
 
 import tw.nekomimi.nekogram.NekoConfig;
-import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
-import org.telegram.ui.Components.blur3.ViewGroupPartRenderer;
 
 public class ProfileGiftsContainer extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
@@ -2236,27 +2234,4 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
             return true;
         });
     }
-
-
-    // ArasGram: ported member for 13.2.1 compatibility
-    public void initBlurCapture(ViewGroup parent) {
-        iBlur3CaptureParent = parent;
-
-        iBlur3Capture = (canvas, position) -> {
-            View[] pages = viewPager.getViewPages();
-            for (View view : pages) {
-                if (view instanceof Page) {
-                    Page page = (Page) view;
-                    if (page.iBlur3Capture == null) {
-                        page.iBlur3Capture = new ViewGroupPartRenderer(page.listView, iBlur3CaptureParent, page.listView::drawChild);
-                    }
-                    page.iBlur3Capture.capture(canvas, position);
-                }
-            }
-        };
-    }
-
-
-    // ArasGram: ported for 13.2.1 compatibility
-    private ViewGroup iBlur3CaptureParent;
 }

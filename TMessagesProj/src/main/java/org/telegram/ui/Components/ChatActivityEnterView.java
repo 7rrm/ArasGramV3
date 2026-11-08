@@ -12680,6 +12680,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             dialog_id,
             replyingMessageObject,
             getThreadMessage(),
+            replyingQuote,
             notify,
             scheduleDate,
             scheduleRepeatPeriod,

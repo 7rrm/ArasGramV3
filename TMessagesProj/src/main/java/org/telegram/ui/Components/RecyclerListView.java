@@ -4231,4 +4231,12 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
     private boolean legacySections = true;
     private int sectionPadding;
     private boolean sectionTopPadding;
+
+    int getSectionColorForDecoration() {
+        return Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
+    }
+
+    int getSectionsBackgroundColorForDecoration() {
+        return ColorUtils.setAlphaComponent(Theme.getColor(bitmapSectionsBackgroundColorKey, resourcesProvider), 0xFF);
+    }
 }

@@ -510,7 +510,6 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         private DefaultItemAnimator itemAnimator;
         private RecyclerView.RecycledViewPool viewPool, searchViewPool;
         private InternalListView listView;
-        private @Nullable IBlur3Capture iBlur3Capture;
         private InternalListView animationSupportingListView;
         private GridLayoutManager animationSupportingLayoutManager;
         private FlickerLoadingView progressView;
@@ -528,9 +527,21 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         public boolean highlightAnimation;
         public float highlightProgress;
 
+        /** The opaque background of a fullscreen page whose list has no sections to draw it. */
+        private boolean drawPageBackground;
+        private final Paint backgroundPaint = new Paint();
+        private Theme.ResourcesProvider resourcesProvider;
+
 
         public MediaPage(Context context) {
             super(context);
+        }
+
+        private void setDrawPageBackground(boolean draw) {
+            if (drawPageBackground != draw) {
+                drawPageBackground = draw;
+                invalidate();
+            }
         }
 
         @Override
@@ -541,8 +552,52 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             return super.drawChild(canvas, child, drawingTime);
         }
 
+        /** The poll wallpaper of a fullscreen page: drawn by the page itself, a background would not be clipped. */
+        private Drawable wallpaper;
+
+        private void setWallpaper(Drawable drawable) {
+            if (wallpaper != drawable) {
+                if (wallpaper != null) {
+                    wallpaper.setCallback(null);
+                }
+                wallpaper = drawable;
+                if (wallpaper != null) {
+                    wallpaper.setCallback(this);
+                }
+                invalidate();
+            }
+        }
+
+        @Override
+        protected boolean verifyDrawable(@NonNull Drawable who) {
+            return who == wallpaper || super.verifyDrawable(who);
+        }
+
+        /**
+         * The opaque background of a fullscreen page, within the page and the overscan of its list:
+         * the pages do not clip, the other one is right next to it during a swipe.
+         */
+        private void drawPageBackground(Canvas canvas) {
+            final int top = Math.min(0, listView.getTop());
+            final int bottom = Math.max(getHeight(), listView.getBottom());
+            // the photos page is wider by its -1dp margins and its neighbour moves by that width: past the sides,
+            // so that no gap opens between the pages during a swipe
+            final int side = dp(2);
+            if (wallpaper != null) {
+                canvas.save();
+                canvas.clipRect(-side, top, getWidth() + side, bottom);
+                wallpaper.setBounds(-side, top, getWidth() + side, bottom);
+                wallpaper.draw(canvas);
+                canvas.restore();
+            } else if (drawPageBackground) {
+                backgroundPaint.setColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
+                canvas.drawRect(-side, top, getWidth() + side, bottom, backgroundPaint);
+            }
+        }
+
         @Override
         protected void dispatchDraw(Canvas canvas) {
+            drawPageBackground(canvas);
             super.dispatchDraw(canvas);
             if (fastScrollHintView != null && fastScrollHintView.getVisibility() == View.VISIBLE) {
                 boolean isVisible = false;
@@ -568,6 +623,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             }
         }
 
+        private @Nullable IBlur3Capture iBlur3Capture;
     }
 
     public float getPhotoVideoOptionsAlpha(float progress) {
@@ -2594,7 +2650,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             saveItem.setScaleX(0.4f);
             saveItem.setScaleY(0.4f);
 
-            giftsContainer = new ProfileGiftsContainer(profileActivity, context, profileActivity.getCurrentAccount(), ((ProfileActivity) profileActivity).getDialogId(), resourcesProvider) {
+            giftsContainer = new ProfileGiftsContainer(profileActivity, context, profileActivity.getCurrentAccount(), ((ProfileActivity) profileActivity).getDialogId(), resourcesProvider, iBlur3FactoryLiquidGlass) {
                 @Override
                 protected int processColor(int color) {
                     return SharedMediaLayout.this.processColor(color);
@@ -2620,7 +2676,6 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
             storiesContainer = new ProfileStoriesCollectionTabs(
                 context,
-                sizeNotifierFrameLayout,
                 getStoriesController().getStoryAlbumsList(dialog_id),
                 new ProfileStoriesCollectionTabs.Delegate() {
                     @Override

@@ -41,7 +41,6 @@ import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 
 import xyz.nextalone.nagram.NaConfig;
-import android.graphics.RenderNode;
 
 public class ProfileMusicView extends View {
 
@@ -391,17 +390,5 @@ public class ProfileMusicView extends View {
         canvas.restore();
 
         canvas.restore();
-    }
-
-
-    // ArasGram: ported member for 13.2.1 compatibility
-    public void drawingBlur(boolean drawing) {
-        if (trailingView != null) trailingView.drawingBlur(drawing);
-        if (ignoreRect != drawing || renderNode != null) {
-            ignoreRect = drawing;
-            renderNode = null;
-            avatarView = null;
-            invalidate();
-        }
     }
 }
