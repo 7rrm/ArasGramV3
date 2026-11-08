@@ -274,6 +274,7 @@ import xyz.nextalone.nagram.NaConfig;
 import xyz.nextalone.nagram.helper.BookmarksHelper;
 
 import static tw.nekomimi.nekogram.helpers.MessageHelper.showForwardDate;
+import org.telegram.messenger.AppGlobalConfig;
 
 public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate, ImageReceiver.ImageReceiverDelegate,
         DownloadController.FileDownloadProgressListener, TextSelectionHelper.SelectableView,
@@ -30309,4 +30310,35 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         final float x = getCompactLeft();
 
                         final boolean hit = block.isCompactCopyHit(x - (block.isRtl() ? currentMessageObject.textXOffset : 0), y - block.padTop, getCompactRight() - textX);
+
+
+    // ArasGram: ported from 13.2.1
+        final int maxWidth = getCompactContentWidth();
+
+        if (hasForward) {
+            if (compactForwardRow == null) {
+                compactForwardRow = new CompactHeaderRow(true);
+            }
+            final TLObject peer = currentForwardChannel != null ? currentForwardChannel : currentForwardUser;
+            CharSequence name;
+            if (currentForwardChannel != null) {
+                name = currentForwardChannel.title;
+            } else if (currentForwardUser != null) {
+                name = UserObject.getUserName(currentForwardUser);
+            } else {
+                name = fwd.from_name;
+            }
+            if (name != null) {
+                name = Emoji.replaceEmoji(name, compactHeaderTextPaint.getFontMetricsInt(), false);
+            }
+            compactForwardRow.set(getString(R.string.ForwardedFrom), peer, name, compactHeaderTextPaint, null, maxWidth);
+            drawCompactForward = true;
+        }
+
+        final float x = getCompactLeft();
+        float y = dp(drawPinnedTop ? 9 : 10);
+        if (drawCompactForward) {
+            drawCompactHeaderRow(canvas, compactForwardRow, x, y, color);
+            y += dp(COMPACT_HEADER_ROW + COMPACT_HEADER_ROW_GAP);
+        }
 }

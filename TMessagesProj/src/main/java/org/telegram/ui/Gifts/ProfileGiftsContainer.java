@@ -120,6 +120,8 @@ import java.util.Objects;
 import me.vkryl.android.animator.BoolAnimator;
 
 import tw.nekomimi.nekogram.NekoConfig;
+import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
+import org.telegram.ui.Components.blur3.ViewGroupPartRenderer;
 
 public class ProfileGiftsContainer extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 

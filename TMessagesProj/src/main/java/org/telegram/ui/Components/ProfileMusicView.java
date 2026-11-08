@@ -41,6 +41,7 @@ import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 
 import xyz.nextalone.nagram.NaConfig;
+import android.graphics.RenderNode;
 
 public class ProfileMusicView extends View {
 

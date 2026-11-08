@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Set;
 
 import tw.nekomimi.nekogram.NekoConfig;
+import android.graphics.RenderNode;
 
 @SuppressLint("ViewConstructor")
 public class ProfileActionsView extends View {

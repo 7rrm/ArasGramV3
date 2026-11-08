@@ -363,6 +363,8 @@ import tw.nekomimi.nekogram.streaming.MediaStreamingProvider;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.core.reference.ReferenceList;
+import org.telegram.utils.pip.PipSession;
+import org.telegram.utils.pip.PipCoordinator;
 
 @SuppressLint("WrongConstant")
 @SuppressWarnings("unchecked")
