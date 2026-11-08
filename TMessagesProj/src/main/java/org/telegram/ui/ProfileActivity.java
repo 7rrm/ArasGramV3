@@ -12181,32 +12181,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         showStatusSelect();
                     });
                 }
-                // ArasGramX: when the cherry badge (in setRightDrawable2) is
-                // tapped on the developer's profile, show a Bulletin thanking
-                // the developer for their support. Only fires for the owner
-                // account — channels and other users are unaffected.
+                // Preserve the badge and its existing click target; show only the
+                // anchored hint, not the old bottom bulletin or a support action.
                 if (ArasGramConstants.isOwner(user.id)) {
-                    final SimpleTextView arasCherryView = nameTextView[a];
-                    final int arasCherryIndex = a;
-                    arasCherryView.setRightDrawable2OnClick(v -> {
-                        try {
-                            // Use the cherry drawable itself as the bulletin icon.
-                            Drawable cherryIcon = arasCherryDrawable[arasCherryIndex];
-                            if (cherryIcon == null) {
-                                cherryIcon = getArasCherryStatusDrawable(arasCherryIndex, false);
-                            }
-                            // ArasGramX: BulletinFactory.of(BaseFragment) is the
-                            // overload used elsewhere in ProfileActivity — passing
-                            // a SimpleTextView here would fail to compile because
-                            // the only non-fragment overload requires a FrameLayout.
-                            BulletinFactory.of(ProfileActivity.this)
-                                .createSimpleBulletin(
-                                    cherryIcon,
-                                    "✕ supported ArasGramX development!")
-                                .show();
-                        } catch (Throwable ignore) {
-                        }
-                    });
+                    nameTextView[a].setRightDrawable2OnClick(v -> showArasCherryHint(user));
                 }
                 if (!user.self && getMessagesController().isPremiumUser(user)) {
                     final SimpleTextView textView = nameTextView[a];
@@ -17572,6 +17550,52 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
 
+    // Cherrygram's donor hint adapted to our existing secondary badge.
+    private HintView2 arasCherryHint;
+    private int arasCherryHintBackgroundColor;
+
+    private void showArasCherryHint(TLRPC.User user) {
+        if (user == null || avatarContainer2 == null || getContext() == null) return;
+        if (arasCherryHint != null) arasCherryHint.hide();
+        CharSequence message = AndroidUtilities.replaceTags(
+                formatString(R.string.ArasCherryHint, UserObject.getUserName(user)));
+        final HintView2 hint = new HintView2(getContext(), HintView2.DIRECTION_BOTTOM);
+        arasCherryHint = hint;
+        arasCherryHintBackgroundColor = peerColor != null
+                && peerColor.getBgColor1(Theme.isCurrentThemeDark()) != peerColor.getBgColor2(Theme.isCurrentThemeDark())
+                ? peerColor.getBgColor1(Theme.isCurrentThemeDark()) : getThemedColor(Theme.key_undo_background);
+        hint.setPadding(dp(4), 0, dp(4), dp(2));
+        hint.setFlicker(.66f, Theme.multAlpha(11922687 | 0xFF000000, 0.5f));
+        avatarContainer2.addView(hint, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 24));
+        hint.setTextSize(10f);
+        hint.setText(message);
+        hint.setDuration(-1);
+        hint.setInnerPadding(6, 3, 6, 3);
+        hint.setArrowSize(4, 2.66f);
+        hint.setRoundingWithCornerEffect(false);
+        hint.setRounding(16);
+        hint.setOnHiddenListener(() -> {
+            if (hint.getParent() instanceof ViewGroup) ((ViewGroup) hint.getParent()).removeView(hint);
+            if (arasCherryHint == hint) arasCherryHint = null;
+        });
+        hint.show();
+        updateArasCherryHint();
+        AndroidUtilities.runOnUIThread(hint::hide, 5500);
+    }
+
+    private void updateArasCherryHint() {
+        if (arasCherryHint == null || nameTextView[1] == null || nameTextView[0] == null) return;
+        SimpleTextView name = extraHeight >= dp(82) ? nameTextView[1] : nameTextView[0];
+        // The project's badge is the secondary drawable at the text start;
+        // rightDrawable2X is its actual drawn centre, including RTL placement.
+        arasCherryHint.setJointPx(0, -arasCherryHint.getPaddingLeft()
+                + name.getX() + name.rightDrawable2X * name.getScaleX());
+        final float expanded = AndroidUtilities.lerp(expandAnimatorValues, currentExpanAnimatorFracture);
+        arasCherryHint.setTranslationY(-arasCherryHint.getPaddingBottom() + name.getY() - dp(24)
+                + lerp(dp(6), -dp(12), expanded));
+        arasCherryHint.setBgColor(ColorUtils.blendARGB(arasCherryHintBackgroundColor, 0x50000000, expanded));
+    }
+
     private HintView2 collectibleHint;
     private int collectibleHintBackgroundColor;
     private Boolean collectibleHintVisible;
@@ -17616,6 +17640,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     public void updateCollectibleHint() {
+        updateArasCherryHint();
         if (collectibleHint == null) return;
         collectibleHint.setJointPx(0, -collectibleHint.getPaddingLeft() + nameTextView[1].getX() + nameTextView[1].getRightDrawableX() * nameTextView[1].getScaleX());
         final float expanded = AndroidUtilities.lerp(expandAnimatorValues, currentExpanAnimatorFracture);
