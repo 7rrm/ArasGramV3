@@ -560,6 +560,7 @@ public class BitmapSectionsItemDecoration extends RecyclerView.ItemDecoration im
     }
 
     private int getSectionColor(float alpha) {
+        final int sectionColor = parent.getSectionColorForDecoration();
         final int foregroundAlpha = Math.round(Color.alpha(sectionColor) * Math.max(0.0f, Math.min(1.0f, alpha)));
         final int foreground = ColorUtils.setAlphaComponent(sectionColor, foregroundAlpha);
         return ColorUtils.compositeColors(foreground, backgroundPaint.getColor());
@@ -861,13 +862,19 @@ public class BitmapSectionsItemDecoration extends RecyclerView.ItemDecoration im
 
 
     // ArasGram: ported for 13.2.1 compatibility
+            final int sectionColor = parent.getSectionColorForDecoration();
 
+        final int color = parent.getSectionsBackgroundColorForDecoration();
 
 
     // ArasGram: ported for 13.2.1 compatibility
+            final int sectionColor = parent.getSectionColorForDecoration();
 
+        final int color = parent.getSectionsBackgroundColorForDecoration();
 
 
     // ArasGram: ported for 13.2.1 compatibility
+            final int sectionColor = parent.getSectionColorForDecoration();
 
+        final int color = parent.getSectionsBackgroundColorForDecoration();
 }
