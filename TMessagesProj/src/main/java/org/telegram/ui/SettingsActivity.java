@@ -2377,6 +2377,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
         scrollableViewNoiseSuppressor.setupRenderNodes(iBlur3Positions, hasMainTabs ? 2 : 1);
         scrollableViewNoiseSuppressor.invalidateResultRenderNodes(iBlur3Capture, fragmentView.getMeasuredWidth(), fragmentView.getMeasuredHeight());
+    }
+
+    }
+
     @Override
     public GlassSourceRenderNode getGlassSource() {
         return getBaseSimpleGlass().getGlassSource();

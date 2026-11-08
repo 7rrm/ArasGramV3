@@ -1899,6 +1899,10 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		iBlur3PositionActionBar.set(0, -additionalList, fragmentView.getMeasuredWidth(), actionBar.getMeasuredHeight() + additionalList);
 		iBlur3PositionMainTabs.set(0, mainTabTop, fragmentView.getMeasuredWidth(), mainTabBottom);
 		iBlur3PositionMainTabs.inset(0, LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0 : -dp(48));
+	}
+
+	}
+
 	@Override
 	public GlassSourceRenderNode getGlassSource() {
 		return getBaseSimpleGlass().getGlassSource();

@@ -724,7 +724,6 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
         rimFromColors = null;
     }
 
-        if (!NaConfig.INSTANCE.getStrokeOnViews().Bool()) return;
 
 
     /* Liquid glass and the glass settings */
