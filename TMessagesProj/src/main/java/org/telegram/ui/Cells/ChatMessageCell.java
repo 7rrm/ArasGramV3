@@ -265,6 +265,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 import me.vkryl.core.BitwiseUtils;
+import tw.nekomimi.nekogram.utils.AndroidUtil;
 
 public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate, ImageReceiver.ImageReceiverDelegate,
         DownloadController.FileDownloadProgressListener, TextSelectionHelper.SelectableView,
@@ -24184,5 +24185,29 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public float getMeeroPopOffsetX() {
         return meeroPopOffsetX;
+    }
+
+    public void drawStatusWithImage(Canvas canvas, ImageReceiver imageReceiver, int radius) {
+        int onlineColor = AndroidUtil.getOnlineColor(currentUser, resourcesProvider);
+        if (onlineColor == 0) {
+            imageReceiver.draw(canvas);
+            return;
+        }
+        int x = Math.round(imageReceiver.getImageX2());
+        int y = Math.round(imageReceiver.getImageY2());
+        int circleRadius = radius - AndroidUtilities.dp(2.25f);
+        int spaceLeft = radius - circleRadius;
+        int xCenterRegion = x - spaceLeft;
+        int yCenterRegion = y - spaceLeft;
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(onlineColor);
+        canvas.save();
+        Path p = new Path();
+        p.addCircle(x - radius, y - radius, radius, Path.Direction.CW);
+        p.toggleInverseFillType();
+        canvas.clipPath(p);
+        imageReceiver.draw(canvas);
+        canvas.restore();
+        canvas.drawCircle(xCenterRegion - circleRadius, yCenterRegion - circleRadius, circleRadius, paint);
     }
 }

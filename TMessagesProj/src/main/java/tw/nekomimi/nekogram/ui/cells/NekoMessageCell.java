@@ -170,7 +170,6 @@ public class NekoMessageCell extends ChatMessageCell {
         return false;
     }
 
-    @Override
     protected boolean shouldShowAyuDeletedMark(MessageObject messageObject) {
         return showAyuDeletedMark;
     }

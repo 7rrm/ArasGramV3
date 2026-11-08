@@ -2352,7 +2352,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
     /* Blur */
 
-    private final @Nullable DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
+    private @Nullable DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
     private final @Nullable GlassSourceRenderNode iBlur3SourceGlassFrosted;
     private final @Nullable GlassSourceRenderNode iBlur3SourceGlass;
 
