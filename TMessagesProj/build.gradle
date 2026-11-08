@@ -362,3 +362,8 @@ dependencies {
 
     compileOnly fileTree('libs')
 }
+
+// TEMP (upgrade diagnostics): show every javac error instead of the default 100
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << '-Xmaxerrs' << '20000'
+}
