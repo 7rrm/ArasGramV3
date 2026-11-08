@@ -270,7 +270,6 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate {
 import kotlin.text.StringsKt;
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.helpers.MonetHelper;
@@ -284,6 +283,7 @@ import tw.nekomimi.nekogram.utils.AndroidUtil;
 import tw.nekomimi.nekogram.utils.ProxyUtil;
 import xyz.nextalone.nagram.NaConfig;
 import tw.nekomimi.nekogram.ui.icons.IconsResources;
+public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate {
 
     public final static String EXTRA_FORCE_NOT_INTERNAL_APPS = "force_not_internal_apps";
     public final static String EXTRA_VOIP_ANSWER_TOKEN = "voip_answer_token";

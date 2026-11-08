@@ -1918,8 +1918,6 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
         }
     }
 
-                IMapsProvider.IMarkerOptions options = ApplicationLoader.getMapsProvider().onCreateMarkerOptions(mapView).position(new IMapsProvider.LatLng(venue.geo.lat, venue.geo._long));
-                options.icon(getParentActivity().getResources(), createPlaceBitmap(a));
     private void setupAvatarReceiver(LiveLocation liveLocation) {
         if (liveLocation.avatarReceiver != null) return;
         final TLRPC.User user = liveLocation.user;

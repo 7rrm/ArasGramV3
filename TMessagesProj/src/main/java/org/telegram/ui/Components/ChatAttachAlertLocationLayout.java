@@ -88,11 +88,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLayout implements Theme.Colorable, NotificationCenter.NotificationCenterDelegate {
 import kotlin.Unit;
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.location.NekoLocation;
 import tw.nekomimi.nekogram.ui.BottomBuilder;
+public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLayout implements Theme.Colorable, NotificationCenter.NotificationCenterDelegate {
 
 
     private ImageView locationButton;
