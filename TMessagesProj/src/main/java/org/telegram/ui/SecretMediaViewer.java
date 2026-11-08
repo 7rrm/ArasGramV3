@@ -1519,7 +1519,6 @@ public class SecretMediaViewer implements NotificationCenter.NotificationCenterD
                 if (f != null && f.exists()) {
                     preparePlayer(f);
                 } else {
-<<<<<<< /tmp/tmpnma177zx
                     File file = FileLoader.getInstance(currentAccount).getPathToMessage(messageObject.messageOwner);
                     File encryptedFile = file != null ? new File(file.getAbsolutePath() + ".enc") : null;
                     if (encryptedFile != null && encryptedFile.exists()) {
@@ -1535,17 +1534,6 @@ public class SecretMediaViewer implements NotificationCenter.NotificationCenterD
                         if (!TextUtils.isEmpty(filePath)) {
                             file = new File(filePath);
                         }
-||||||| /tmp/tmp44mr0c_b
-                    File file = FileLoader.getInstance(currentAccount).getPathToMessage(messageObject.messageOwner);
-                    File encryptedFile = new File(file.getAbsolutePath() + ".enc");
-                    if (encryptedFile.exists()) {
-                        file = encryptedFile;
-=======
-                    File file = messageObject.isLivePhoto() ? FileLoader.getInstance(currentAccount).getPathToAttach(document, null, true) : FileLoader.getInstance(currentAccount).getPathToMessage(messageObject.messageOwner);
-                    File encryptedFile = new File(file.getAbsolutePath() + ".enc");
-                    if (encryptedFile.exists()) {
-                        file = encryptedFile;
->>>>>>> /tmp/tmpp1rak2sb
                     }
                     preparePlayer(file);
                 }

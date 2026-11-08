@@ -41,16 +41,7 @@ public class BuildVars {
     public static boolean IS_BILLING_UNAVAILABLE = false;
 
     // works only on official app ids, disable on your forks
-<<<<<<< /tmp/tmpxgj5s2gy
     public static boolean SUPPORTS_PASSKEYS = Build.VERSION.SDK_INT >= 34;
-||||||| /tmp/tmpcqaki0cp
-    public static boolean SUPPORTS_PASSKEYS = true;
-=======
-    public static boolean SUPPORTS_PASSKEYS = true;
-    // the second main tab: News, or Contacts as before them
-
-    public static boolean SUPPORTS_FPNV = true;
->>>>>>> /tmp/tmpl0wdd1g0
 
     static {
         APP_ID = BuildConfig.APP_ID;

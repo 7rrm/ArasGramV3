@@ -25,7 +25,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLoader;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
@@ -35,21 +34,14 @@ import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.voip.CellFlickerDrawable;
 
 import java.util.Locale;
 
-<<<<<<< /tmp/tmp_te7wwsa
 import tw.nekomimi.nekogram.TextViewEffects;
 import tw.nekomimi.nekogram.helpers.remote.UpdateHelper;
 
 public class BlockingUpdateView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
-||||||| /tmp/tmprnws2axb
-public class BlockingUpdateView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
-=======
-public class BlockingUpdateView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate, Theme.Colorable {
->>>>>>> /tmp/tmp9p7hecqa
 
     private TextView textView;
     private TextView acceptTextView;
@@ -67,7 +59,7 @@ public class BlockingUpdateView extends FrameLayout implements NotificationCente
 
     public BlockingUpdateView(final Context context) {
         super(context);
-        ThemeBind.backgroundColor(this, Theme.key_windowBackgroundWhite);
+        setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
 
         int top = Build.VERSION.SDK_INT >= 21 ? (int) (AndroidUtilities.statusBarHeight / AndroidUtilities.density) : 0;
 
@@ -99,26 +91,16 @@ public class BlockingUpdateView extends FrameLayout implements NotificationCente
         scrollView.addView(container);
 
         TextView titleTextView = new TextView(context);
-        ThemeBind.textColor(titleTextView, Theme.key_windowBackgroundWhiteBlackText);
+        titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         titleTextView.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
         titleTextView.setTypeface(AndroidUtilities.bold());
         titleTextView.setText(LocaleController.getString(R.string.UpdateTelegram).replace("Telegram", LocaleController.getString(R.string.NagramX)));
         container.addView(titleTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP));
 
-<<<<<<< /tmp/tmp_te7wwsa
         textView = new TextViewEffects(context);
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         textView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
-||||||| /tmp/tmprnws2axb
-        textView = new TextView(context);
-        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        textView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
-=======
-        textView = new TextView(context);
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText);
-        ThemeBind.linkTextColor(textView, Theme.key_windowBackgroundWhiteLinkText);
->>>>>>> /tmp/tmp9p7hecqa
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         textView.setGravity(Gravity.LEFT | Gravity.TOP);
         textView.setLineSpacing(AndroidUtilities.dp(2), 1.0f);
@@ -307,7 +289,6 @@ public class BlockingUpdateView extends FrameLayout implements NotificationCente
         } else {
             acceptTextView.setText(LocaleController.getString(R.string.Update));
         }
-<<<<<<< /tmp/tmp_te7wwsa
         NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.fileLoaded);
         NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.fileLoadFailed);
         NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.fileLoadProgressChanged);
@@ -315,43 +296,6 @@ public class BlockingUpdateView extends FrameLayout implements NotificationCente
             UpdateHelper.getInstance().checkNewVersionAvailable((response, error) -> AndroidUtilities.runOnUIThread(() -> {
                 if (response != null) {
                     if (!response.can_not_skip) {
-||||||| /tmp/tmprnws2axb
-        NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.fileLoaded);
-        NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.fileLoadFailed);
-        NotificationCenter.getInstance(accountNum).addObserver(this, NotificationCenter.fileLoadProgressChanged);
-        if (check && ApplicationLoader.isStandaloneBuild()) {
-            TLRPC.TL_help_getAppUpdate req = new TLRPC.TL_help_getAppUpdate();
-            try {
-                req.source = ApplicationLoader.applicationContext.getPackageManager().getInstallerPackageName(ApplicationLoader.applicationContext.getPackageName());
-            } catch (Exception ignore) {
-
-            }
-            if (req.source == null) {
-                req.source = "";
-            }
-            ConnectionsManager.getInstance(accountNum).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-                if (response instanceof TLRPC.TL_help_appUpdate) {
-                    final TLRPC.TL_help_appUpdate res = (TLRPC.TL_help_appUpdate) response;
-                    if (!res.can_not_skip) {
-=======
-        NotificationCenter.getInstance(accountNum).addWeakObserver(this, NotificationCenter.fileLoaded);
-        NotificationCenter.getInstance(accountNum).addWeakObserver(this, NotificationCenter.fileLoadFailed);
-        NotificationCenter.getInstance(accountNum).addWeakObserver(this, NotificationCenter.fileLoadProgressChanged);
-        if (check && ApplicationLoader.isStandaloneBuild()) {
-            TLRPC.TL_help_getAppUpdate req = new TLRPC.TL_help_getAppUpdate();
-            try {
-                req.source = ApplicationLoader.applicationContext.getPackageManager().getInstallerPackageName(ApplicationLoader.applicationContext.getPackageName());
-            } catch (Exception ignore) {
-
-            }
-            if (req.source == null) {
-                req.source = "";
-            }
-            ConnectionsManager.getInstance(accountNum).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-                if (response instanceof TLRPC.TL_help_appUpdate) {
-                    final TLRPC.TL_help_appUpdate res = (TLRPC.TL_help_appUpdate) response;
-                    if (!res.can_not_skip) {
->>>>>>> /tmp/tmp9p7hecqa
                         setVisibility(GONE);
                         SharedConfig.pendingAppUpdate = null;
                         SharedConfig.saveConfig();
@@ -363,34 +307,6 @@ public class BlockingUpdateView extends FrameLayout implements NotificationCente
 
     Drawable gradientDrawableTop = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[] {Theme.getColor(Theme.key_windowBackgroundWhite), Color.TRANSPARENT });
     Drawable gradientDrawableBottom = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[] {Theme.getColor(Theme.key_windowBackgroundWhite), Color.TRANSPARENT });
-
-    private boolean themeColorsApplied;
-    private int lastGradientColor, lastEdgeEffectColor;
-
-    @Override
-    public void updateColors() {
-        try {
-            final int color = Theme.getColor(Theme.key_windowBackgroundWhite);
-            if (!themeColorsApplied || color != lastGradientColor) {
-                lastGradientColor = color;
-                if (gradientDrawableTop instanceof GradientDrawable) {
-                    ((GradientDrawable) gradientDrawableTop).setColors(new int[] {color, Color.TRANSPARENT });
-                }
-                if (gradientDrawableBottom instanceof GradientDrawable) {
-                    ((GradientDrawable) gradientDrawableBottom).setColors(new int[] {color, Color.TRANSPARENT });
-                }
-            }
-            final int edgeColor = Theme.getColor(Theme.key_actionBarDefault);
-            if (scrollView != null && (!themeColorsApplied || edgeColor != lastEdgeEffectColor)) {
-                lastEdgeEffectColor = edgeColor;
-                AndroidUtilities.setScrollViewEdgeEffectColor(scrollView, edgeColor);
-            }
-            themeColorsApplied = true;
-            invalidate();
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
 
     @Override
     protected void dispatchDraw(Canvas canvas) {

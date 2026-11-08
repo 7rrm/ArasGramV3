@@ -53,7 +53,6 @@ import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Cells.FixedHeightEmptyCell;
 import org.telegram.ui.Cells.ReactedUserHolderView;
 import org.telegram.ui.ChatActivity;
@@ -89,15 +88,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 
-<<<<<<< /tmp/tmprvzgh_i2
 import tw.nekomimi.nekogram.NekoConfig;
 
 public class SelfStoryViewsPage extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
-||||||| /tmp/tmpj4m9uq6z
-public class SelfStoryViewsPage extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
-=======
-public class SelfStoryViewsPage extends FrameLayout implements Theme.Colorable, NotificationCenter.NotificationCenterDelegate {
->>>>>>> /tmp/tmp7igm8yt_
 
     private final View shadowView;
     private final View shadowView2;
@@ -192,7 +185,7 @@ public class SelfStoryViewsPage extends FrameLayout implements Theme.Colorable, 
         currentAccount = storyViewer.currentAccount;
 
         titleView = new TextView(context);
-        ThemeBind.textColor(titleView, Theme.key_dialogTextBlack, resourcesProvider);
+        titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setPadding(AndroidUtilities.dp(21), AndroidUtilities.dp(6), AndroidUtilities.dp(21), AndroidUtilities.dp(8));
@@ -448,11 +441,11 @@ public class SelfStoryViewsPage extends FrameLayout implements Theme.Colorable, 
 
         topViewsContainer = new FrameLayout(getContext());
         shadowView = new View(getContext());
-        shadowView.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{shadowViewColor = Theme.getColor(Theme.key_dialogBackground, resourcesProvider), Color.TRANSPARENT}));
+        shadowView.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Theme.getColor(Theme.key_dialogBackground, resourcesProvider), Color.TRANSPARENT}));
         topViewsContainer.addView(shadowView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 8, 0, 0, TOP_PADDING - 8, 0, 0));
 
         shadowView2 = new View(getContext());
-        ThemeBind.backgroundColor(shadowView2, Theme.key_dialogBackground, resourcesProvider);
+        shadowView2.setBackgroundColor(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
         topViewsContainer.addView(shadowView2, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 10, 0, 0, TOP_PADDING - 17, 0, 0));
 
         topViewsContainer.addView(headerView);
@@ -707,8 +700,8 @@ public class SelfStoryViewsPage extends FrameLayout implements Theme.Colorable, 
             currentModel.animateDateForUsers.clear();
         }
         listAdapter.updateRows();
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.storiesUpdated);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.storiesBlocklistUpdate);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.storiesUpdated);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.storiesBlocklistUpdate);
         Bulletin.addDelegate(this, new Bulletin.Delegate() {
             @Override
             public int getBottomOffset(int tag) {
@@ -923,8 +916,8 @@ public class SelfStoryViewsPage extends FrameLayout implements Theme.Colorable, 
                 case SUBSCRIBE_TO_PREMIUM_TEXT_HINT:
                     LinkSpanDrawable.LinksTextView textView = new LinkSpanDrawable.LinksTextView(getContext());
                     textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-                    ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
-                    ThemeBind.linkTextColor(textView, Theme.key_windowBackgroundWhiteLinkText, resourcesProvider);
+                    textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
+                    textView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText, resourcesProvider));
                     int padding = AndroidUtilities.dp(16);
                     int paddingHorizontal = AndroidUtilities.dp(21);
                     textView.setPadding(paddingHorizontal, padding, paddingHorizontal, padding);
@@ -1540,14 +1533,14 @@ public class SelfStoryViewsPage extends FrameLayout implements Theme.Colorable, 
 
             allViewersView = new TextView(context);
             allViewersView.setText(LocaleController.getString(R.string.AllViewers));
-            ThemeBind.textColor(allViewersView, Theme.key_dialogTextBlack, resourcesProvider);
+            allViewersView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
             allViewersView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             allViewersView.setTypeface(AndroidUtilities.bold());
             allViewersView.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(4), AndroidUtilities.dp(12), AndroidUtilities.dp(4));
 
             contactsViewersView = new TextView(context);
             contactsViewersView.setText(LocaleController.getString(R.string.Contacts));
-            ThemeBind.textColor(contactsViewersView, Theme.key_dialogTextBlack, resourcesProvider);
+            contactsViewersView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
             contactsViewersView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             contactsViewersView.setTypeface(AndroidUtilities.bold());
             contactsViewersView.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(4), AndroidUtilities.dp(12), AndroidUtilities.dp(4));
@@ -1558,7 +1551,7 @@ public class SelfStoryViewsPage extends FrameLayout implements Theme.Colorable, 
 
             buttonContainer = new LinearLayout(getContext());
             buttonContainer.setPadding(AndroidUtilities.dp(6), 0, AndroidUtilities.dp(6), 0);
-            ThemeBind.fillBackground(buttonContainer, Theme.createRoundRectDrawable(AndroidUtilities.dp(26), Theme.getColor(Theme.key_listSelector, resourcesProvider)), ThemeBind.of(Theme.key_listSelector), resourcesProvider);
+            buttonContainer.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(26), Theme.getColor(Theme.key_listSelector, resourcesProvider)));
             buttonContainer.setOrientation(LinearLayout.HORIZONTAL);
             replacableDrawable = new ReplaceableIconDrawable(getContext());
             replacableDrawable.exactlyBounds = true;
@@ -1782,22 +1775,6 @@ public class SelfStoryViewsPage extends FrameLayout implements Theme.Colorable, 
         public void updateClip(int[] clip) {
             clip[0] = AndroidUtilities.dp(TOP_PADDING);
             clip[1] = getMeasuredHeight();
-        }
-    }
-
-    private int shadowViewColor;
-
-    @Override
-    public void updateColors() {
-        try {
-            final int shadowColor = Theme.getColor(Theme.key_dialogBackground, resourcesProvider);
-            if (shadowView != null && shadowColor != shadowViewColor) {
-                shadowViewColor = shadowColor;
-                shadowView.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{shadowColor, Color.TRANSPARENT}));
-                invalidate();
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
         }
     }
 }

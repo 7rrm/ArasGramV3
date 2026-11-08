@@ -29,7 +29,6 @@ import android.widget.TextView;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
 import org.telegram.ui.Components.RecyclerListView;
@@ -38,15 +37,9 @@ import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.Components.spoilers.SpoilersTextView;
 
-<<<<<<< /tmp/tmpwv2r32eh
 import tw.nekomimi.nekogram.NekoConfig;
 
 public class TextDetailCell extends FrameLayout {
-||||||| /tmp/tmpve554lci
-public class TextDetailCell extends FrameLayout {
-=======
-public class TextDetailCell extends FrameLayout implements Theme.Colorable {
->>>>>>> /tmp/tmpzsofqahp
 
     public final SpoilersTextView textView;
     public final LinkSpanDrawable.LinksTextView valueTextView;
@@ -231,7 +224,7 @@ public class TextDetailCell extends FrameLayout implements Theme.Colorable {
             imageView.setBackground(null);
             imageView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         } else {
-            ThemeBind.selectorBackground(imageView, Theme.createSimpleSelectorCircleDrawable(dp(48), Color.TRANSPARENT, Theme.getColor(Theme.key_listSelector, resourcesProvider)), null, ThemeBind.of(Theme.key_listSelector), resourcesProvider);
+            imageView.setBackground(Theme.createSimpleSelectorCircleDrawable(dp(48), Color.TRANSPARENT, Theme.getColor(Theme.key_listSelector, resourcesProvider)));
             imageView.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
         }
         int margin = dp(23) + (drawable == null ? 0 : dp(48));
@@ -314,7 +307,6 @@ public class TextDetailCell extends FrameLayout implements Theme.Colorable {
         }
     }
 
-    @Override
     public void updateColors() {
         textView.setLinkTextColor(processColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider)));
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));

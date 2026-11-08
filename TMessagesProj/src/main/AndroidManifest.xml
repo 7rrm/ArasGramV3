@@ -87,7 +87,6 @@
     <uses-permission android:name="com.android.vending.BILLING"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
 
-<<<<<<< /tmp/tmpuvm85aee
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -95,11 +94,6 @@
 
     <uses-permission android:name="android.permission.CREDENTIAL_MANAGER_SET_ORIGIN" />
 
-||||||| /tmp/tmp3jbkg0e6
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
-=======
->>>>>>> /tmp/tmpy0hjijrp
     <uses-sdk tools:overrideLibrary="com.google.mlkit.vision.segmentation.subject"/>
 
     <queries>
@@ -441,14 +435,12 @@
         </activity-alias>
         <activity
             android:name="org.telegram.ui.BubbleActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode|smallestScreenSize|screenLayout"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
             android:allowEmbedded="true"
             android:documentLaunchMode="always"
             android:resizeableActivity="true"/>
-        <!-- Development: widget-sandbox's conformance set on the widget renderer, launched by adb.
-             Finishes at once outside internal (DEBUG_PRIVATE_VERSION) builds. -->
         <activity
             android:name="org.telegram.ui.ShareActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"

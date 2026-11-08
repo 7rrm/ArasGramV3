@@ -20,15 +20,9 @@ import org.telegram.ui.Components.RLottieDrawable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-<<<<<<< /tmp/tmpyyicn2w9
 import xyz.nextalone.nagram.NaConfig;
 
 public class DownloadProgressIcon extends View implements NotificationCenter.NotificationCenterDelegate {
-||||||| /tmp/tmp7aji17ma
-public class DownloadProgressIcon extends View implements NotificationCenter.NotificationCenterDelegate {
-=======
-public class DownloadProgressIcon extends View implements NotificationCenter.NotificationCenterDelegate, Theme.Colorable {
->>>>>>> /tmp/tmpambq5phe
 
     Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     Paint paint2 = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -64,22 +58,11 @@ public class DownloadProgressIcon extends View implements NotificationCenter.Not
         downloadDrawable.start();
     }
 
-    @Override
     public void updateColors() {
-        if (downloadDrawable == null || downloadCompleteDrawable == null) {
-            return;
-        }
-        final int color = Theme.getColor(Theme.key_actionBarDefaultIcon);
-        if (color == lastIconColor && downloadDrawable.getColorFilter() != null) {
-            return; // every theme frame (Theme.Colorable): allocate filters only when the color changed
-        }
-        lastIconColor = color;
-        downloadDrawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
-        downloadCompleteDrawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC));
+        downloadDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_actionBarDefaultIcon), PorterDuff.Mode.SRC_IN));
+        downloadCompleteDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_actionBarDefaultIcon), PorterDuff.Mode.SRC));
         invalidate();
     }
-
-    private int lastIconColor;
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -156,7 +139,7 @@ public class DownloadProgressIcon extends View implements NotificationCenter.Not
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         updateDownloadingListeners();
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.onDownloadingFilesChanged);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.onDownloadingFilesChanged);
         downloadImageReceiver.onAttachedToWindow();
         downloadCompleteImageReceiver.onAttachedToWindow();
     }

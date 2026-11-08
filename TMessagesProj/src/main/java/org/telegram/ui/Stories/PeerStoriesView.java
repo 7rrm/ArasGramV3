@@ -5,6 +5,7 @@ import tw.nekomimi.nekogram.MeeroStrings;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.lerp;
 import static org.telegram.messenger.LocaleController.getString;
+import static org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable.drawStroke;
 import static org.telegram.ui.Stories.HighlightMessageSheet.TIER_EMOJIS;
 import static org.telegram.ui.Stories.HighlightMessageSheet.TIER_LENGTH;
 import static org.telegram.ui.Stories.HighlightMessageSheet.getMaxLength;
@@ -82,7 +83,6 @@ import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.Emoji;
-import org.telegram.messenger.DownloadSpeedEstimator;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
@@ -125,7 +125,6 @@ import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.AvatarSpan;
 import org.telegram.ui.Cells.TextSelectionHelper;
 import org.telegram.ui.ChatActivity;
@@ -185,9 +184,9 @@ import org.telegram.ui.Components.URLSpanUserMention;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
-import org.telegram.utils.glass.source.GlassSource;
-import org.telegram.utils.glass.source.GlassSourceColor;
-import org.telegram.utils.glass.source.GlassSourceRenderNode;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSource;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.Components.chat.layouts.ChatActivitySideControlsButtonsLayout;
 import org.telegram.ui.Components.voip.CellFlickerDrawable;
@@ -427,9 +426,9 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
 
     private BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableFactory;
 
-    private final @NonNull GlassSourceColor blurredBackgroundSourceFallback;
-    private final @NonNull GlassSource blurredBackgroundSourceWithSaturation;
-    private final @Nullable GlassSourceRenderNode blurredBackgroundSourceRenderNodeWithSaturation;
+    private final @NonNull BlurredBackgroundSourceColor blurredBackgroundSourceFallback;
+    private final @NonNull BlurredBackgroundSource blurredBackgroundSourceWithSaturation;
+    private final @Nullable BlurredBackgroundSourceRenderNode blurredBackgroundSourceRenderNodeWithSaturation;
     private BlurredBackgroundColorProviderThemed blurredBackgroundColorProvider;
 
     public PeerStoriesView(@NonNull Context context, StoryViewer storyViewer, SharedResources sharedResources, Theme.ResourcesProvider resourcesProvider) {
@@ -551,10 +550,10 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
 
         blurredBackgroundColorProvider = new BlurredBackgroundColorProviderThemed(resourcesProvider, Theme.key_chat_messagePanelBackground, 0.8f);
 
-        blurredBackgroundSourceFallback = new GlassSourceColor();
+        blurredBackgroundSourceFallback = new BlurredBackgroundSourceColor();
         blurredBackgroundSourceFallback.setColor(ColorUtils.blendARGB(Color.BLACK, Color.WHITE, 0.2f));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.canBlurChat()) {
-            blurredBackgroundSourceRenderNodeWithSaturation = new GlassSourceRenderNode(blurredBackgroundSourceFallback);
+            blurredBackgroundSourceRenderNodeWithSaturation = new BlurredBackgroundSourceRenderNode(blurredBackgroundSourceFallback);
             blurredBackgroundSourceRenderNodeWithSaturation.setBlur(dp(8));
             blurredBackgroundSourceWithSaturation = blurredBackgroundSourceRenderNodeWithSaturation;
         } else {
@@ -1586,7 +1585,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                             editStoryItem.setOnClickListener(v -> {
                                 if (v.getAlpha() < 1) {
                                     AndroidUtilities.shakeViewSpring(v, shiftDp = -shiftDp);
-                                    BulletinFactory.of(storyContainer, resourcesProvider).createErrorBulletin(getString(R.string.StoryEditWaitUpload)).show();
+                                    BulletinFactory.of(storyContainer, resourcesProvider).createErrorBulletin("Wait until current upload is complete").show();
                                     return;
                                 }
                                 Activity activity = AndroidUtilities.findActivity(context);
@@ -1942,7 +1941,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
 
                         if (currentStory.isLive) {
                             ActionBarMenuSubItem deleteItem = ActionBarMenuItem.addItem(popupLayout, R.drawable.msg_remove, getString(R.string.LiveStoryEnd), false, resourcesProvider);
-                            deleteItem.setSelectorColorKey(Theme.key_text_RedBold, .12f);
+                            deleteItem.setSelectorColor(Theme.multAlpha(Theme.getColor(Theme.key_text_RedBold, resourcesProvider), .12f));
                             deleteItem.setColors(resourcesProvider.getColor(Theme.key_text_RedBold), resourcesProvider.getColor(Theme.key_text_RedBold));
                             deleteItem.setOnClickListener(v -> {
                                 if (popupMenu != null) {
@@ -1965,7 +1964,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                         }
                         if (!currentStory.isLive && (isSelf || MessagesController.getInstance(currentAccount).getStoriesController().canDeleteStory(currentStory.storyItem))) {
                             ActionBarMenuSubItem deleteItem = ActionBarMenuItem.addItem(popupLayout, R.drawable.msg_delete, getString(R.string.Delete), false, resourcesProvider);
-                            deleteItem.setSelectorColorKey(Theme.key_text_RedBold, .12f);
+                            deleteItem.setSelectorColor(Theme.multAlpha(Theme.getColor(Theme.key_text_RedBold, resourcesProvider), .12f));
                             deleteItem.setColors(resourcesProvider.getColor(Theme.key_text_RedBold), resourcesProvider.getColor(Theme.key_text_RedBold));
                             deleteItem.setOnClickListener(v -> {
                                 deleteStory();
@@ -2613,14 +2612,14 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                 TextView headerView = new TextView(getContext());
                 headerView.setTypeface(AndroidUtilities.bold());
                 headerView.setGravity(Gravity.CENTER);
-                ThemeBind.textColor(headerView, Theme.key_dialogTextBlack, resourcesProvider);
+                headerView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
                 headerView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
                 headerView.setText(getString(R.string.StoryQualityPremium));
                 layout.addView(headerView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 12, 0, 12, 0));
 
                 TextView descriptionView = new TextView(getContext());
                 descriptionView.setGravity(Gravity.CENTER);
-                ThemeBind.textColor(descriptionView, Theme.key_dialogTextGray3, resourcesProvider);
+                descriptionView.setTextColor(Theme.getColor(Theme.key_dialogTextGray3, resourcesProvider));
                 descriptionView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
                 descriptionView.setText(AndroidUtilities.replaceTags(getString(R.string.StoryQualityPremiumText)));
                 layout.addView(descriptionView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 9, 32, 19));
@@ -4493,27 +4492,21 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
         textView.setGravity(Gravity.CENTER_HORIZONTAL);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setText(getString(R.string.StoryUnsupported));
-        ThemeBind.textColor(textView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
 
         TextView buttonTextView = new TextView(getContext());
         ScaleStateListAnimator.apply(buttonTextView);
-<<<<<<< /tmp/tmpjieew0bq
         buttonTextView.setText(getString(R.string.AppUpdate).replace("Telegram", LocaleController.getString(R.string.NagramX)));
         buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider));
-||||||| /tmp/tmp5lcju6qq
-        buttonTextView.setText(getString(R.string.AppUpdate));
-        buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider));
-=======
-        buttonTextView.setText(getString(R.string.AppUpdate));
-        ThemeBind.textColor(buttonTextView, Theme.key_featuredStickers_buttonText, resourcesProvider);
->>>>>>> /tmp/tmp6ox_okb2
         buttonTextView.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(12));
         buttonTextView.setGravity(Gravity.CENTER);
         buttonTextView.setTypeface(AndroidUtilities.bold());
         buttonTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-        ThemeBind.selectorBackground(buttonTextView, Theme.createSimpleSelectorRoundRectDrawable(dp(8),
+        buttonTextView.setBackground(
+                Theme.createSimpleSelectorRoundRectDrawable(dp(8),
                 Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider),
-                ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider), 30)), ThemeBind.of(Theme.key_featuredStickers_addButton), ThemeBind.alpha(Theme.key_featuredStickers_buttonText, 30), resourcesProvider);
+                ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider), 30))
+        );
         buttonTextView.setOnClickListener(v -> {
             if (ApplicationLoader.isStandaloneBuild()) {
                 if (LaunchActivity.instance != null) {
@@ -4852,16 +4845,16 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             preloadReactionHolders.get(i).onAttachedToWindow(true);
         }
        // sharedResources.muteDrawable.addView(muteIconView);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.chatInfoDidLoad);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.liveStoryUpdated);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.storiesUpdated);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.storyQualityUpdate);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.storiesListUpdated);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.stealthModeChanged);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.storiesLimitUpdate);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.userIsPremiumBlockedUpadted);
-        NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.didLoadSendAsPeers);
-        NotificationCenter.getGlobalInstance().addWeakObserver(this, NotificationCenter.emojiLoaded);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.chatInfoDidLoad);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.liveStoryUpdated);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.storiesUpdated);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.storyQualityUpdate);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.storiesListUpdated);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.stealthModeChanged);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.storiesLimitUpdate);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.userIsPremiumBlockedUpadted);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didLoadSendAsPeers);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
     }
 
     @Override
@@ -5173,7 +5166,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                         if (thumbDrawable == null) {
                             thumbDrawable = ImageLoader.createStripedBitmap(storyItem.media.getDocument().thumbs);
                         }
-                        imageReceiver.setImage(null, null, ImageLocation.getForDocument(StoriesController.getStoryVideoDocument(currentAccount, storyItem)), filter + "_pframe", ImageLocation.getForDocument(size, storyItem.media.getDocument()), filter, thumbDrawable, 0, null, storyItem, 0);
+                        imageReceiver.setImage(null, null, ImageLocation.getForDocument(storyItem.media.getDocument()), filter + "_pframe", ImageLocation.getForDocument(size, storyItem.media.getDocument()), filter, thumbDrawable, 0, null, storyItem, 0);
                     } else {
                         TLRPC.Photo photo = storyItem.media != null ? storyItem.media.photo : null;
                         if (photo != null && photo.sizes != null) {
@@ -5882,7 +5875,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
 
                 boolean isVideo = storyItem.media != null && MessageObject.isVideoDocument(storyItem.media.getDocument());
                 if (isVideo) {
-                    TLRPC.Document document = StoriesController.getStoryVideoDocument(currentAccount, storyItem);
+                    TLRPC.Document document = storyItem.media.getDocument();
                     if (storyItem.fileReference == 0) {
                         storyItem.fileReference = FileLoader.getInstance(currentAccount).getFileReference(storyItem);
                     }
@@ -5900,11 +5893,6 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                                 "&sid=" + storyItem.id + "&did=" + storyItem.dialogId;
                         uriesToPrepare.add(Uri.parse("tg://" + FileLoader.getAttachFileName(document) + params));
                         documentsToPrepare.add(document);
-                        if (i == 1 && DownloadSpeedEstimator.isFast()) {
-                            // Without a prepared player (low-end devices), still load the start of the next video.
-                            // Below high priority, a story load stops after its prefix.
-                            FileLoader.getInstance(currentAccount).loadFile(document, storyItem, FileLoader.PRIORITY_NORMAL, 1);
-                        }
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
@@ -5949,7 +5937,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
         } else {
             if (isVideo) {
                 TLRPC.PhotoSize size = FileLoader.getClosestPhotoSizeWithSize(storyItem.media.getDocument().thumbs, 1000);
-                imageReceiver.setImage(ImageLocation.getForDocument(StoriesController.getStoryVideoDocument(currentAccount, storyItem)), filter + "_pframe", ImageLocation.getForDocument(size, storyItem.media.getDocument()), filter, null, null, null, 0, null, storyItem, 0);
+                imageReceiver.setImage(ImageLocation.getForDocument(storyItem.media.getDocument()), filter + "_pframe", ImageLocation.getForDocument(size, storyItem.media.getDocument()), filter, null, null, null, 0, null, storyItem, 0);
             } else {
                 TLRPC.Photo photo = storyItem.media != null ? storyItem.media.photo : null;
                 if (photo != null && photo.sizes != null) {
@@ -6122,7 +6110,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                 } else if (currentStory.storyItem != null) {
                     currentStory.storyItem.dialogId = dialogId;
                     try {
-                        document = StoriesController.getStoryVideoDocument(currentAccount, currentStory.storyItem);
+                        document = currentStory.storyItem.media.getDocument();
                         if (currentStory.storyItem.fileReference == 0) {
                             currentStory.storyItem.fileReference = FileLoader.getInstance(currentAccount).getFileReference(currentStory.storyItem);
                         }
@@ -6440,16 +6428,6 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
     public void progressToDismissUpdated() {
         if (BIG_SCREEN) {
             invalidate();
-        }
-    }
-
-    private boolean destroyed;
-    public void onDestroy() {
-        if (destroyed) return;
-        destroyed = true;
-        if (chatActivityEnterView != null) {
-            // it registers itself in NotificationCenter in its constructor, only onDestroy() unregisters it
-            chatActivityEnterView.onDestroy();
         }
     }
 

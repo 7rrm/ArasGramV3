@@ -44,22 +44,11 @@ import org.telegram.ui.Cells.BaseCell;
 
 import me.vkryl.android.animator.BoolAnimator;
 
-<<<<<<< /tmp/tmpzs2g5nix
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.helpers.MonetHelper;
 import xyz.nextalone.nagram.NaConfig;
 
 public class Switch extends View {
-||||||| /tmp/tmpdqe90frg
-public class Switch extends View {
-=======
-public class Switch extends View implements Theme.Colorable {
-
-    @Override
-    public void updateColors() {
-        colorSet = 0; // the ripple color is re-read from the theme on the next press
-    }
->>>>>>> /tmp/tmpbvk6jta_
     private final BoolAnimator animatorIconVisibility = new BoolAnimator(this, CubicBezierInterpolator.EASE_OUT_QUINT, 380L, true);
 
     public static final int SWITCH_STYLE_DEFAULT = 0;

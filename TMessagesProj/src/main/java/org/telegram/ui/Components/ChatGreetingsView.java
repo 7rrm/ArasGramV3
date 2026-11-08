@@ -41,7 +41,6 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.Components.Premium.PremiumButtonView;
 import org.telegram.ui.Components.Premium.StarParticlesView;
 import org.telegram.ui.LaunchActivity;
@@ -50,15 +49,9 @@ import org.telegram.ui.Stories.recorder.HintView2;
 
 import java.util.Locale;
 
-<<<<<<< /tmp/tmp5h6ly5sa
 import tw.nekomimi.nekogram.NekoConfig;
 
 public class ChatGreetingsView extends LinearLayout {
-||||||| /tmp/tmphmng0hfk
-public class ChatGreetingsView extends LinearLayout {
-=======
-public class ChatGreetingsView extends LinearLayout implements Theme.Colorable {
->>>>>>> /tmp/tmpd7vnjzju
 
     private TLRPC.Document preloadedGreetingsSticker;
     private TextView titleView;
@@ -170,7 +163,7 @@ public class ChatGreetingsView extends LinearLayout implements Theme.Colorable {
             }
             premiumTextView.setText(text);
             premiumTextView.setMaxWidth(HintView2.cutInFancyHalf(premiumTextView.getText(), premiumTextView.getPaint()));
-            ThemeBind.textColor(premiumTextView, Theme.key_chat_serviceText, resourcesProvider);
+            premiumTextView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
             premiumTextView.setLineSpacing(dp(2f), 1f);
             if (premiumButtonView == null) {
                 premiumButtonView = new TextView(getContext()) {
@@ -226,7 +219,7 @@ public class ChatGreetingsView extends LinearLayout implements Theme.Colorable {
                 ScaleStateListAnimator.apply(premiumButtonView);
             }
             premiumButtonView.setText(buttonText);
-            ThemeBind.textColor(premiumButtonView, Theme.key_chat_serviceText, resourcesProvider);
+            premiumButtonView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
             premiumButtonView.setOnClickListener(onButtonClick);
         }
         updateLayout();
@@ -413,14 +406,9 @@ public class ChatGreetingsView extends LinearLayout implements Theme.Colorable {
         return String.format(Locale.US, "%d_%d", w, h);
     }
 
-    @Override
-    public void updateColors() {
-        if (titleView != null) {
-            titleView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
-        }
-        if (descriptionView != null) {
-            descriptionView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
-        }
+    private void updateColors() {
+        titleView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
+        descriptionView.setTextColor(getThemedColor(Theme.key_chat_serviceText));
     }
 
     public void setListener(Listener listener) {
@@ -540,7 +528,7 @@ public class ChatGreetingsView extends LinearLayout implements Theme.Colorable {
 
     public static void showPremiumSheet(Context context, int currentAccount, long dialogId, Theme.ResourcesProvider resourcesProvider) {
         BottomSheet sheet = new BottomSheet(context, false, resourcesProvider);
-        sheet.fixNavigationBarKey(Theme.key_dialogBackground);
+        sheet.fixNavigationBar(Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
 
         LinearLayout layout = new LinearLayout(context);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -551,7 +539,7 @@ public class ChatGreetingsView extends LinearLayout implements Theme.Colorable {
         imageView.setAnimation(R.raw.large_message_lock, 80, 80);
         imageView.playAnimation();
         imageView.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
-        ThemeBind.fillBackground(imageView, Theme.createCircleDrawable(dp(80), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)), ThemeBind.of(Theme.key_featuredStickers_addButton), resourcesProvider);
+        imageView.setBackground(Theme.createCircleDrawable(dp(80), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
         layout.addView(imageView, LayoutHelper.createLinear(80, 80, Gravity.CENTER_HORIZONTAL, 0, 16, 0, 16));
 
         final boolean premiumLocked = MessagesController.getInstance(currentAccount).premiumFeaturesBlocked();
@@ -559,14 +547,14 @@ public class ChatGreetingsView extends LinearLayout implements Theme.Colorable {
         TextView headerView = new TextView(context);
         headerView.setTypeface(AndroidUtilities.bold());
         headerView.setGravity(Gravity.CENTER);
-        ThemeBind.textColor(headerView, Theme.key_dialogTextBlack, resourcesProvider);
+        headerView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
         headerView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         headerView.setText(LocaleController.getString(premiumLocked ? R.string.PremiumMessageHeaderLocked : R.string.PremiumMessageHeader));
         layout.addView(headerView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 12, 0, 12, 0));
 
         TextView descriptionView = new TextView(context);
         descriptionView.setGravity(Gravity.CENTER);
-        ThemeBind.textColor(descriptionView, Theme.key_dialogTextBlack, resourcesProvider);
+        descriptionView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
         descriptionView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         String username = "";
         if (dialogId > 0) {

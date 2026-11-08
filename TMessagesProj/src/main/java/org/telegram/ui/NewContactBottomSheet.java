@@ -26,7 +26,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -79,7 +78,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Components.AlertsCreator;
@@ -103,7 +101,6 @@ import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -232,8 +229,8 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
 
         underPhoneTextView = new LinkSpanDrawable.LinksTextView(context);
         underPhoneTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-        ThemeBind.textColor(underPhoneTextView, Theme.key_windowBackgroundWhiteGrayText, resourcesProvider);
-        ThemeBind.linkTextColor(underPhoneTextView, Theme.key_chat_messageLinkIn, resourcesProvider);
+        underPhoneTextView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText));
+        underPhoneTextView.setLinkTextColor(getThemedColor(Theme.key_chat_messageLinkIn));
         contentLayout.addView(underPhoneTextView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 12, 0, 12, 0));
 
         FrameLayout countryContainer = new FrameLayout(context);
@@ -244,7 +241,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
             @Override
             protected void onAttachedToWindow() {
                 super.onAttachedToWindow();
-                NotificationCenter.getGlobalInstance().addWeakObserver(delegate, NotificationCenter.emojiLoaded);
+                NotificationCenter.getGlobalInstance().addObserver(delegate, NotificationCenter.emojiLoaded);
             }
 
             @Override
@@ -270,7 +267,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
             });
             parentFragment.showAsSheet(countrySelectActivity);
         });
-        ThemeBind.selectorBackground(countryContainer, Theme.createSimpleSelectorRoundRectDrawable(dp(6), 0, Theme.getColor(Theme.key_listSelector)), null, ThemeBind.of(Theme.key_listSelector));
+        countryContainer.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(6), 0, Theme.getColor(Theme.key_listSelector)));
         countryContainer.addView(countryFlag, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
         linearLayout.addView(countryContainer, LayoutHelper.createLinear(42, LayoutHelper.MATCH_PARENT));
 
@@ -287,7 +284,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
                 phoneOutlineView.animateSelection(focused || phoneField.isFocused() ? 1f : 0f);
             }
         };
-        ThemeBind.textColor(codeField, Theme.key_windowBackgroundWhiteBlackText);
+        codeField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         codeField.setInputType(InputType.TYPE_CLASS_PHONE);
         codeField.setCursorSize(dp(20));
         codeField.setCursorWidth(1.5f);
@@ -433,13 +430,6 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         phoneField = new AnimatedPhoneNumberEditText(context) {
 
             @Override
-            protected void onDraw(Canvas canvas) {
-                // the hint paint is colored once in HintEditText: follow theme changes
-                hintPaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhiteHintText));
-                super.onDraw(canvas);
-            }
-
-            @Override
             public boolean onKeyDown(int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_DEL && phoneField.length() == 0) {
                     codeField.requestFocus();
@@ -455,7 +445,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
                 phoneOutlineView.animateSelection(focused || codeField.isFocused() ? 1f : 0f);
             }
         };
-        ThemeBind.textColor(phoneField, Theme.key_windowBackgroundWhiteBlackText);
+        phoneField.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         phoneField.setInputType(InputType.TYPE_CLASS_PHONE);
         phoneField.setPadding(0, 0, 0, 0);
         phoneField.setCursorSize(dp(20));
@@ -599,7 +589,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         checkBox.setDrawBackgroundAsArc(10);
 
         checkTextView = new TextView(context);
-        ThemeBind.textColor(checkTextView, Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+        checkTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         checkTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         checkTextView.setText(getString(R.string.AddContactSync));
 
@@ -615,7 +605,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         checkLayout.setTranslationY(dp(-21.33f));
         checkLayout.setPivotX(0);
         ScaleStateListAnimator.apply(checkLayout, .0125f, 1.2f);
-        ThemeBind.selectorBackground(checkLayout, Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), 6, 6), null, ThemeBind.of(Theme.key_listSelector), resourcesProvider);
+        checkLayout.setBackground(Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), 6, 6));
         contentLayout.addView(checkLayout, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 5, 0, 0));
 
 //        accountTextView = TextHelper.makeLinkTextView(context, 15, Theme.key_windowBackgroundWhiteBlackText, false, resourcesProvider);
@@ -655,7 +645,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         contentLayout.addView(qrButtonContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, -6));
 
         qrButtonSeparator = new View(context);
-        ThemeBind.backgroundColor(qrButtonSeparator, Theme.key_divider, resourcesProvider);
+        qrButtonSeparator.setBackgroundColor(Theme.getColor(Theme.key_divider, resourcesProvider));
         qrButtonContainer.addView(qrButtonSeparator, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 1.0f / AndroidUtilities.density, Gravity.TOP, 0, 6, 0, 0));
 
         qrButton = new ButtonWithCounterView(context, false, resourcesProvider);
@@ -701,13 +691,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         notesField.setBackground(null);
         notesField.getEditText().setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
         notesField.getEditText().setImeOptions(EditorInfo.IME_ACTION_NEXT);
-<<<<<<< /tmp/tmpcxkkbe50
         notesField.setHint(getString(R.string.ContactNotes));
-||||||| /tmp/tmpegft73bl
-        notesField.setHint("Notes");
-=======
-        notesField.setHint(LocaleController.getString(R.string.ProfileNotes));
->>>>>>> /tmp/tmp7c12rlcv
         qrButtonContainer.addView(notesField, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 58, Gravity.TOP, 0, 0, 0, 0));
         notesField.getEditText().setOnEditorActionListener((textView, i, keyEvent) -> {
             if (i == EditorInfo.IME_ACTION_NEXT) {
@@ -826,8 +810,8 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         doneButtonContainer.setBackground(Theme.AdaptiveRipple.filledRect(parentFragment.getThemedColor(Theme.key_featuredStickers_addButton), 24));
         doneButtonContainer.setOnClickListener(v -> doOnDone());
 
-        ThemeBind.textColor(plusTextView, Theme.key_windowBackgroundWhiteBlackText);
-        ThemeBind.backgroundColor(codeDividerView, Theme.key_windowBackgroundWhiteInputField);
+        plusTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        codeDividerView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhiteInputField));
         return fragmentView;
     }
 
@@ -959,13 +943,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         final Utilities.Callback<TLRPC.User> onUser = user -> {
             if (user == null) {
                 phoneStatusView.setImageDrawable(null);
-<<<<<<< /tmp/tmpcxkkbe50
                 underPhoneTextView.setText(AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag(getString(R.string.PhoneNotOnTelegramInvite), () -> {
-||||||| /tmp/tmpegft73bl
-                underPhoneTextView.setText(AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag("This phone number is not on Telegram. **Invite >**", () -> {
-=======
-                underPhoneTextView.setText(AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag(getString(R.string.NewContactPhoneNotOnTelegram), () -> {
->>>>>>> /tmp/tmp7c12rlcv
                     final Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.setData(Uri.parse("sms:+" + phone));
                     intent.putExtra("sms_body", LocaleController.formatString(R.string.InviteText2, "https://telegram.org/dl"));
@@ -973,16 +951,10 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
                 }), true, dp(8f / 3f), dp(1)));
             } else {
                 Drawable drawable = getContext().getResources().getDrawable(R.drawable.msg_text_check).mutate();
-                ThemeBind.drawableColorFilter(phoneStatusView, drawable, Theme.key_windowBackgroundWhiteBlueIcon, resourcesProvider, PorterDuff.Mode.SRC_IN);
+                drawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteBlueIcon), PorterDuff.Mode.SRC_IN));
                 phoneStatusView.setImageDrawable(drawable);
                 if (user.contact) {
-<<<<<<< /tmp/tmpcxkkbe50
                     underPhoneTextView.setText(AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag(getString(R.string.PhoneAlreadyInContacts), () -> {
-||||||| /tmp/tmpegft73bl
-                    underPhoneTextView.setText(AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag("This phone number is already in your contacts. **View >**", () -> {
-=======
-                    underPhoneTextView.setText(AndroidUtilities.replaceArrows(AndroidUtilities.replaceSingleTag(getString(R.string.NewContactPhoneInContacts), () -> {
->>>>>>> /tmp/tmp7c12rlcv
                         dismiss();
 
                         final BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
@@ -991,13 +963,7 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
                         }
                     }), true, dp(8f / 3f), dp(1)));
                 } else {
-<<<<<<< /tmp/tmpcxkkbe50
                     underPhoneTextView.setText(getString(R.string.PhoneOnTelegram));
-||||||| /tmp/tmpegft73bl
-                    underPhoneTextView.setText("This phone number is on Telegram.");
-=======
-                    underPhoneTextView.setText(getString(R.string.NewContactPhoneOnTelegram));
->>>>>>> /tmp/tmp7c12rlcv
                 }
             }
             updateBottomTranslation(false);
@@ -1325,16 +1291,26 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
         themeDescriptions.add(new ThemeDescription(firstNameField, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(firstNameField, ThemeDescription.FLAG_HINTTEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteHintText));
+        themeDescriptions.add(new ThemeDescription(firstNameField, ThemeDescription.FLAG_BACKGROUNDFILTER, null, null, null, null, Theme.key_windowBackgroundWhiteInputField));
+        themeDescriptions.add(new ThemeDescription(firstNameField, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_windowBackgroundWhiteInputFieldActivated));
 
         themeDescriptions.add(new ThemeDescription(lastNameField, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(lastNameField, ThemeDescription.FLAG_HINTTEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteHintText));
+        themeDescriptions.add(new ThemeDescription(lastNameField, ThemeDescription.FLAG_BACKGROUNDFILTER, null, null, null, null, Theme.key_windowBackgroundWhiteInputField));
+        themeDescriptions.add(new ThemeDescription(lastNameField, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_windowBackgroundWhiteInputFieldActivated));
 
+        themeDescriptions.add(new ThemeDescription(codeField, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(codeField, ThemeDescription.FLAG_BACKGROUNDFILTER, null, null, null, null, Theme.key_windowBackgroundWhiteInputField));
         themeDescriptions.add(new ThemeDescription(codeField, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_windowBackgroundWhiteInputFieldActivated));
 
+        themeDescriptions.add(new ThemeDescription(phoneField, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(phoneField, ThemeDescription.FLAG_HINTTEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteHintText));
         themeDescriptions.add(new ThemeDescription(phoneField, ThemeDescription.FLAG_BACKGROUNDFILTER, null, null, null, null, Theme.key_windowBackgroundWhiteInputField));
         themeDescriptions.add(new ThemeDescription(phoneField, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_windowBackgroundWhiteInputFieldActivated));
 
+        themeDescriptions.add(new ThemeDescription(editDoneItemProgress, 0, null, null, null, null, Theme.key_contextProgressInner2));
+        themeDescriptions.add(new ThemeDescription(editDoneItemProgress, 0, null, null, null, null, Theme.key_contextProgressOuter2));
 
         return themeDescriptions;
     }
@@ -1514,46 +1490,5 @@ public class NewContactBottomSheet extends BottomSheet implements AdapterView.On
         public String toString() {
             return "Account \""+displayName+"\" {name='" + name + "', type='" + type + "'}";
         }
-    }
-
-    private int lastDoneButtonColor;
-
-    private boolean lastDoneButtonColorDark;
-
-    @Override
-    public void onThemeColorsChanged() {
-        super.onThemeColorsChanged();
-        try {
-            if (progressView != null && parentFragment != null) {
-                progressView.setProgressColor(parentFragment.getThemedColor(Theme.key_featuredStickers_buttonText));
-            }
-            if (doneButtonContainer != null && parentFragment != null) {
-                final int doneColor = parentFragment.getThemedColor(Theme.key_featuredStickers_addButton);
-                if (doneColor != lastDoneButtonColor || lastDoneButtonColorDark != Theme.isCurrentThemeDark()) {
-                    lastDoneButtonColorDark = Theme.isCurrentThemeDark(); // the ripple shade depends on dark / light
-                    lastDoneButtonColor = doneColor;
-                    // recolor in place (content + adaptive ripple) instead of a new drawable per frame
-                    Theme.setSelectorDrawableColor(doneButtonContainer.getBackground(), doneColor, false);
-                    Theme.setSelectorDrawableColor(doneButtonContainer.getBackground(), Theme.AdaptiveRipple.calcRippleColor(doneColor), true);
-                    doneButtonContainer.invalidate();
-                }
-            }
-            if (phoneStatusView != null && phoneStatusView.getDrawable() instanceof CircularProgressDrawable) {
-                ((CircularProgressDrawable) phoneStatusView.getDrawable()).setColor(getThemedColor(Theme.key_dialogTextBlue));
-                phoneStatusView.invalidate();
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-    }
-
-    /** theme editor: colors this page shows (former ThemeDescription keys) */
-    @Override
-    public void addThemeColorKeys(HashSet<Integer> keys) {
-        super.addThemeColorKeys(keys);
-        keys.add(Theme.key_contextProgressOuter2);
-        keys.add(Theme.key_contextProgressInner2);
-        keys.add(Theme.key_windowBackgroundWhiteInputFieldActivated);
-        keys.add(Theme.key_windowBackgroundWhiteHintText);
     }
 }

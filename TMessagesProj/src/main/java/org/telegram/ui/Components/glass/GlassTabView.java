@@ -52,7 +52,7 @@ import me.vkryl.android.AnimatorUtils;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 
-public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, FactorAnimator.Target, Theme.Colorable {
+public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, FactorAnimator.Target {
     private final TextView textView;
     private final RLottieImageView imageView;
     private BackupImageView backupImageView;
@@ -244,14 +244,14 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
     @Override
     public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
         if (id == ANIMATOR_ID_IS_SELECTED) {
-            applyColors();
+            updateColors();
         }
         invalidate();
     }
 
     private boolean needUpdateBackupViewColor;
 
-    private void applyColors() {
+    private void updateColors() {
         final int color = ColorUtils.blendARGB(colorDefault, colorSelected, isSelectedAnimator.getFloatValue());
         final int colorText = ColorUtils.blendARGB(colorDefault, colorSelectedText, isSelectedAnimator.getFloatValue());
 
@@ -264,28 +264,11 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         textView.setTextColor(colorText);
     }
 
-    @Override
-    public void updateColors() {
-        // every theme frame: applyColors allocates a color filter, so only when a color changed
-        if (colorDefault != Theme.getColor(Theme.key_glass_tabUnselected, resourcesProvider) ||
-            colorSelected != Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider) ||
-            colorSelectedText != Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider)) {
-            updateColorsLottie();
-        }
-    }
-
-    @Override
-    public void addColorKeys(java.util.HashSet<Integer> colors) {
-        colors.add(Theme.key_glass_tabUnselected);
-        colors.add(Theme.key_glass_tabSelected);
-        colors.add(Theme.key_glass_tabSelectedText);
-    }
-
     public void updateColorsLottie() {
         colorDefault = Theme.getColor(Theme.key_glass_tabUnselected, resourcesProvider);
         colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
         colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
-        applyColors();
+        updateColors();
         invalidate();
     }
 
@@ -319,7 +302,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
             } else {
                 backupImageView.clearImage();
             }
-            applyColors();
+            updateColors();
             return;
         }
 
@@ -329,7 +312,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
 
         if (tabAnimation.iconStatic != -1) {
             imageView.setImageResource(tabAnimation.iconStatic);
-            applyColors();
+            updateColors();
             return;
         }
 
@@ -424,7 +407,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         tab.colorDefault = Theme.getColor(Theme.key_glass_tabUnselected, resourcesProvider);
         tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
         tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
-        tab.applyColors();
+        tab.updateColors();
         return tab;
     }
 
@@ -445,7 +428,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         tab.colorDefault = Theme.getColor(Theme.key_glass_tabUnselected, resourcesProvider);
         tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
         tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
-        tab.applyColors();
+        tab.updateColors();
         return tab;
     }
 
@@ -466,7 +449,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         tab.colorDefault = Theme.getColor(Theme.key_glass_tabUnselected, resourcesProvider);
         tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
         tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
-        tab.applyColors();
+        tab.updateColors();
         return tab;
     }
 
@@ -483,7 +466,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         tab.colorDefault = Theme.getColor(Theme.key_glass_tabUnselected, resourcesProvider);
         tab.colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
         tab.colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
-        tab.applyColors();
+        tab.updateColors();
         return tab;
     }
 
@@ -594,7 +577,6 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         GRAM(R.raw.gram, R.raw.gram_reverse),
 
         BOOSTS(R.raw.boosts, 25, 49),
-<<<<<<< /tmp/tmpsj48fgyz
         MONETIZATION(R.raw.monetize, 19, 45),
 
         /** MeeroX v209: the official Telegram-iOS "Chat/Attach Menu" glyphs
@@ -608,13 +590,6 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         MEERO_ATTACH_CONTACT(TabAnimationType.STATIC, R.drawable.meero_ios_attach_contact),
         MEERO_ATTACH_POLL(TabAnimationType.STATIC, R.drawable.meero_ios_attach_poll),
         MEERO_ATTACH_MUSIC(TabAnimationType.STATIC, R.drawable.meero_ios_attach_audio);
-||||||| /tmp/tmptrnz23dt
-        MONETIZATION(R.raw.monetize, 19, 45);
-=======
-        MONETIZATION(R.raw.monetize, 19, 45),
-        STORIES_SAVED(R.raw.msg_stories_saved, 20, 40),
-        STORIES_ARCHIVE(R.raw.msg_stories_archive);
->>>>>>> /tmp/tmpqy8l70dn
 
         public final @RawRes int iconToFilled;
         public final @RawRes int iconToOutline;
@@ -691,7 +666,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         backupImageView.setLayoutParams(LayoutHelper.createFrame(24, 24, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 4, 0, 0));
         needUpdateBackupViewColor = true;
         checkPlayAnimation(false);
-        applyColors();
+        updateColors();
         invalidate();
     }
 
