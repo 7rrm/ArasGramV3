@@ -26112,4 +26112,10 @@ public class MessagesController extends BaseController implements NotificationCe
         getConnectionsManager().sendRequest(req, null);
     }
     // UP end
+
+
+    public void toggleChannelForum(long chatId, boolean enabled, boolean tabsEnabled) {
+        toggleChannelForum(chatId, enabled, tabsEnabled, false);
+    }
+
 }

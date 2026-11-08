@@ -104,4 +104,10 @@ public class ChecksHintView extends HintView2 {
             drawable.draw(canvas);
         }
     }
+
+
+    public ChecksHintView(Context context, Theme.ResourcesProvider resourcesProvider) {
+        this(context);
+    }
+
 }

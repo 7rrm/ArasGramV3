@@ -1861,7 +1861,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private final boolean ALPHA_PROPERTY_WORKAROUND = Build.VERSION.SDK_INT == 28;
     private float alphaInternal = 1f;
 
-    public final ChatMessageTransitionParams transitionParams = new ChatMessageTransitionParams();
+    public final ChatMessageTransitionParams transitionParams = new ChatMessageTransitionParams(this);
     public boolean edited;
     private boolean ayuDeleted;
     public boolean imageDrawn;
@@ -2177,7 +2177,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return linkPath;
     }
 
-    private int[] getRealSpanStartAndEnd(Spannable buffer, CharacterStyle link) {
+    public int[] getRealSpanStartAndEnd(Spannable buffer, CharacterStyle link) {
         int start = 0;
         int end = 0;
         boolean ok = false;
@@ -4209,7 +4209,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return result;
     }
 
-    private void setInstantButtonPressed(boolean pressed) {
+    public void setInstantButtonPressed(boolean pressed) {
         if (instantButtonBounce == null) {
             instantButtonBounce = new ButtonBounce(this);
         }
@@ -12221,7 +12221,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public boolean hadLongPress = false;
 
-    private static boolean spanSupportsLongPress(CharacterStyle span) {
+    public static boolean spanSupportsLongPress(CharacterStyle span) {
         return span instanceof URLSpanMono || span instanceof URLSpan;
     }
 
@@ -12880,7 +12880,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private int createDocumentLayout(int maxWidth, MessageObject messageObject) {
+    public int createDocumentLayout(int maxWidth, MessageObject messageObject) {
         if (messageObject.sponsoredMedia != null) {
             documentAttach = messageObject.sponsoredMedia.document;
         } else if (messageObject.type == MessageObject.TYPE_TEXT) {
@@ -18004,7 +18004,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private void didPressMiniButton(boolean animated) {
+    public void didPressMiniButton(boolean animated) {
         if (miniButtonState == 0) {
             miniButtonState = 1;
             radialProgress.setProgress(0, false);
@@ -18035,7 +18035,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private void didPressButton(boolean animated, boolean video) {
+    public void didPressButton(boolean animated, boolean video) {
         if (delegate != null && currentMessageObject.isSensitive() && currentMessageObject.hasMediaSpoilers() && !currentMessageObject.needDrawBluredPreview() && !currentMessageObject.isMediaSpoilersRevealed) {
             delegate.didPressRevealSensitiveContent(this);
             return;
@@ -18577,7 +18577,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         allowAssistant = value;
     }
 
-    private void measureTime(MessageObject messageObject) {
+    public void measureTime(MessageObject messageObject) {
         CharSequence signString;
         MessageObject primaryMessageObject = getPrimaryMessageObject();
         long fromId = messageObject.getFromChatId();
@@ -18916,7 +18916,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return (isPressed() && isCheckPressed || !isCheckPressed && isPressed || isHighlighted) && !textIsSelectionMode() && !hasSelectionOverlay() && (currentMessageObject == null || !currentMessageObject.preview);
     }
 
-    private boolean isOpenChatByShare(MessageObject messageObject) {
+    public boolean isOpenChatByShare(MessageObject messageObject) {
         return messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.saved_from_peer != null && (delegate == null || delegate.isReplyOrSelf());
     }
 
@@ -19040,7 +19040,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private void setMessageObjectInternal(MessageObject messageObject) {
+    public void setMessageObjectInternal(MessageObject messageObject) {
         if (((messageObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_HAS_VIEWS) != 0 || messageObject.messageOwner.replies != null) && !currentMessageObject.scheduled && !currentMessageObject.isSponsored()) {
             if (!currentMessageObject.viewsReloaded) {
                 MessagesController.getInstance(currentAccount).addToViewsQueue(currentMessageObject);
@@ -28632,7 +28632,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return Theme.getColor(key, resourcesProvider);
     }
 
-    private Drawable getThemedDrawable(String key) {
+    public Drawable getThemedDrawable(String key) {
         Drawable drawable = resourcesProvider != null ? resourcesProvider.getDrawable(key) : null;
         return drawable != null ? drawable : Theme.getThemeDrawable(key);
     }
@@ -28674,7 +28674,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private ColorFilter[] adaptiveEmojiColorFilter;
     private int[] adaptiveEmojiColor;
-    private ColorFilter getAdaptiveEmojiColorFilter(int n, int color) {
+    public ColorFilter getAdaptiveEmojiColorFilter(int n, int color) {
         if (adaptiveEmojiColorFilter == null) {
             adaptiveEmojiColor = new int[3];
             adaptiveEmojiColorFilter = new ColorFilter[3];

@@ -4573,7 +4573,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         }
     }
 
-    private boolean shouldUseAudioRecorderV2(int account) {
+    public boolean shouldUseAudioRecorderV2(int account) {
         return SharedSettings.audioRecorderV2Enabled.isSet() ?
             SharedSettings.audioRecorderV2Enabled.get() :
             !MessagesController.getInstance(account).config.audioRecorderV2Disabled.get();

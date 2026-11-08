@@ -443,4 +443,11 @@ public class BlurredBackgroundProviderImpl {
         }
         return blurEnabled;
     }
+
+
+    /** ArasGram (MeeroX): glass provider used by the attachment capsule / popup header buttons. */
+    public static BlurredBackgroundProvider headerButton(Theme.ResourcesProvider resourcesProvider) {
+        return mainTabs(resourcesProvider);
+    }
+
 }

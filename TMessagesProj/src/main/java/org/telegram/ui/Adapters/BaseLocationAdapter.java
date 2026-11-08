@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import android.location.Location;
 
 public abstract class BaseLocationAdapter extends AdapterWithDiffUtils {
 
@@ -378,4 +379,14 @@ public abstract class BaseLocationAdapter extends AdapterWithDiffUtils {
     protected void update(boolean animated) {
         notifyDataSetChanged();
     }
+
+
+    public void searchDelayed(final String query, final Location coordinate) {
+        searchDelayed(query);
+    }
+
+    public void setDelegate(long did, BaseLocationAdapterDelegate delegate) {
+        setDelegate(delegate);
+    }
+
 }
