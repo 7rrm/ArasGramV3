@@ -141,4 +141,5 @@ public class BlurredBackgroundDrawableViewFactory {
         default void attachDrawable(BlurredBackgroundDrawable drawable) {
 
         }
+    }
 }
