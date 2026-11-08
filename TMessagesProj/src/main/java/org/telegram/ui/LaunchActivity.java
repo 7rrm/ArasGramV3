@@ -9546,4 +9546,4 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         }
     }
-
+}
