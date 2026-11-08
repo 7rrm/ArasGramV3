@@ -148,7 +148,7 @@ import xyz.nextalone.nagram.helper.AudioEnhance;
 
 public class MediaController implements AudioManager.OnAudioFocusChangeListener, NotificationCenter.NotificationCenterDelegate, SensorEventListener {
 
-    private native int startRecord(String path, int sampleRate);
+    public native int startRecord(String path, int sampleRate);
 
     private native int writeFrame(ByteBuffer frame, int len);
 

@@ -1760,7 +1760,7 @@ public class MessagesStorage extends BaseController {
         }
     }
 
-    private void saveTopicsInternal(long dialogId, List<TLRPC.TL_forumTopic> topics, boolean replace, boolean inTransaction, int date) {
+    public void saveTopicsInternal(long dialogId, List<TLRPC.TL_forumTopic> topics, boolean replace, boolean inTransaction, int date) {
         SQLitePreparedStatement state = null;
         SQLiteDatabase transactionDatabase = null;
         boolean transactionStarted = false;

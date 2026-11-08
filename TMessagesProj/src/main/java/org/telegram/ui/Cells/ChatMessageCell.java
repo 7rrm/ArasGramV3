@@ -279,14 +279,14 @@ import org.telegram.messenger.AppGlobalConfig;
 public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate, ImageReceiver.ImageReceiverDelegate,
         DownloadController.FileDownloadProgressListener, TextSelectionHelper.SelectableView,
         NotificationCenter.NotificationCenterDelegate, FactorAnimator.Target, IMessageCell {
-    private final static int TIME_APPEAR_MS = 200;
+    public final static int TIME_APPEAR_MS = 200;
     private final static int UPLOADING_ALLOWABLE_ERROR = 1024 * 1024;
     private final static int STICKER_STATUS_OFFSET = 6;
-    private final static float EPHEMERAL_HINT_HEIGHT = 25f;
+    public final static float EPHEMERAL_HINT_HEIGHT = 25f;
 
     public boolean clipToGroupBounds;
     public boolean drawForBlur;
-    private boolean flipImage;
+    public boolean flipImage;
     private boolean visibleOnScreen = true;
     public boolean shouldCheckVisibleOnScreen;
     public float parentBoundsTop;
@@ -1332,7 +1332,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     private Text sensitiveText, sensitiveTextShort, sensitiveTextShort2;
 
-    private String currentUrl;
+    public String currentUrl;
     private WebFile currentWebFile;
     private WebFile lastWebFile;
     private boolean addedForTest;
@@ -1391,7 +1391,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean gamePreviewPressed;
     private ArrayList<LinkPath> urlPathCache = new ArrayList<>();
     private ArrayList<LinkPath> urlPathSelection = new ArrayList<>();
-    private CharacterStyle highlightPathSpan;
+    public CharacterStyle highlightPathSpan;
     private LinkPath highlightPath;
     private long highlightPathStart;
 
@@ -1522,7 +1522,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean checkFileLoad;
     private boolean wasAllChats;
     public MessageObject currentMessageObject;
-    private MessageObject messageObjectToSet;
+    public MessageObject messageObjectToSet;
     private MessageObject.GroupedMessages groupedMessagesToSet;
     private boolean topNearToSet;
     private boolean bottomNearToSet;
@@ -2249,7 +2249,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return boostCounterPressed;
     }
 
-    private CharSequence getAdminAccessibilityText() {
+    public CharSequence getAdminAccessibilityText() {
         if (adminLayout == null || TextUtils.isEmpty(adminLayout.getText())) return null;
         final SpannableStringBuilder text = new SpannableStringBuilder(adminLayout.getText());
         final BoostCounterSpan[] spans = text.getSpans(0, text.length(), BoostCounterSpan.class);
@@ -2413,7 +2413,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private void resetCodeSelectors() {
+    public void resetCodeSelectors() {
         if (currentMessageObject != null && currentMessageObject.textLayoutBlocks != null) {
             for (int i = 0; i < currentMessageObject.textLayoutBlocks.size(); ++i) {
                 MessageObject.TextLayoutBlock block = currentMessageObject.textLayoutBlocks.get(i);
@@ -6075,7 +6075,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private void didClickedImage() {
+    public void didClickedImage() {
         if (currentMessageObject.hasMediaSpoilers() && !currentMessageObject.needDrawBluredPreview() && !currentMessageObject.isMediaSpoilersRevealed) {
             if (delegate != null && currentMessageObject.isSensitive()) {
                 delegate.didPressRevealSensitiveContent(this);
@@ -6244,7 +6244,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return false;
     }
 
-    private int getRepliesCount() {
+    public int getRepliesCount() {
         if (currentMessagesGroup != null && !currentMessagesGroup.messages.isEmpty()) {
             MessageObject messageObject = currentMessagesGroup.messages.get(0);
             return messageObject.getRepliesCount();
@@ -12823,7 +12823,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private int seekBarWaveformTranslateX;
     private int seekBarTranslateX;
 
-    private void updateSeekBarWaveformWidth(Canvas canvas) {
+    public void updateSeekBarWaveformWidth(Canvas canvas) {
         seekBarWaveformTranslateX = 0;
         seekBarTranslateX = 0;
         int offset = -dp(92 + (hasLinkPreview ? 10 : 0));
@@ -13625,7 +13625,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private void createInstantViewButton() {
+    public void createInstantViewButton() {
         if (drawInstantView) {
             createSelectorDrawable(0);
         }
@@ -13894,7 +13894,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return pad;
     }
 
-    private int getExtraTimeX() {
+    public int getExtraTimeX() {
         if (!currentMessageObject.isOutOwner() && (!mediaBackground || captionLayout != null) && SharedConfig.bubbleRadius > 11) {
             return dp((SharedConfig.bubbleRadius - 11) / 1.5f);
         }
@@ -15446,7 +15446,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private void updateReactionLayoutPosition() {
+    public void updateReactionLayoutPosition() {
         if (!currentMessageObject.shouldDrawReactions()) {
             return;
         }
@@ -16560,7 +16560,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return isSmallImage ? 1f : 0f;
     }
 
-    private boolean shouldDrawMenuDrawable() {
+    public boolean shouldDrawMenuDrawable() {
         return (currentMessagesGroup == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0) && !hasLinkPreview && (currentMessageObject == null || !currentMessageObject.isRepostPreview && !currentMessageObject.isSponsored());
     }
 
@@ -16788,7 +16788,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return false;
     }
 
-    private boolean allowDrawPhotoImage() {
+    public boolean allowDrawPhotoImage() {
         return !currentMessageObject.hasMediaSpoilers() || currentMessageObject.isMediaSpoilersRevealed || mediaSpoilerRevealProgress != 0f || blurredPhotoImage.getBitmap() == null;
     }
 
@@ -17416,7 +17416,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return backgroundHeight;
     }
 
-    private int getMiniIconForCurrentState() {
+    public int getMiniIconForCurrentState() {
         if (miniButtonState < 0) {
             return MediaActionDrawable.ICON_NONE;
         }
@@ -17427,7 +17427,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
-    private int getIconForCurrentState() {
+    public int getIconForCurrentState() {
         if (currentMessageObject == null || currentMessageObject.hasExtendedMedia()) {
             return MediaActionDrawable.ICON_NONE;
         }
@@ -22195,7 +22195,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean isSideMenuPossibleLeftMargin() {
         return isSideMenued && (currentMessageObject != null && !currentMessageObject.isOutOwner()) && (currentPosition == null);
     }
-    private boolean isSideMenuLeftMargin() {
+    public boolean isSideMenuLeftMargin() {
         return isSideMenuEnabled && (currentMessageObject != null && !currentMessageObject.isOutOwner()) && (currentPosition == null);
     }
 

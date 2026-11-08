@@ -222,7 +222,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
         onBoundPropsChanged();
     }
 
-    private void onBoundPropsChanged() {
+    public void onBoundPropsChanged() {
         if (renderNodeImpl != null) {
             renderNodeImpl.onBoundPropsChanged();
         }
