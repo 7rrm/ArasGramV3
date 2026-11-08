@@ -2259,8 +2259,4 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
 
     // ArasGram: ported for 13.2.1 compatibility
     private ViewGroup iBlur3CaptureParent;
-
-
-    // ArasGram: ported for 13.2.1 compatibility
-        public @Nullable IBlur3Capture iBlur3Capture;
 }

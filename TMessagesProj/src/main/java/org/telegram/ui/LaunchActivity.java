@@ -9547,9 +9547,3 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         }
     }
 
-
-    // ArasGram: ported for 13.2.1 compatibility
-
-
-    // ArasGram: ported for 13.2.1 compatibility
-}

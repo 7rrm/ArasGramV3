@@ -12928,44 +12928,4 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     }
 
         private Drawable wallpaper;
-
-
-    // ArasGram: ported for 13.2.1 compatibility
-    private @Nullable GlassEngine pagesGlassEngine;
-
-
-    private static final float TABS_GLASS_INSET_DP = 6.666f;
-
-    private static final int TOP_PANEL_GLASS_TOP = AndroidUtilities.dp(14) + AndroidUtilities.dp(7);
-
-    private int appliedTopPanelShift = -1;
-
-    private Runnable onTopPanelShiftChanged;
-
-    private @Nullable GlassEngine pagesGlassEngine;
-
-        private void setDrawPageBackground(boolean draw) {
-            if (drawPageBackground != draw) {
-                drawPageBackground = draw;
-                invalidate();
-            }
-        }
-
-        private void setWallpaper(Drawable drawable) {
-            if (wallpaper != drawable) {
-                if (wallpaper != null) {
-                    wallpaper.setCallback(null);
-                }
-                wallpaper = drawable;
-                if (wallpaper != null) {
-                    wallpaper.setCallback(this);
-                }
-                invalidate();
-            }
-        }
-
-
-    // ArasGram: ported for 13.2.1 compatibility
-    private @Nullable GlassEngine pagesGlassEngine;
-
 }
