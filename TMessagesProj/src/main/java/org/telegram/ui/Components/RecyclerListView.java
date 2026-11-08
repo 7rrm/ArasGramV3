@@ -100,6 +100,17 @@ import tw.nekomimi.nekogram.NekoConfig;
 
 @SuppressWarnings("JavaReflectionMemberAccess")
 public class RecyclerListView extends RecyclerView implements IBlur3Capture {
+
+        public enum SectionsDrawingMode {
+            // Full background, then section rectangles.
+            FULL_BACKGROUND,
+            // Full section color, then uncovered background rectangles.
+            SECTION_COLOR_BACKGROUND,
+            // Background rectangles with a 1 px overlap, then section rectangles.
+            OPTIMIZED_BACKGROUND,
+            // Background and section rectangles in one Canvas.drawVertices() call.
+            DRAW_VERTICES
+        }
     public final static int SECTIONS_TYPE_SIMPLE = 0,
             SECTIONS_TYPE_STICKY_HEADERS = 1,
             SECTIONS_TYPE_DATE = 2,

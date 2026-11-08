@@ -1028,7 +1028,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public static final int INSTANT_BUTTON_TYPE_ADD_OPTION = 84;
     public static final int INSTANT_BUTTON_TYPE_AI_STYLE = 85;
 
-    private static class InstantViewButton {
+    public static class InstantViewButton {
         private int type;
         private float buttonWidth;
         private float textX;

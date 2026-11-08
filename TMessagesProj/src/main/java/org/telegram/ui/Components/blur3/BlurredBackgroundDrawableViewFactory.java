@@ -16,6 +16,7 @@ import org.telegram.utils.glass.GlassEngine;
 import java.lang.ref.WeakReference;
 
 import me.vkryl.core.reference.ReferenceList;
+import org.telegram.utils.glass.source.GlassSource;
 
 public class BlurredBackgroundDrawableViewFactory {
 
@@ -131,4 +132,13 @@ public class BlurredBackgroundDrawableViewFactory {
 
         return drawable;
     }
+
+    /** A {@link GlassSource} that makes its own drawables, e.g. render node ones that it keeps track of. */
+    public interface DrawableOwner {
+        BlurredBackgroundDrawable createDrawable();
+
+        /** A drawable made with several sources, this one among them: to be kept track of as its own ones. */
+        default void attachDrawable(BlurredBackgroundDrawable drawable) {
+
+        }
 }

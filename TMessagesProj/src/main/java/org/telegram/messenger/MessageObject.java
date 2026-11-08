@@ -984,6 +984,8 @@ public class MessageObject {
     }
 
     public static class TextLayoutBlock implements MultiLayoutTypingAnimator.Block {
+        public boolean compactCode;
+        public static final int COMPACT_CODE_HPAD = 14;
         public final static int FLAG_RTL = 1, FLAG_NOT_RTL = 2;
 
         @Override

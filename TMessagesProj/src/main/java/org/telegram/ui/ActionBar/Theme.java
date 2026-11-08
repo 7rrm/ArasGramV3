@@ -2162,6 +2162,7 @@ public class Theme {
     }
 
     public interface ResourcesProvider {
+        default boolean isCompactMode() { return false; }
 
         int getColor(int key);
 
@@ -3445,6 +3446,46 @@ public class Theme {
     public static final int key_chat_outArticleDetailsArrow = colorsCount++;
     public static final int key_chat_inArticleDetailsLine = colorsCount++;
     public static final int key_chat_outArticleDetailsLine = colorsCount++;
+    public static int key_chat_compact_actionBackground;
+    public static int key_chat_compact_actionIcon;
+    public static int key_chat_compact_actionText;
+    public static int key_chat_compact_background;
+    public static int key_chat_compact_backgroundGradient;
+    public static int key_chat_compact_botButtonText;
+    public static int key_chat_compact_buttonGlassOutline;
+    public static int key_chat_compact_fadeEdge;
+    public static int key_chat_compact_fadeMiddle;
+    public static int key_chat_compact_glassHairline;
+    public static int key_chat_compact_glassOutline;
+    public static int key_chat_compact_glassShadow;
+    public static int key_chat_compact_inAudioDuration;
+    public static int key_chat_compact_inTimeText;
+    public static int key_chat_compact_inTranscribeButton;
+    public static int key_chat_compact_inWaveform;
+    public static int key_chat_compact_inWaveformBackground;
+    public static int key_chat_compact_inputGlassOutline;
+    public static int key_chat_compact_outAccent;
+    public static int key_chat_compact_outAccentBorder;
+    public static int key_chat_compact_outAccentFill;
+    public static int key_chat_compact_outAccentIcon;
+    public static int key_chat_compact_outAccentLight;
+    public static int key_chat_compact_outBackground;
+    public static int key_chat_compact_outCheck;
+    public static int key_chat_compact_outReplyBackground;
+    public static int key_chat_compact_outReplyLine;
+    public static int key_chat_compact_outReplyText;
+    public static int key_chat_compact_outSecondaryText;
+    public static int key_chat_compact_outTimeText;
+    public static int key_chat_compact_progress;
+    public static int key_chat_compact_pullingDownText;
+    public static int key_chat_compact_reactionBackground;
+    public static int key_chat_compact_reactionBackgroundSelected;
+    public static int key_chat_compact_reactionText;
+    public static int key_chat_compact_reactionTextSelected;
+    public static int key_chat_compact_replyText;
+    public static int key_chat_compact_sideButtonIcon;
+    public static int key_chat_compact_topicEmptyText;
+    public static int key_chat_compact_topicSeparatorText;
     private static final int[] myMessagesAccentExtraKeys = { key_chat_outDivider };
     public static final int key_code_keyword = colorsCount++;
     public static final int key_code_operator = colorsCount++;
@@ -9351,6 +9392,13 @@ public class Theme {
 
     public static int getNonAnimatedColor(int key) {
         return getColor(key, null, true);
+    }
+
+    public static boolean isCompactMode(ResourcesProvider resourcesProvider) {
+        return resourcesProvider != null ? resourcesProvider.isCompactMode() : false;
+    }
+    public static int getCompactOutBubbleColor(ResourcesProvider resourcesProvider) {
+        return getColor(key_chat_outBubble, resourcesProvider);
     }
 
     public static int getColor(int key, ResourcesProvider provider) {

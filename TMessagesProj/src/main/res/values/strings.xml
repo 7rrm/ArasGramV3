@@ -11699,4 +11699,7 @@
     <string name="MeeroPlayerCustomize">Customize player</string>
     <string name="MeeroMd3Loading">Loading Indicators</string>
     <string name="MeeroMusicBubble">Circular music player in chats</string>
+    <string name="StoryPrivacyGroupNoContacts">All group members are not in your contact list.</string>
+    <string name="InternalNotificationsSystemSetting">Internal notifications</string>
+    <string name="AttachWidget">Widget</string>
 </resources>
