@@ -337,7 +337,7 @@ public class ImageUpdater implements NotificationCenter.NotificationCenterDelega
                         if (user.photo.dc_id != 0) {
                             user.photo.photo_big.dc_id = user.photo.dc_id;
                         }
-                        PhotoViewer.getInstance().openPhoto(user.photo.photo_big, ((ProfileActivity) parentFragment).getResourceProvider());
+                        PhotoViewer.getInstance().openPhoto(user.photo.photo_big, null);
                     }
                     break;
                 case ID_TAKE_PHOTO:

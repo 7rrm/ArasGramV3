@@ -98,6 +98,7 @@ public class ChatCustomReactionsEditActivity extends BaseFragment implements Not
     private ImageView actionButtonContainerGradient;
     private int keyboardHeight;
     private int bottomInset;
+    private LinearLayout switchLayout;
     private final Paint bottomInsetPaint = new Paint();
     private UniversalRecyclerView scrollView;
     private final ArrayList<View> reactionSettingsViews = new ArrayList<>();

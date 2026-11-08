@@ -88,6 +88,7 @@ public class SharedConfig {
     }
 
     public static boolean readOnlyStorageDirAlertShowed;
+    public static boolean shadowsInSections;
 
     public static void checkSdCard(File file) {
         if (file == null || SharedConfig.storageCacheDir == null || readOnlyStorageDirAlertShowed) {

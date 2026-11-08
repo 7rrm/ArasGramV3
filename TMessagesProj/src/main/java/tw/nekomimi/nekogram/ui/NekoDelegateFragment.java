@@ -88,6 +88,7 @@ import tw.nekomimi.nekogram.ui.cells.NekoMessageCell;
 import tw.nekomimi.nekogram.utils.AlertUtil;
 import tw.nekomimi.nekogram.utils.AndroidUtil;
 import xyz.nextalone.nagram.NaConfig;
+import org.telegram.ui.Cells.ChatMessageTransitionParams;
 
 public abstract class NekoDelegateFragment extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, NekoMessageCell.NekoMessageCellDelegate {
 
@@ -1046,7 +1047,7 @@ public abstract class NekoDelegateFragment extends BaseFragment implements Notif
     }
 
     private void animateCellChange(@NonNull ChatMessageCell messageCell) {
-        ChatMessageCell.TransitionParams params = messageCell.getTransitionParams();
+        ChatMessageTransitionParams params = messageCell.getTransitionParams();
         if (!params.supportChangeAnimation()) {
             return;
         }

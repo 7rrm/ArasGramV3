@@ -102,6 +102,26 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import org.telegram.ui.Cells.LocationCell;
 
 public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLayout implements Theme.Colorable, NotificationCenter.NotificationCenterDelegate {
+    private ArrayList<VenueLocation> placeMarkers = new ArrayList<>();
+
+    private AnimatorSet animatorSet;
+
+    private IMapsProvider.IMarker lastPressedMarker;
+    private VenueLocation lastPressedVenue;
+    private FrameLayout lastPressedMarkerView;
+
+
+    public static class VenueLocation {
+        public int num;
+        public IMapsProvider.IMarker marker;
+        public TLRPC.TL_messageMediaVenue venue;
+    }
+
+    public static class LiveLocation {
+        public int id;
+        public TLRPC.Message object;
+        public TLRPC.User user;
+
 
     private ImageView locationButton;
     private ActionBarMenuItem mapTypeButton;

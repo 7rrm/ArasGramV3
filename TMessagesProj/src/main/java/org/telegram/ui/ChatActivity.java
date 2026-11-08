@@ -832,8 +832,8 @@ public class ChatActivity extends BaseFragment implements
     public MessagePreviewParams messagePreviewParams;
     public MessageSuggestionParams messageSuggestionParams;
     private CharSequence formwardingNameText;
-    private MessageObject forwardingMessage;
-    private MessageObject.GroupedMessages forwardingMessageGroup;
+    public MessageObject forwardingMessage;
+    public MessageObject.GroupedMessages forwardingMessageGroup;
     private MessageObject.GroupedMessages replyingQuoteGroup;
     public MessageObject replyingTopMessage;
     private ReplyQuote replyingQuote;
@@ -886,9 +886,9 @@ public class ChatActivity extends BaseFragment implements
     private long dialog_id;
     private Long dialog_id_Long;
     private int lastLoadIndex = 1;
-    private SparseArray<MessageObject>[] selectedMessagesIds = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
-    private SparseArray<MessageObject>[] selectedMessagesCanCopyIds = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
-    private SparseArray<MessageObject>[] selectedMessagesCanStarIds = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
+    public SparseArray<MessageObject>[] selectedMessagesIds = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
+    public SparseArray<MessageObject>[] selectedMessagesCanCopyIds = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
+    public SparseArray<MessageObject>[] selectedMessagesCanStarIds = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
     private boolean hasUnfavedSelected;
     private int cantDeleteMessagesCount;
     private int cantForwardMessagesCount;
@@ -907,7 +907,7 @@ public class ChatActivity extends BaseFragment implements
 
     private ArrayList<ChatMessageCell> animateSendingViews = new ArrayList<>();
 
-    private SparseArray<MessageObject>[] messagesDict = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
+    public SparseArray<MessageObject>[] messagesDict = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
     private SparseArray<MessageObject> repliesMessagesDict = new SparseArray<>();
     private SparseArray<ArrayList<Integer>> replyMessageOwners = new SparseArray<>();
     private HashMap<String, ArrayList<MessageObject>> messagesByDays = new HashMap<>();
@@ -1077,7 +1077,7 @@ public class ChatActivity extends BaseFragment implements
     public ActionBarPopupWindow scrimPopupWindow;
     private boolean scrimPopupWindowHideDimOnDismiss = true;
     private int scrimPopupX, scrimPopupY;
-    private ActionBarMenuSubItem[] scrimPopupWindowItems;
+    public ActionBarMenuSubItem[] scrimPopupWindowItems;
     private ActionBarMenuSubItem menuDeleteItem;
     private final Runnable updateDeleteItemRunnable = new Runnable() {
         @Override
@@ -1175,7 +1175,7 @@ public class ChatActivity extends BaseFragment implements
     public static Pattern publicMsgUrlPattern;
     public static Pattern voiceChatUrlPattern;
     public static Pattern privateMsgUrlPattern;
-    private boolean waitingForSendingMessageLoad;
+    public boolean waitingForSendingMessageLoad;
     private ValueAnimator changeBoundAnimator;
     private Animator messageEditTextAnimator;
 
@@ -10744,7 +10744,7 @@ public class ChatActivity extends BaseFragment implements
         topPanelLayout.setDebugName(bizBotButton, "bot biz");
     }
 
-    private void createUndoView() {
+    public void createUndoView() {
         if (undoView != null || getContext() == null) {
             return;
         }
@@ -12741,7 +12741,7 @@ public class ChatActivity extends BaseFragment implements
         updateSelectedMessageReactions();
     }
 
-    private void openForward(boolean fromActionBar) {
+    public void openForward(boolean fromActionBar) {
         if (isPeerNoForwards() || hasSelectedNoforwardsMessage()) {
             // We should update text if user changed locale without re-opening chat activity
             String str;
@@ -20118,7 +20118,7 @@ public class ChatActivity extends BaseFragment implements
         updateSelectedMessageReactions();
     }
 
-    private void updateSelectedMessageReactions() {
+    public void updateSelectedMessageReactions() {
         if (getDialogId() == getUserConfig().getClientUserId()) {
             ArrayList<MessageObject> messageObjects = new ArrayList<>();
             for (int a = 0; a < selectedMessagesIds.length; ++a) {
@@ -31516,7 +31516,7 @@ public class ChatActivity extends BaseFragment implements
         }, hideDimAfter ? () -> dimBehindView(false) : null, themeDelegate);
     }
 
-    private void hideActionMode() {
+    public void hideActionMode() {
         if (actionBar != null) {
             if (!actionBar.isActionModeShowed()) {
                 return;
@@ -34243,7 +34243,7 @@ public class ChatActivity extends BaseFragment implements
         MediaController.saveFile(path, getParentActivity(), messageObject.isVideo() ? 1 : 0, null, null);
     }
 
-    private void processSelectedOption(int option) {
+    public void processSelectedOption(int option) {
         if (selectedObject == null || getParentActivity() == null) {
             return;
         }

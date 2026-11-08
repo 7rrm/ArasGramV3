@@ -117,6 +117,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import xyz.nextalone.nagram.NaConfig;
+import android.os.Build;
+import android.graphics.RectF;
+import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
+import org.telegram.ui.Components.blur3.capture.IBlur3Capture;
 
 public class CallLogActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, MainTabsActivity.TabFragmentDelegate {
 
@@ -1879,6 +1883,17 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 
 
 
+	/* MeeroX blur state - restored after the 13.2.1 merge (TODO: wire the constructor setup back up) */
+	private @Nullable DownscaleScrollableNoiseSuppressor scrollableViewNoiseSuppressor;
+	private IBlur3Capture iBlur3Capture;
+	private boolean iBlur3Invalidated;
+	private final ArrayList<RectF> iBlur3Positions = new ArrayList<>();
+	private final RectF iBlur3PositionActionBar = new RectF();
+	private final RectF iBlur3PositionMainTabs = new RectF();
+	{
+	    iBlur3Positions.add(iBlur3PositionActionBar);
+	    iBlur3Positions.add(iBlur3PositionMainTabs);
+	}
 	/* Blur */
 
 	@Nullable
