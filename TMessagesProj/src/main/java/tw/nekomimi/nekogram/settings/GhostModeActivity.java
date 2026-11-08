@@ -50,6 +50,8 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
     private int ghostModeNoticeRow;
     // MeeroX v95: ghost swipe-read lives here as an independent circle row,
     // outside the 5 ghost essentials so the master toggle never flips it.
+    private int askBeforeOpeningStoryRow;
+    private int askBeforeOpeningStoryInfoRow;
     private int ghostSwipeReadRow;
     // MeeroX v96: in-page shortcut to pick the chat-list swipe action.
     private int swipeActionRow;
@@ -89,6 +91,8 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
             sendOfflinePacketAfterOnlineRow = -1;
             ghostModeNoticeRow = -1;
         }
+        askBeforeOpeningStoryRow = addRow();
+        askBeforeOpeningStoryInfoRow = addRow();
         ghostSwipeReadRow = addRow();
         swipeActionRow = addRow();
         ghostSwipeReadNoticeRow = addRow();
@@ -246,6 +250,9 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
             NekoConfig.sendOfflinePacketAfterOnline.toggleConfigBool();
             ((CheckBoxCell) view).setChecked(NekoConfig.sendOfflinePacketAfterOnline.Bool(), true);
             updateGhostViews();
+        } else if (position == askBeforeOpeningStoryRow) {
+            NekoConfig.askBeforeOpeningStory.toggleConfigBool();
+            ((TextCheckCell) view).setChecked(NekoConfig.askBeforeOpeningStory.Bool());
         } else if (position == ghostSwipeReadRow) {
             NekoConfig.meeroGhostSwipeRead.toggleConfigBool();
             boolean nowOn = NekoConfig.meeroGhostSwipeRead.Bool();
@@ -379,7 +386,9 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
                 case TYPE_CHECK:
                     TextCheckCell textCheckCell = (TextCheckCell) holder.itemView;
                     textCheckCell.setEnabled(true, null);
-                    if (position == markReadAfterSendRow) {
+                    if (position == askBeforeOpeningStoryRow) {
+                        textCheckCell.setTextAndCheck(getString(R.string.AskBeforeOpeningStory), NekoConfig.askBeforeOpeningStory.Bool(), false);
+                    } else if (position == markReadAfterSendRow) {
                         textCheckCell.setTextAndCheck(getString(R.string.MarkReadAfterSend), NekoConfig.markReadAfterSend.Bool(), true);
                     } else if (position == sendWithoutSoundRow) {
                         textCheckCell.setTextAndCheck(getString(R.string.SilentMessageByDefault), NaConfig.INSTANCE.getSilentMessageByDefault().Bool(), true);
@@ -400,7 +409,9 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
                 case TYPE_INFO_PRIVACY:
                     TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
                     cell.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
-                    if (position == ghostModeNoticeRow) {
+                    if (position == askBeforeOpeningStoryInfoRow) {
+                        cell.setText(getString(R.string.AskBeforeOpeningStoryInfo));
+                    } else if (position == ghostModeNoticeRow) {
                         cell.setText(getString(R.string.GhostModeNotice));
                     } else if (position == markReadAfterSendNoticeRow) {
                         cell.setText(getString(R.string.MarkReadAfterSendNotice));
@@ -496,7 +507,7 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
         public int getItemViewType(int position) {
             if (position == ghostEssentialsHeaderRow || position == ghostExclusionsHeaderRow) {
                 return TYPE_HEADER;
-            } else if (position == ghostModeNoticeRow || position == markReadAfterSendNoticeRow || position == sendWithoutSoundNoticeRow || position == ghostExclusionsNoticeRow) {
+            } else if (position == askBeforeOpeningStoryInfoRow || position == ghostModeNoticeRow || position == markReadAfterSendNoticeRow || position == sendWithoutSoundNoticeRow || position == ghostExclusionsNoticeRow) {
                 return TYPE_INFO_PRIVACY;
             } else if (position == ghostModeToggleRow) {
                 return TYPE_CHECK2;

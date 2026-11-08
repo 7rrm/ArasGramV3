@@ -416,6 +416,7 @@ public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackB
     // --- Ghost Mode ---
     public static ConfigItem sendReadMessagePackets = addConfig("sendReadMessagePackets", configTypeBool, true);
     public static ConfigItem sendReadStoriesPackets = addConfig("sendReadStoriesPackets", configTypeBool, true);
+    public static ConfigItem askBeforeOpeningStory = addConfig("AskBeforeOpeningStory", configTypeBool, false);
     public static ConfigItem sendOnlinePackets = addConfig("sendOnlinePackets", configTypeBool, true);
     public static ConfigItem sendUploadProgress = addConfig("sendUploadProgress", configTypeBool, true);
     public static ConfigItem sendOfflinePacketAfterOnline = addConfig("sendOfflinePacketAfterOnline", configTypeBool, false);

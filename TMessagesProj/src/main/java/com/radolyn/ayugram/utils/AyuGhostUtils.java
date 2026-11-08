@@ -18,6 +18,8 @@ import tw.nekomimi.nekogram.NekoConfig;
 
 public class AyuGhostUtils {
 
+    public static volatile boolean storyGhostSession;
+
     private static final int OFFLINE_DELAY_MS = 1000;
 
     public static Long getDialogId(TLRPC.InputPeer peer) {
@@ -165,8 +167,8 @@ public class AyuGhostUtils {
                 return InterceptResult.Blocked(onCompleteOrig);
             }
         }
-        if (!NekoConfig.sendReadStoriesPackets.Bool() && isReadStoriesRequest(object)) {
-            if (!readExcluded) {
+        if ((!NekoConfig.sendReadStoriesPackets.Bool() || storyGhostSession) && isReadStoriesRequest(object)) {
+            if (storyGhostSession || !readExcluded) {
                 FileLog.d("GhostMode: Blocking story read request.");
                 return InterceptResult.Blocked(onCompleteOrig);
             }
