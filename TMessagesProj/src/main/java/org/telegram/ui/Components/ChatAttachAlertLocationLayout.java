@@ -117,10 +117,29 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
         public TLRPC.TL_messageMediaVenue venue;
     }
 
-    public static class LiveLocation {
-        public int id;
-        public TLRPC.Message object;
-        public TLRPC.User user;
+    private void showSearchPlacesButton(boolean show) {
+        if (locationDenied) {
+            show = false;
+        }
+        if (show && searchAreaButton != null && searchAreaButton.getTag() == null) {
+            if (myLocation == null || userLocation == null || userLocation.distanceTo(myLocation) < 300) {
+                show = false;
+            }
+        }
+        if (locationType == LOCATION_TYPE_BIZ) {
+            show = false;
+        }
+        if (searchAreaButton == null || show && searchAreaButton.getTag() != null || !show && searchAreaButton.getTag() == null) {
+            return;
+        }
+        searchAreaButton.setVisibility(show ? VISIBLE : INVISIBLE);
+        searchAreaButton.setTag(show ? 1 : null);
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(ObjectAnimator.ofFloat(searchAreaButton, View.TRANSLATION_X, show ? 0 : -AndroidUtilities.dp(80)));
+        animatorSet.setDuration(180);
+        animatorSet.setInterpolator(CubicBezierInterpolator.EASE_OUT);
+        animatorSet.start();
+    }
 
 
     private ImageView locationButton;
