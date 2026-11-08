@@ -27158,11 +27158,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return new MessageAccessibilityNodeProvider();
     }
 
-    private void sendAccessibilityEventForVirtualView(int viewId, int eventType) {
+    public void sendAccessibilityEventForVirtualView(int viewId, int eventType) {
         sendAccessibilityEventForVirtualView(viewId, eventType, null);
     }
 
-    private void sendAccessibilityEventForVirtualView(int viewId, int eventType, String text) {
+    public void sendAccessibilityEventForVirtualView(int viewId, int eventType, String text) {
         AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
         if (am.isTouchExplorationEnabled()) {
             AccessibilityEvent event = AccessibilityEvent.obtain(eventType);
@@ -29268,17 +29268,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
 
-    // ArasGram: ported for 13.2.1 compatibility
-        final int maxWidth = getCompactContentWidth();
-
-        final float x = getCompactLeft();
-
-                        final boolean hit = block.isCompactCopyHit(x - (block.isRtl() ? currentMessageObject.textXOffset : 0), y - block.padTop, getCompactRight() - textX);
-
-
-    // ArasGram: ported for 13.2.1 compatibility
-
-        final float x = getCompactLeft();
 
 
 

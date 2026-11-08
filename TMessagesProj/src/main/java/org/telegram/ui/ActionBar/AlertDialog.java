@@ -2167,10 +2167,18 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
             alertDialog.customMaxHeight = true;
             return this;
         }
+
+        public Builder setTopBackgroundColorKey(int key, Theme.ResourcesProvider resourcesProvider) {
+            alertDialog.setTopBackgroundColorKey(key, resourcesProvider);
+            return this;
+        }
     }
 
 
     // ArasGram: ported from 13.2.1
+    private int topBackgroundColorKey = -1;
+    private Theme.ResourcesProvider topBackgroundResourcesProvider;
+
     public void setTopBackgroundColorKey(int key, Theme.ResourcesProvider resourcesProvider) {
         topBackgroundColorKey = key;
         topBackgroundResourcesProvider = resourcesProvider;
@@ -2178,10 +2186,4 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
     }
 
 
-    // ArasGram: ported for 13.2.1
-    public void setTopBackgroundColorKey(int key, Theme.ResourcesProvider resourcesProvider) {
-        topBackgroundColorKey = key;
-        topBackgroundResourcesProvider = resourcesProvider;
-        topBackgroundColor = Theme.getColor(key, resourcesProvider);
-    }
 }
