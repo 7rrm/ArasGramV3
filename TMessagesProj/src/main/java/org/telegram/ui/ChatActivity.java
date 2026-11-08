@@ -380,6 +380,7 @@ import me.vkryl.core.reference.ReferenceList;
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.filters.AyuFilter;
 import tw.nekomimi.nekogram.helpers.ChatsHelper;
+import tw.nekomimi.nekogram.parts.RichMessageTransHelper;
 
 @SuppressWarnings("unchecked")
 public class ChatActivity extends BaseFragment implements
@@ -487,7 +488,7 @@ public class ChatActivity extends BaseFragment implements
     private ChatListRecyclerView chatListView;
     private ChatListItemAnimator chatListItemAnimator;
     private GridLayoutManagerFixed chatLayoutManager;
-    private ChatActivityAdapter chatAdapter;
+    public ChatActivityAdapter chatAdapter;
     private UnreadCounterTextView bottomOverlayChatText;
     private boolean bottomOverlayLinks;
     private LinkSpanDrawable.LinksTextView bottomOverlayLinksText;
@@ -826,7 +827,7 @@ public class ChatActivity extends BaseFragment implements
 
     private MessageObject selectedObjectToEditCaption;
     private MessageObject selectedObject;
-    private MessageObject.GroupedMessages selectedObjectGroup;
+    public MessageObject.GroupedMessages selectedObjectGroup;
     private boolean forbidForwardingWithDismiss;
     public MessagePreviewParams messagePreviewParams;
     public MessageSuggestionParams messageSuggestionParams;
@@ -48413,6 +48414,45 @@ public class ChatActivity extends BaseFragment implements
     }
 
     public void showLeftBottomButtonRipple() {
+    }
+
+    // NekoX translate sheet (tw.nekomimi.nekogram.parts.MessageTrans.kt) reads
+    // these through Kotlin property syntax, so they have to stay accessible.
+    public MessageObject getMessageForTranslate() {
+        MessageObject messageObject = null;
+        boolean isDocuments = selectedObjectGroup != null && selectedObjectGroup.isDocuments;
+        if (selectedObjectGroup != null && !isDocuments) {
+            for (MessageObject object : selectedObjectGroup.messages) {
+                if (canTranslateSelectedMessage(object)) {
+                    if (messageObject != null) {
+                        messageObject = null;
+                        break;
+                    } else {
+                        messageObject = object;
+                    }
+                }
+            }
+        } else if (canTranslateSelectedMessage(selectedObject)) {
+            messageObject = selectedObject;
+        }
+        if (messageObject == null && isDocuments) {
+            for (MessageObject obj : selectedObjectGroup.messages) {
+                if (canTranslateSelectedMessage(obj)) {
+                    messageObject = obj;
+                }
+            }
+        }
+        return messageObject;
+    }
+
+    private boolean canTranslateSelectedMessage(MessageObject messageObject) {
+        if (messageObject == null || messageObject.messageOwner == null) {
+            return false;
+        }
+        if (!TextUtils.isEmpty(messageObject.messageOwner.message) || messageObject.isPoll()) {
+            return true;
+        }
+        return messageObject.isRich() && !RichMessageTransHelper.collectPlainTexts(messageObject.messageOwner.rich_message).isEmpty();
     }
     // ===== end MeeroX / ArasGram additions =====
 }
