@@ -12184,7 +12184,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 // Preserve the badge and its existing click target; show only the
                 // anchored hint, not the old bottom bulletin or a support action.
                 if (ArasGramConstants.isOwner(user.id)) {
-                    nameTextView[a].setRightDrawable2OnClick(v -> showArasCherryHint(user));
+                    final SimpleTextView badgeAnchor = nameTextView[a];
+                    badgeAnchor.setRightDrawable2OnClick(v -> showArasCherryHint(user, badgeAnchor));
                 }
                 if (!user.self && getMessagesController().isPremiumUser(user)) {
                     final SimpleTextView textView = nameTextView[a];
@@ -17553,14 +17554,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     // Cherrygram's donor hint adapted to our existing secondary badge.
     private HintView2 arasCherryHint;
     private int arasCherryHintBackgroundColor;
+    private SimpleTextView arasCherryHintAnchor;
+    private final float[] arasCherryHintPoint = new float[2];
 
-    private void showArasCherryHint(TLRPC.User user) {
-        if (user == null || avatarContainer2 == null || getContext() == null) return;
+    private void showArasCherryHint(TLRPC.User user, SimpleTextView anchor) {
+        if (user == null || anchor == null || avatarContainer2 == null || getContext() == null) return;
         if (arasCherryHint != null) arasCherryHint.hide();
         CharSequence message = AndroidUtilities.replaceTags(
                 formatString(R.string.ArasCherryHint, UserObject.getUserName(user)));
         final HintView2 hint = new HintView2(getContext(), HintView2.DIRECTION_BOTTOM);
         arasCherryHint = hint;
+        arasCherryHintAnchor = anchor;
         arasCherryHintBackgroundColor = peerColor != null
                 && peerColor.getBgColor1(Theme.isCurrentThemeDark()) != peerColor.getBgColor2(Theme.isCurrentThemeDark())
                 ? peerColor.getBgColor1(Theme.isCurrentThemeDark()) : getThemedColor(Theme.key_undo_background);
@@ -17576,23 +17580,36 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         hint.setRounding(16);
         hint.setOnHiddenListener(() -> {
             if (hint.getParent() instanceof ViewGroup) ((ViewGroup) hint.getParent()).removeView(hint);
-            if (arasCherryHint == hint) arasCherryHint = null;
+            if (arasCherryHint == hint) {
+                arasCherryHint = null;
+                arasCherryHintAnchor = null;
+            }
         });
         hint.show();
         updateArasCherryHint();
+        hint.post(() -> {
+            if (arasCherryHint == hint) updateArasCherryHint();
+        });
         AndroidUtilities.runOnUIThread(hint::hide, 5500);
     }
 
     private void updateArasCherryHint() {
-        if (arasCherryHint == null || nameTextView[1] == null || nameTextView[0] == null) return;
-        SimpleTextView name = extraHeight >= dp(82) ? nameTextView[1] : nameTextView[0];
-        // The project's badge is the secondary drawable at the text start;
-        // rightDrawable2X is its actual drawn centre, including RTL placement.
-        arasCherryHint.setJointPx(0, -arasCherryHint.getPaddingLeft()
-                + name.getX() + name.rightDrawable2X * name.getScaleX());
+        if (arasCherryHint == null || arasCherryHintAnchor == null) return;
+        SimpleTextView name = arasCherryHintAnchor;
+        Drawable badge = name.getRightDrawable2();
+        if (badge == null) return;
+        // Map the actual badge centre into avatarContainer2 coordinates, including
+        // the name's scale, pivot and translation. Do not depend on nameTextView[0],
+        // which is not created for some profile entry paths.
+        arasCherryHintPoint[0] = name.rightDrawable2X;
+        arasCherryHintPoint[1] = name.rightDrawable2Y;
+        name.getMatrix().mapPoints(arasCherryHintPoint);
+        float badgeX = name.getLeft() + arasCherryHintPoint[0];
+        float badgeY = name.getTop() + arasCherryHintPoint[1];
+        arasCherryHint.setJointPx(0, badgeX - arasCherryHint.getPaddingLeft());
+        float halfBadgeHeight = badge.getIntrinsicHeight() * name.getScaleY() / 2f;
+        arasCherryHint.setY(badgeY - halfBadgeHeight - dp(24) - dp(2));
         final float expanded = AndroidUtilities.lerp(expandAnimatorValues, currentExpanAnimatorFracture);
-        arasCherryHint.setTranslationY(-arasCherryHint.getPaddingBottom() + name.getY() - dp(24)
-                + lerp(dp(6), -dp(12), expanded));
         arasCherryHint.setBgColor(ColorUtils.blendARGB(arasCherryHintBackgroundColor, 0x50000000, expanded));
     }
 
