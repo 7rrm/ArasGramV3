@@ -3657,7 +3657,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
 
         AndroidUtilities.rectTmp.set(
             from.getLeft(),
-            Math.max(applyPaddingToSections ? getPaddingTop() : -sectionRadius, top(from) - (hasAbove ? sectionRadius : 0)),
+            Math.max(applyPaddingToSections ? getPaddingTop() : -sectionRadius - sectionsOverscanTop, top(from) - (hasAbove ? sectionRadius : 0)),
             from.getRight(),
             Math.min(getHeight() - (applyPaddingToSections ? getPaddingBottom() : -sectionRadius), bottom(to) + (hasBelow ? sectionRadius : 0) - bottomMargin)
         );
@@ -3859,7 +3859,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
 
         AndroidUtilities.rectTmp.set(
             child.getX(),
-            Math.max(applyPaddingToSections ? getPaddingTop() : -sectionRadius, top(child)),
+            Math.max(applyPaddingToSections ? getPaddingTop() : -sectionRadius - sectionsOverscanTop, top(child)),
             child.getX() + child.getWidth(),
             Math.min(getHeight() - (applyPaddingToSections ? getPaddingBottom() : -sectionRadius), bottom(child))
         );
@@ -4150,6 +4150,20 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
 
     public int getSectionsOverscanTop() {
         return sectionsOverscanTop;
+    }
+
+    /** Draws the backgrounds of the sections for a glass capture, whichever decoration draws them. */
+    public void captureSectionsBackgrounds(Canvas canvas, RectF position) {
+        if (bitmapSectionsItemDecoration != null) {
+            bitmapSectionsItemDecoration.capture(canvas, position);
+        } else if (sectionsItemDecoration != null) {
+            sectionsItemDecoration.capture(canvas, position);
+        }
+    }
+
+    /** Rows laid out above the list's top (drawn into a glass capture there): their sections reach so far up too. */
+    public void setSectionsOverscanTop(int overscanTop) {
+        sectionsOverscanTop = overscanTop;
     }
 
     public void setLegacySections(boolean legacySections) {
