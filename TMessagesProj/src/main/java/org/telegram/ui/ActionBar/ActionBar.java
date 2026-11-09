@@ -2723,7 +2723,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
             }
 
             glassDrawable.setBounds(left, t, right, b);
-            glassDrawable.draw(canvas);
+            // 13.2.1: the simple-glass header draws the glass itself (see
+            // BaseFragmentSimpleGlass.setupHeader), it sets doNotDrawCenterGlass
+            // so the action bar does not paint a second pill over it.
+            if (!doNotDrawCenterGlass) {
+                glassDrawable.draw(canvas);
+            }
         }
         if (glassDrawableBack != null && hasBackButton) {
             glassDrawableBack.setBounds(0, tBack, sBack + p * 2, bBack);
