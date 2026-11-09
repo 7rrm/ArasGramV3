@@ -11594,6 +11594,19 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
             super(context);
         }
 
+        /**
+         * 13.2.1: this is not the profile's own list. Every media page - Members,
+         * Links, Polls, Voice, GIFs - starts right under the tabs, with no
+         * blurred header above it to reserve room for, so unlike the two lists
+         * that do have one (the profile's, the chats list) this one must not
+         * ask for any: the inherited 203dp pushed each page down and left the
+         * gap under the tab bar.
+         */
+        @Override
+        protected int measureBlurTopPadding() {
+            return 0;
+        }
+
         @Override
         public void setPadding(int left, int top, int right, int bottom) {
             topPadding = top;
