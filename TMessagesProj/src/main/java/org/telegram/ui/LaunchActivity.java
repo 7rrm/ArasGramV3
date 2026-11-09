@@ -435,6 +435,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        org.telegram.messenger.CrashTrace.mark("LaunchActivity.onCreate:start");
         isActive = true;
         activeInstanceCount++;
         if (BuildVars.DEBUG_VERSION) {
@@ -7320,6 +7321,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     @Override
     protected void onResume() {
+        org.telegram.messenger.CrashTrace.mark("LaunchActivity.onResume");
+        if (org.telegram.messenger.CrashTrace.hasDirty()) {
+            startActivity(new android.content.Intent(this, org.telegram.ui.CrashReportActivity.class));
+        }
         super.onResume();
         WidgetMedia.onAppPaused(false);
         isResumed = true;

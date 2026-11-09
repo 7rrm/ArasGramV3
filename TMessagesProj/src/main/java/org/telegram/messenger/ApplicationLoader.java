@@ -103,6 +103,7 @@ public class ApplicationLoader extends Application {
     protected void attachBaseContext(Context base) {
         systemUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         super.attachBaseContext(base);
+        org.telegram.messenger.CrashTrace.init(this);
         try {
             applicationContext = getApplicationContext();
         } catch (Throwable ignore) {
@@ -315,6 +316,7 @@ public class ApplicationLoader extends Application {
 
     @Override
     public void onCreate() {
+        org.telegram.messenger.CrashTrace.mark("ApplicationLoader.onCreate:start");
         applicationLoaderInstance = this;
         try {
             applicationContext = getApplicationContext();
@@ -362,7 +364,9 @@ public class ApplicationLoader extends Application {
             applicationContext = getApplicationContext();
         }
 
+        org.telegram.messenger.CrashTrace.mark("before initNativeLibs");
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
+        org.telegram.messenger.CrashTrace.mark("after initNativeLibs");
 
         try {
             ConnectionsManager.native_setJava(false);

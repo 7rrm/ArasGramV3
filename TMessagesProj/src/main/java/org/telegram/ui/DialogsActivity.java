@@ -3399,6 +3399,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public View createView(final Context context) {
+        org.telegram.messenger.CrashTrace.mark("DialogsActivity.createView:start");
         searching = false;
         searchWas = false;
         wasDrawn = false;
@@ -7560,6 +7561,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public void onResume() {
+        org.telegram.messenger.CrashTrace.mark("DialogsActivity.onResume");
         super.onResume();
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
