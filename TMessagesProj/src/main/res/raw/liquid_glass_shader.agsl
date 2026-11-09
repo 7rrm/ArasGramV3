@@ -8,6 +8,11 @@
 // (sdRaw -> sd) and every sample is clamped to the shape, because the glass
 // node is downsampled - without it the refraction samples outside the node
 // and the glass renders black.
+//
+// Hardening (ArasGram): every intermediate that could go NaN or out of range
+// is clamped, and any non-finite sample falls back to the plain official
+// sample. A NaN pixel is drawn as black, so one bad division used to paint
+// the whole glass node black (visible in day mode, invisible at night).
 
 uniform shader img;
 
@@ -32,6 +37,15 @@ half4 srcOver(half4 src, half4 dst) {
     return half4(outRGB, outA);
 }
 
+// NaN and Inf fail every comparison, so this catches both.
+bool ok(half v) {
+    return v >= 0.0 && v <= 1.0;
+}
+
+bool ok4(half4 c) {
+    return ok(c.r) && ok(c.g) && ok(c.b) && ok(c.a);
+}
+
 half4 main(in float2 fragCoord) {
   half2 p = fragCoord - center;
   half sdRaw = sdfRect(p, radius);
@@ -41,13 +55,38 @@ half4 main(in float2 fragCoord) {
   half sdX = sdfRect(p + half2(1.0, 0.0), radius);
   half sdY = sdfRect(p + half2(0.0, 1.0), radius);
 
-  half n_cos = max(thickness + sd, 0.0) / thickness;
+  // guard: thickness may still be 0 before the first layout
+  half th = max(thickness, 0.001);
+  half n_cos = max(thickness + sd, 0.0) / th;
   half n_cos2 = n_cos * n_cos;
-  half n_sin = sqrt(1.0 - n_cos2);
+  // guard: rounding can push n_cos2 just above 1 and make the sqrt NaN
+  half n_sin = sqrt(max(1.0 - n_cos2, 0.0));
   half2 grad = half2(sdX - sdRaw, sdY - sdRaw);
-  half3 normal = normalize(half3(grad * n_cos, n_sin));
+  half3 nv = half3(grad * n_cos, n_sin);
+  // guard: normalizing a zero vector is NaN
+  half3 normal = dot(nv, nv) > 0.0 ? normalize(nv) : half3(0.0, 0.0, 1.0);
 
-  half h = sd < -thickness ? thickness : sqrt(sd * (-2.0 * thickness - sd));
+  // guard: sqrt of a negative number is NaN
+  half hArg = sd * (-2.0 * th - sd);
+  half h = sd < -thickness ? thickness : sqrt(max(hArg, 0.0));
+
+  // on a small shape the edge samples past the far side: stay within the shape, whatever the grid of a downsampled node
+  half2 lo = min(center - size + 0.5, center + size - 0.5);
+  half2 hi = max(center - size + 0.5, center + size - 0.5);
+
+  // ---- plain official 13.2.1 sample: always finite, never black ----
+  half3 rv0 = refract(half3(0.0, 0.0, -1.0), normal, 1.0 / refract_index);
+  half len0 = (h + 8.0 * th) / -rv0.z;
+  half2 uv0 = clamp(fragCoord + rv0.xy * len0 * refract_intensity, lo, hi);
+  half4 plain = img.eval(uv0);
+  if (!ok4(plain)) {
+      plain = img.eval(clamp(fragCoord, lo, hi));
+  }
+  if (!ok4(plain)) {
+      plain = half4(0.0);
+  }
+
+  // ---- MeeroX extras ----
 
   // chromatic dispersion: each channel bends by a slightly different amount
   half3 idx = half3(refract_index * 0.985, refract_index, refract_index * 1.015);
@@ -56,22 +95,26 @@ half4 main(in float2 fragCoord) {
   half3 rv_g = refract(half3(0.0, 0.0, -1.0), normal, 1.0 / idx.g);
   half3 rv_b = refract(half3(0.0, 0.0, -1.0), normal, 1.0 / idx.b);
 
-  half len_r = (h + 8.0 * thickness) / -rv_r.z;
-  half len_g = (h + 8.0 * thickness) / -rv_g.z;
-  half len_b = (h + 8.0 * thickness) / -rv_b.z;
+  half len_r = (h + 8.0 * th) / -rv_r.z;
+  half len_g = (h + 8.0 * th) / -rv_g.z;
+  half len_b = (h + 8.0 * th) / -rv_b.z;
 
-  half2 uv_r = fragCoord + rv_r.xy * len_r * refract_intensity;
-  half2 uv_g = fragCoord + rv_g.xy * len_g * refract_intensity;
-  half2 uv_b = fragCoord + rv_b.xy * len_b * refract_intensity;
+  half2 uv_r = clamp(fragCoord + rv_r.xy * len_r * refract_intensity, lo, hi);
+  half2 uv_g = clamp(fragCoord + rv_g.xy * len_g * refract_intensity, lo, hi);
+  half2 uv_b = clamp(fragCoord + rv_b.xy * len_b * refract_intensity, lo, hi);
 
-  // on a small shape the edge samples past the far side: stay within the shape, whatever the grid of a downsampled node
-  half2 minUv = center - size + 0.5;
-  half2 maxUv = center + size - 0.5;
-  uv_r = clamp(uv_r, minUv, maxUv);
-  uv_g = clamp(uv_g, minUv, maxUv);
-  uv_b = clamp(uv_b, minUv, maxUv);
+  half s_r = img.eval(uv_r).r;
+  half s_g = img.eval(uv_g).g;
+  half s_b = img.eval(uv_b).b;
+  half s_a = img.eval(uv_g).a;
 
-  half3 sampled = half3(img.eval(uv_r).r, img.eval(uv_g).g, img.eval(uv_b).b);
+  // any channel that came back non-finite falls back to the official sample
+  half3 sampled = half3(
+      ok(s_r) ? s_r : plain.r,
+      ok(s_g) ? s_g : plain.g,
+      ok(s_b) ? s_b : plain.b
+  );
+  half4 base = half4(sampled, ok(s_a) ? s_a : plain.a);
   uv = uv_g;
 
   // specular edge sheen, lit from the top-left like Apple's Liquid Glass
@@ -86,14 +129,22 @@ half4 main(in float2 fragCoord) {
   // faint rim highlight all the way around
   half rim = smoothstep(0.0, 1.0, edgeBand);
   sheen += rim * rim * 0.06;
-
-  half4 base = half4(sampled, img.eval(uv).a);
+  if (!(sheen >= 0.0)) {
+      sheen = 0.0;
+  }
 
   // chroma lift: stop content behind the glass from going flat
   half luma = dot(base.rgb, half3(0.2126, 0.7152, 0.0722));
-  base.rgb = mix(half3(luma), base.rgb, 1.12);
+  if (!(luma >= 0.0)) {
+      base = plain;
+  } else {
+      base.rgb = mix(half3(luma), base.rgb, 1.12);
+  }
 
   half4 outColor = srcOver(half4(foreground_color_premultiplied), base);
+  if (!ok4(outColor)) {
+      outColor = srcOver(half4(foreground_color_premultiplied), plain);
+  }
   outColor.rgb = clamp(outColor.rgb + sheen, 0.0, 1.0);
   return outColor;
 }
