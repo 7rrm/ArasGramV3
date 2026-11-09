@@ -136,7 +136,8 @@ public class ActionBarMenuSubItem extends FrameLayout implements Theme.Colorable
         imageView = new RLottieImageView(context);
         imageView.setScaleType(ImageView.ScaleType.CENTER);
         imageView.setColorFilter(appliedIconFilter = new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
-        addView(imageView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.CENTER_VERTICAL | (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT)));
+        // (the view is added by the MeeroX iOS/normal sizing block below - adding it
+        // here as well throws "The specified child already has a parent")
         // MeeroX: CENTER draws the drawable at its own size and clips whatever
         // falls outside the view, so pinning the frame to iOS's 16dp simply
         // cut 24dp glyphs off at the edges. FIT_CENTER scales them down to fit
