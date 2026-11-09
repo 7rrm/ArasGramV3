@@ -10789,6 +10789,11 @@ public class ChatActivity extends BaseFragment implements
 
     private long lastSwitchTopicTime;
 
+    /** Whether the topic tabs are on at all: off where only the sidebar has them. */
+    private boolean areTopicsTabsEnabled() {
+        return UserObject.isBotForum(currentUser) || ChatObject.areTabsEnabled(currentChat);
+    }
+
     private void createTopicsTabs() {
         if (topicsTabs != null || getContext() == null) {
             return;
@@ -10796,7 +10801,7 @@ public class ChatActivity extends BaseFragment implements
         if (pinnedMessageView == null) {
             createPinnedMessageView();
         }
-        topicsTabs = new TopicsTabsView(getContext(), this, currentAccount, getDialogId(), getResourceProvider());
+        topicsTabs = new TopicsTabsView(getContext(), this, currentAccount, getDialogId(), areTopicsTabsEnabled(), getResourceProvider());
         topicsTabs.doOnUpdateSideMenuPosition(() -> {
             invalidateChatListViewTopPadding();
             AndroidUtilities.forEachViews(chatListView, view -> {
