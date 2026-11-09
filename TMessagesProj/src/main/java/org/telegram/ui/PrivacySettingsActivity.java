@@ -284,17 +284,11 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
     }
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
 
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        simpleActionBar.setTitle(getString(R.string.PrivacySettings));
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setTitle(getString(R.string.PrivacySettings));
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -303,13 +297,14 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
             }
         });
         if (parentLayout != null && parentLayout.isRightLayout()) {
-            simpleActionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
 
         listAdapter = new ListAdapter(context);
 
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         listView = new RecyclerListView(context);
         listView.setSections();
@@ -694,11 +689,6 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
         });
 
         return fragmentView;
-    }
-
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
     }
 
     @Override

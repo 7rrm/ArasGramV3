@@ -70,7 +70,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
@@ -133,6 +132,7 @@ import tw.nekomimi.nekogram.utils.FileUtil;
 import tw.nekomimi.nekogram.utils.ShareUtil;
 import tw.nekomimi.nekogram.utils.StickersUtil;
 import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.Components.NumberTextView;
 
 public class StickersActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
@@ -255,22 +255,16 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
-        simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
+        actionBar.setBackButtonDrawable(new BackDrawable(false));
         if (currentType == TYPE_IMAGE) {
-            simpleActionBar.setTitle(getString(R.string.StickersName));
+            actionBar.setTitle(getString(R.string.StickersName));
         } else if (currentType == TYPE_MASK) {
-            simpleActionBar.setTitle(getString(R.string.Masks));
+            actionBar.setTitle(getString(R.string.Masks));
         } else if (currentType == TYPE_EMOJIPACKS) {
-            simpleActionBar.setTitle(getString(R.string.Emoji));
+            actionBar.setTitle(getString(R.string.Emoji));
         }
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -283,14 +277,20 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
             }
         });
 
-        SimpleActionBarMenu menu = simpleActionBar.createMenu();
+        ActionBarMenu menu = actionBar.createMenu();
 
         ActionBarMenuItem otherItem = menu.addItem(menu_other, R.drawable.ic_ab_other);
 
         otherItem.addSubItem(menu_export, R.drawable.msg_instant_link_solar, getString(R.string.ExportStickers));
         otherItem.addSubItem(menu_import, R.drawable.msg_photo_settings_solar, getString(R.string.ImportStickersX));
 
-        SimpleActionBarMenu actionMode = simpleActionBar.createActionMode();
+        ActionBarMenu actionMode = actionBar.createActionMode();
+        selectedCountTextView = new NumberTextView(actionMode.getContext());
+        selectedCountTextView.setTextSize(18);
+        selectedCountTextView.setTypeface(AndroidUtilities.bold());
+        selectedCountTextView.setTextColor(Theme.getColor(Theme.key_actionBarActionModeDefaultIcon));
+        actionMode.addView(selectedCountTextView, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1.0f, 72, 0, 0, 0));
+        selectedCountTextView.setOnTouchListener((v, event) -> true);
         shareMenuItem = actionMode.addItemWithWidth(MENU_SHARE, R.drawable.msg_share, dp(54));
         exportMenuItem = actionMode.addItemWithWidth(MENU_EXPORT, R.drawable.msg_instant_link_solar, AndroidUtilities.dp(54));
         archiveMenuItem = actionMode.addItemWithWidth(MENU_ARCHIVE, R.drawable.msg_archive, dp(54));
@@ -305,6 +305,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
 
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
         listView.setSections();
@@ -327,11 +328,6 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
         listView.setLayoutManager(layoutManager);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         return fragmentView;
-    }
-
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
     }
 
     @Override
@@ -844,14 +840,16 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
         return selectedSets.size();
     }
 
+    private NumberTextView selectedCountTextView;
+
     private void checkActionMode() {
         final int selectedCount = getSelectedCount();
-        final boolean actionModeShowed = simpleActionBar.isActionModeShowed();
+        final boolean actionModeShowed = actionBar.isActionModeShowed();
         if (selectedCount > 0) {
             checkActionModeIcons();
-            simpleActionBar.setActionModeCount(selectedCount, actionModeShowed);
+            selectedCountTextView.setNumber(selectedCount, actionModeShowed);
             if (!actionModeShowed) {
-                simpleActionBar.showActionMode();
+                actionBar.showActionMode();
                 listView.allowReorder(true);
                 if (!SharedConfig.stickersReorderingHintUsed && currentType != MediaDataController.TYPE_EMOJIPACKS) {
                     SharedConfig.setStickersReorderingHintUsed(true);
@@ -860,7 +858,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
                 }
             }
         } else if (actionModeShowed) {
-            simpleActionBar.hideActionMode();
+            actionBar.hideActionMode();
             listView.allowReorder(false);
             sendReorder();
         }

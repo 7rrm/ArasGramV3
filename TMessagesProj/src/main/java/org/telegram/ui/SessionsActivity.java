@@ -198,23 +198,17 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
     }
 
     @Override
-    protected boolean useSimpleActionBar() {
-        return true;
-    }
-
-    @Override
     public View createView(Context context) {
-        setHasOwnBackground(true);
         globalFlickerLoadingView = new FlickerLoadingView(context);
         globalFlickerLoadingView.setIsSingleCell(true);
 
-        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         if (currentType == 0) {
-            simpleActionBar.setTitle(getString(R.string.Devices));
+            actionBar.setTitle(getString(R.string.Devices));
         } else {
-            simpleActionBar.setTitle(getString(R.string.WebSessionsTitle));
+            actionBar.setTitle(getString(R.string.WebSessionsTitle));
         }
-        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -223,13 +217,14 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             }
         });
         if (parentLayout != null && parentLayout.isRightLayout()) {
-            simpleActionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
 
         listAdapter = new ListAdapter(context);
 
         fragmentView = new FrameLayout(context);
         FrameLayout frameLayout = (FrameLayout) fragmentView;
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
 
         emptyView = new EmptyTextProgressView(context);
         emptyView.showProgress();
@@ -611,11 +606,6 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
         updateRows();
 
         return fragmentView;
-    }
-
-    @Override
-    protected RecyclerListView getListViewForSimpleGlass() {
-        return listView;
     }
 
     private void showSessionBottomSheet(TLRPC.TL_authorization authorization, boolean isCurrentSession) {
