@@ -301,27 +301,45 @@ public abstract class BaseFragment {
 
         listViewForSimpleGlass = listViewForGlass != null ? listViewForGlass : scrollViewForGlass;
         if (listViewForSimpleGlass != null && view instanceof FrameLayout) {
-            final BaseFragmentSimpleGlass simpleGlass = getBaseSimpleGlass();
+            if (useSimpleGlassHeader()) {
+                final BaseFragmentSimpleGlass simpleGlass = getBaseSimpleGlass();
 
-            final View header = simpleActionBar != null ? simpleActionBar : actionBar;
-            if (listViewForGlass != null) {
-                simpleGlass.setViews((FrameLayout) view, listViewForGlass, header, resourceProvider);
-            } else if (scrollViewForGlass != null) {
-                simpleGlass.setViews((FrameLayout) view, scrollViewForGlass, header, resourceProvider);
-            }
+                final View header = simpleActionBar != null ? simpleActionBar : actionBar;
+                if (listViewForGlass != null) {
+                    simpleGlass.setViews((FrameLayout) view, listViewForGlass, header, resourceProvider);
+                } else if (scrollViewForGlass != null) {
+                    simpleGlass.setViews((FrameLayout) view, scrollViewForGlass, header, resourceProvider);
+                }
 
-            if (useFadeDrawableForActionBar() && header != null) {
-                header.setBackground(simpleGlass.createActionBarFadeDrawable(header));
+                if (useFadeDrawableForActionBar() && header != null) {
+                    header.setBackground(simpleGlass.createActionBarFadeDrawable(header));
+                }
+
+                if (drawEdgeNavigationBar()) {
+                    navigationBarFadeView = new View(context);
+                    navigationBarFadeView.setBackground(simpleGlass.createNavigationBarFadeDrawable(navigationBarFadeView));
+                    FrameLayout.LayoutParams lp = LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.BOTTOM);
+                    lp.height = mSystemInsets.bottom;
+                    ((FrameLayout) view).addView(navigationBarFadeView, lp);
+                }
+            } else {
+                // ArasGram: the same header, without the glass. See useSimpleGlassHeader().
+                listViewForSimpleGlass.setClipToPadding(false);
+                final View header = simpleActionBar != null ? simpleActionBar : actionBar;
+                if (header != null) {
+                    AndroidUtilities.removeFromParent(header);
+                    ((FrameLayout) view).addView(header, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
+                    if (header instanceof ActionBar) {
+                        ((ActionBar) header).setAddToContainer(false);
+                    } else {
+                        header.setBackgroundColor(getThemedColor(org.telegram.ui.ActionBar.Theme.key_actionBarDefault));
+                    }
+                }
+                if (view.getBackground() == null) {
+                    view.setBackgroundColor(getThemedColor(org.telegram.ui.ActionBar.Theme.key_windowBackgroundGray));
+                }
             }
             BaseFragmentSimpleGlass.setListViewParams(listViewForSimpleGlass, mSystemInsets.top, mSystemInsets.bottom, ActionBar.getCurrentActionBarHeight(), 0);
-
-            if (drawEdgeNavigationBar()) {
-                navigationBarFadeView = new View(context);
-                navigationBarFadeView.setBackground(simpleGlass.createNavigationBarFadeDrawable(navigationBarFadeView));
-                FrameLayout.LayoutParams lp = LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.BOTTOM);
-                lp.height = mSystemInsets.bottom;
-                ((FrameLayout) view).addView(navigationBarFadeView, lp);
-            }
         }
 
         onViewCreated(view);
@@ -512,6 +530,23 @@ public abstract class BaseFragment {
      * Warn: the result must not change after the fragment is created.
      */
     protected boolean useSimpleActionBar() {
+        return false;
+    }
+
+    /**
+     * ArasGram: whether the simple-glass header of 13.2.1 is drawn.
+     *
+     * About sixty screens opted into it (useSimpleActionBar() and/or
+     * getListViewForSimpleGlass()). On this fork every one of them opens with a
+     * broken transition - the screen is cut in half and settles a moment later -
+     * and, because they pass setHasOwnBackground(true) while nothing paints a
+     * background, the window behind shows through: black in day mode, invisible
+     * at night.
+     *
+     * So the glass is off here and those screens keep the plain header, exactly
+     * as they looked in 13.1.1. Flip this one method to turn the glass back on.
+     */
+    protected boolean useSimpleGlassHeader() {
         return false;
     }
 
