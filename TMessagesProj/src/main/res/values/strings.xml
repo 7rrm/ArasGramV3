@@ -11733,4 +11733,25 @@
     <string name="HeaderSettings">Header</string>
     <string name="HeaderDoneButtonColorAccent">Blue</string>
     <string name="UnsupportedContent">Unsupported content</string>
+    <string name="Apply">Apply</string>
+    <string name="NewContactPhoneNotOnTelegram">This phone number is not on Telegram. **Invite >**</string>
+    <string name="NewContactPhoneInContacts">This phone number is already in your contacts. **View >**</string>
+    <string name="NewContactPhoneOnTelegram">This phone number is on Telegram.</string>
+    <string name="StoryPrivacyGroupNonContacts_one">%1$d member is not in your contact list</string>
+    <string name="StoryPrivacyGroupNonContacts_other">%1$d members are not in your contact list</string>
+    <string name="StoryPrivacyGroupAddContacts_one">Add %1$d contact</string>
+    <string name="StoryPrivacyGroupAddContacts_other">Add %1$d contacts</string>
+    <string name="ForwardHideSenderNamePremium">Subscribe to **Telegram Premium** to forward formatted messages without the sender’s name.</string>
+    <string name="StoryEditWaitUpload">Wait until current upload is complete</string>
+    <string name="LocationPoweredBy">Powered by</string>
+    <string name="SettingsExperimental">Experimental</string>
+    <string name="FpnvConsentTitle">Log In with SIM Card</string>
+    <string name="FpnvConsentText">Telegram can confirm the phone number of this SIM card with your carrier and log you in without a code.</string>
+    <string name="FpnvConsentContinue">Continue</string>
+    <string name="FpnvConsentCarrier">Carrier</string>
+    <string name="FpnvConsentSimSlot">SIM Slot</string>
+    <string name="FpnvConsentSimSlotValue">SIM %1$d</string>
+    <string name="FpnvConsentCountry">Country</string>
+    <string name="FpnvConsentMccMnc">MCC / MNC</string>
+    <string name="FpnvConsentPhoneNumber">Phone Number</string>
 </resources>
