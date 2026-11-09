@@ -3686,7 +3686,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                         if (exception instanceof ConnectionsManager.RequestException) {
                             final String err = exception.getMessage();
                             if (err != null && err.contains("SESSION_PASSWORD_NEEDED")) {
-                                requestPassword();
+                                if (canStartAutoLogin()) {
+                                    requestPasskey(false, false);
+                                }
                                 return;
                             }
                             if (err != null && BuildVars.DEBUG_VERSION) {
