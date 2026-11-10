@@ -11589,6 +11589,8 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
         public int hintPaddingBottom;
         /** A fullscreen page: its paddings are the tabs and the bars over it, the content is between them. */
         boolean clipToContent;
+        /** Set once the list watches its own top margin, see {@link #setPageOverscan(InternalListView)}. */
+        boolean overscanGuarded;
         /** Always 0: a media page has no blurred header above it, see {@link BlurredRecyclerView#blurTopPadding}. */
         public int blurTopPadding;
 
@@ -11750,6 +11752,9 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
     /* Pages under the glass of the host */
 
     /** The host draws its glass over the pages: they draw their own background and their lists overscan this layout. */
+    /** How many times a list may have its overscan margin written again: a bound against a loop of layouts. */
+    private static final int OVERSCAN_MARGIN_FIXES_MAX = 4;
+
     private boolean pagesFullscreen;
     private int pagesTabsTop;
     private int pagesOverscanTop;
@@ -11949,11 +11954,58 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
             return;
         }
         listView.clipToContent = true;
-        final MarginLayoutParams lp = (MarginLayoutParams) listView.getLayoutParams();
-        if (lp != null && (lp.topMargin != -pagesOverscanTop || lp.bottomMargin != -pagesOverscanBottom)) {
+        // The pages reach past the tabs by their overscan and the negative margin takes it back: only this layout
+        // owns that margin, so if any other class or pass writes over it the rows drop back down by the overscan
+        if (!listView.overscanGuarded) {
+            listView.overscanGuarded = true;
+            listView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                private int fixes;
+
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    if (fixes >= OVERSCAN_MARGIN_FIXES_MAX) {
+                        return;
+                    }
+                    if (applyPageOverscanMargin((InternalListView) v)) {
+                        fixes++;
+                    }
+                }
+            });
+        }
+        applyPageOverscanMargin(listView);
+    }
+
+    /** @return whether the margin had been taken by someone else and had to be written again. */
+    private boolean applyPageOverscanMargin(InternalListView listView) {
+        if (!pagesFullscreen || listView == null) {
+            return false;
+        }
+        final ViewGroup.LayoutParams params = listView.getLayoutParams();
+        if (!(params instanceof MarginLayoutParams)) {
+            return false;
+        }
+        final MarginLayoutParams lp = (MarginLayoutParams) params;
+        if (lp.topMargin != -pagesOverscanTop || lp.bottomMargin != -pagesOverscanBottom) {
             lp.topMargin = -pagesOverscanTop;
             lp.bottomMargin = -pagesOverscanBottom;
             listView.setLayoutParams(lp);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (!pagesFullscreen || mediaPages == null) {
+            return;
+        }
+        for (MediaPage page : mediaPages) {
+            if (page == null) {
+                continue;
+            }
+            applyPageOverscanMargin(page.listView);
+            applyPageOverscanMargin(page.animationSupportingListView);
         }
     }
 
