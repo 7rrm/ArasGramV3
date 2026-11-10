@@ -301,6 +301,11 @@ public abstract class BaseFragment {
 
         listViewForSimpleGlass = listViewForGlass != null ? listViewForGlass : scrollViewForGlass;
         if (listViewForSimpleGlass != null && view instanceof FrameLayout) {
+            // ArasGram: these screens tell ActionBarLayout they own their background, so it paints nothing for
+            // them; if they then paint none of their own the window shows through and the screen is black
+            if (view.getBackground() == null) {
+                view.setBackgroundColor(getThemedColor(org.telegram.ui.ActionBar.Theme.key_windowBackgroundGray));
+            }
             if (useSimpleGlassHeader()) {
                 final BaseFragmentSimpleGlass simpleGlass = getBaseSimpleGlass();
 
@@ -334,9 +339,6 @@ public abstract class BaseFragment {
                     } else {
                         header.setBackgroundColor(getThemedColor(org.telegram.ui.ActionBar.Theme.key_actionBarDefault));
                     }
-                }
-                if (view.getBackground() == null) {
-                    view.setBackgroundColor(getThemedColor(org.telegram.ui.ActionBar.Theme.key_windowBackgroundGray));
                 }
             }
             BaseFragmentSimpleGlass.setListViewParams(listViewForSimpleGlass, mSystemInsets.top, mSystemInsets.bottom, ActionBar.getCurrentActionBarHeight(), 0);
@@ -534,20 +536,16 @@ public abstract class BaseFragment {
     }
 
     /**
-     * ArasGram: whether the simple-glass header of 13.2.1 is drawn.
+     * ArasGram: whether the simple-glass header of 13.2.1 is drawn, the same as on official.
      *
      * About sixty screens opted into it (useSimpleActionBar() and/or
-     * getListViewForSimpleGlass()). On this fork every one of them opens with a
-     * broken transition - the screen is cut in half and settles a moment later -
-     * and, because they pass setHasOwnBackground(true) while nothing paints a
-     * background, the window behind shows through: black in day mode, invisible
-     * at night.
-     *
-     * So the glass is off here and those screens keep the plain header, exactly
-     * as they looked in 13.1.1. Flip this one method to turn the glass back on.
+     * getListViewForSimpleGlass()). They pass setHasOwnBackground(true), so
+     * ActionBarLayout paints nothing behind them and a screen with no background
+     * of its own showed the window through it: black. The background is now
+     * painted in performCreateViewImpl, so the glass is back on.
      */
     protected boolean useSimpleGlassHeader() {
-        return false;
+        return true;
     }
 
     public SimpleActionBar createSimpleActionBar(Context context) {
