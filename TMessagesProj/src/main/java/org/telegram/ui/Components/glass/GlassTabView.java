@@ -578,6 +578,8 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
 
         BOOSTS(R.raw.boosts, 25, 49),
         MONETIZATION(R.raw.monetize, 19, 45),
+        STORIES_SAVED(R.raw.msg_stories_saved, 20, 40),
+        STORIES_ARCHIVE(R.raw.msg_stories_archive),
 
         /** MeeroX v209: the official Telegram-iOS "Chat/Attach Menu" glyphs
          *  (vector PDFs from Telegram-iOS master), rasterized to template

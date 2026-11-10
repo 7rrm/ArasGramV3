@@ -55,11 +55,18 @@ import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.utils.glass.BaseFragmentSimpleGlass;
+import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
+import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
+import org.telegram.ui.Components.glass.GlassTabView;
+import org.telegram.ui.DialogsActivity;
+import org.telegram.ui.MainTabsLayout;
 import org.telegram.ui.Components.FloatingDebug.FloatingDebugController;
 import org.telegram.ui.Components.FloatingDebug.FloatingDebugProvider;
 import org.telegram.ui.Components.Paint.ShapeDetector;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+
+import me.vkryl.android.animator.BoolAnimator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,9 +104,12 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
     private int shiftDp = -12;
     private ActionBarMenuSubItem calendarItem, zoomInItem, zoomOutItem;
 
-    private StoriesTabsView tabsView;
+    private MainTabsLayout tabsView;
+    private final GlassTabView[] storiesTabs = new GlassTabView[2];
+    private int storiesTabsSelected = -1;
     private FrameLayout buttonContainer;
     private ButtonWithCounterView button;
+    private BoolAnimator actionModeBottomAnimator;
 
     private Runnable applyBulletin;
 
@@ -413,14 +423,24 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         avatarContainer.addView(selectedTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.FILL_HORIZONTAL | Gravity.CENTER_VERTICAL, 72 + (hasAvatar ? 48 : 0), -2, 72, 0));
 
         if (type == TYPE_STORIES) {
-            tabsView = new StoriesTabsView(context, getResourceProvider());
-            tabsView.setOnTabClick(i -> {
-                sharedMediaLayout.scrollToPage(SharedMediaLayout.TAB_STORIES + i);
-            });
+            tabsView = new MainTabsLayout(context, getResourceProvider());
+            tabsView.setClipChildren(false);
+            tabsView.setPadding(dp(DialogsActivity.MAIN_TABS_MARGIN + 4), dp(DialogsActivity.MAIN_TABS_MARGIN + 4), dp(DialogsActivity.MAIN_TABS_MARGIN + 4), dp(DialogsActivity.MAIN_TABS_MARGIN + 4));
+            storiesTabs[0] = GlassTabView.createMainTab(context, getResourceProvider(), GlassTabView.TabAnimation.STORIES_SAVED, R.string.ProfileMyStoriesTab);
+            storiesTabs[1] = GlassTabView.createMainTab(context, getResourceProvider(), GlassTabView.TabAnimation.STORIES_ARCHIVE, R.string.ProfileStoriesArchiveTab);
+            for (int i = 0; i < storiesTabs.length; ++i) {
+                final int index = i;
+                storiesTabs[i].setOnClickListener(v -> sharedMediaLayout.scrollToPage(SharedMediaLayout.TAB_STORIES + index));
+                tabsView.addView(storiesTabs[i]);
+                tabsView.setViewVisible(storiesTabs[i], true, false);
+            }
+            final BlurredBackgroundDrawable tabsBackground = getBaseSimpleGlass().factory.create(tabsView, BlurredBackgroundProviderImpl.mainTabs(getResourceProvider()));
+            tabsBackground.setRadius(dp(DialogsActivity.MAIN_TABS_HEIGHT / 2f));
+            tabsBackground.setPadding(dp(DialogsActivity.MAIN_TABS_MARGIN - 0.334f));
+            tabsView.setBackground(tabsBackground);
 
             buttonContainer = new FrameLayout(context);
-            buttonContainer.setPadding(dp(10), dp(8), dp(10), dp(8));
-            buttonContainer.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+            buttonContainer.setPadding(dp(16), dp(DialogsActivity.MAIN_TABS_MARGIN), dp(16), dp(DialogsActivity.MAIN_TABS_MARGIN));
             button = new ButtonWithCounterView(context, getResourceProvider());
             button.setText(LocaleController.getString(R.string.SaveToProfile), false);
             button.setShowZero(true);
@@ -484,14 +504,12 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
                     applyBulletin = null;
                 });
             });
-            buttonContainer.addView(button);
-            buttonContainer.setAlpha(0f);
-            buttonContainer.setTranslationY(dp(100));
+            buttonContainer.addView(button, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, DialogsActivity.MAIN_TABS_HEIGHT));
 
             Bulletin.addDelegate(this, new Bulletin.Delegate() {
                 @Override
                 public int getBottomOffset(int tag) {
-                    return AndroidUtilities.dp(64);
+                    return mSystemInsets.bottom + dp(DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS);
                 }
             });
         }
@@ -620,22 +638,17 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
                 }
                 if (show) {
                     selectedTextView.setVisibility(VISIBLE);
-                    if (buttonContainer != null) {
-                        buttonContainer.setVisibility(VISIBLE);
-                    }
                 } else {
                     titlesContainer.setVisibility(VISIBLE);
                 }
                 backDrawable.setRotation(show ? 1f : 0f, true);
+                if (actionModeBottomAnimator != null) {
+                    actionModeBottomAnimator.setValue(show, true);
+                }
                 actionModeAnimation = new AnimatorSet();
                 ArrayList<Animator> animators = new ArrayList<>();
                 animators.add(ObjectAnimator.ofFloat(selectedTextView, View.ALPHA, show ? 1.0f : 0.0f));
                 animators.add(ObjectAnimator.ofFloat(titlesContainer, View.ALPHA, show ? 0.0f : 1.0f));
-                if (buttonContainer != null) {
-                    boolean showButton = show;
-                    animators.add(ObjectAnimator.ofFloat(buttonContainer, View.ALPHA, showButton ? 1.0f : 0.0f));
-                    animators.add(ObjectAnimator.ofFloat(buttonContainer, View.TRANSLATION_Y, showButton ? 0.0f : buttonContainer.getMeasuredHeight()));
-                }
                 if (deleteItem != null) {
                     deleteItem.setVisibility(View.VISIBLE);
                     animators.add(ObjectAnimator.ofFloat(deleteItem, View.ALPHA, show ? 1.0f : 0.0f));
@@ -644,9 +657,6 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
                 if (optionsItem != null) {
                     optionsItem.setVisibility(View.VISIBLE);
                     animators.add(ObjectAnimator.ofFloat(optionsItem, View.ALPHA, show || empty ? 0.0f : 1.0f));
-                }
-                if (tabsView != null) {
-                    animators.add(ObjectAnimator.ofFloat(tabsView, View.ALPHA, show ? 0.4f : 1.0f));
                 }
                 actionModeAnimation.playTogether(animators);
                 actionModeAnimation.setDuration(300);
@@ -665,9 +675,6 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
                         actionModeAnimation = null;
                         if (!show) {
                             selectedTextView.setVisibility(INVISIBLE);
-                            if (buttonContainer != null) {
-                                buttonContainer.setVisibility(INVISIBLE);
-                            }
                             if (deleteItem != null) {
                                 deleteItem.setVisibility(View.GONE);
                             }
@@ -707,20 +714,11 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
                 if (type != TYPE_STORIES)
                     return;
                 float t = progress - TAB_STORIES;
-                if (tabsView != null) {
-                    tabsView.setProgress(t);
-                }
+                updateStoriesTabs(Math.round(t) > 0 ? 1 : 0, true);
                 titles[0].setAlpha(1f - t);
                 titles[0].setTranslationX(AndroidUtilities.dp(-12) * t);
                 titles[1].setAlpha(t);
                 titles[1].setTranslationX(AndroidUtilities.dp(12) * (1f - t));
-            }
-
-            @Override
-            protected void onTabScroll(boolean scrolling) {
-                if (tabsView != null) {
-                    tabsView.setScrolling(scrolling);
-                }
             }
         };
         sharedMediaLayout.scrollSlidingTextTabStrip.setOpen(true);
@@ -737,7 +735,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         }
 
         if (type == TYPE_STORIES || type == TYPE_ARCHIVED_CHANNEL_STORIES) {
-            fragmentView.addView(sharedMediaLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL, 0, 0, 0, 64));
+            fragmentView.addView(sharedMediaLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL, 0, 0, 0, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS));
         } else {
             fragmentView.addView(sharedMediaLayout);
         }
@@ -752,11 +750,13 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         }
 
         if (tabsView != null) {
-            fragmentView.addView(tabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL));
+            fragmentView.addView(tabsView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+            actionModeBottomAnimator = new BoolAnimator(0, (id, factor, fraction, callee) -> checkStoriesBottom(), CubicBezierInterpolator.EASE_OUT_QUINT, 320);
         }
         if (buttonContainer != null) {
-            fragmentView.addView(buttonContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 64, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL));
+            fragmentView.addView(buttonContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.BOTTOM));
         }
+        checkStoriesBottom();
 
         long avatarDialogId = dialogId;
         if (topicId != 0 && dialogId == getUserConfig().getClientUserId()) {
@@ -842,6 +842,9 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
 
         if (type == TYPE_STORIES && initialTab == SharedMediaLayout.TAB_ARCHIVED_STORIES) {
             sharedMediaLayout.onTabProgress(9f);
+        }
+        if (type == TYPE_STORIES) {
+            updateStoriesTabs(initialTab == SharedMediaLayout.TAB_ARCHIVED_STORIES ? 1 : 0, false);
         }
         return fragmentView;
     }
@@ -1135,6 +1138,31 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         }
     }
 
+    /** The tabs go down and the button of the selection comes up from below. */
+    private void checkStoriesBottom() {
+        if (tabsView == null) {
+            return;
+        }
+        final float factor = actionModeBottomAnimator == null ? 0f : actionModeBottomAnimator.getFloatValue();
+        final int height = dp(DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS);
+        tabsView.setTranslationY(-mSystemInsets.bottom + height * factor);
+        tabsView.setAlpha(1f - factor);
+        tabsView.setVisibility(factor < 1f ? View.VISIBLE : View.INVISIBLE);
+        if (buttonContainer != null) {
+            buttonContainer.setTranslationY(-mSystemInsets.bottom + height * (1f - factor));
+            buttonContainer.setAlpha(factor);
+            buttonContainer.setVisibility(factor > 0f ? View.VISIBLE : View.INVISIBLE);
+        }
+    }
+
+    private void updateStoriesTabs(int selected, boolean animated) {
+        if (tabsView == null || storiesTabsSelected == selected) {
+            return;
+        }
+        storiesTabsSelected = selected;
+        tabsView.setTabSelected(storiesTabs[selected], animated);
+    }
+
     @Override
     public int getNavigationBarColor() {
         int color = getThemedColor(Theme.key_windowBackgroundWhite);
@@ -1154,5 +1182,6 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         if (sharedMediaLayout != null) {
             sharedMediaLayout.setPagesPaddingBottom(bottom);
         }
+        checkStoriesBottom();
     }
 }
