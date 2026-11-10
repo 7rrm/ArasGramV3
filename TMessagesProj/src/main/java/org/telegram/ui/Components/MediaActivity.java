@@ -46,6 +46,7 @@ import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
@@ -53,6 +54,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
+import org.telegram.utils.glass.BaseFragmentSimpleGlass;
 import org.telegram.ui.Components.FloatingDebug.FloatingDebugController;
 import org.telegram.ui.Components.FloatingDebug.FloatingDebugProvider;
 import org.telegram.ui.Components.Paint.ShapeDetector;
@@ -173,13 +175,18 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
     }
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
     public View createView(Context context) {
-        actionBar.setBackButtonDrawable(backDrawable = new BackDrawable(false));
+        setHasOwnBackground(true);
+
+        simpleActionBar.setBackButtonDrawable(backDrawable = new BackDrawable(false));
         backDrawable.setAnimationTime(240);
-        actionBar.setCastShadows(false);
-        actionBar.setAddToContainer(false);
-        actionBar.setOccupyStatusBar(!AndroidUtilities.isTablet());
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setOccupyStatusBar(!AndroidUtilities.isTablet());
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -227,10 +234,10 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 FrameLayout.LayoutParams lp = (LayoutParams) sharedMediaLayout.getLayoutParams();
-                lp.topMargin = ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0);
+                lp.topMargin = ActionBar.getCurrentActionBarHeight() + (simpleActionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0);
 
                 lp = (LayoutParams) avatarContainer.getLayoutParams();
-                lp.topMargin = actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0;
+                lp.topMargin = simpleActionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0;
                 lp.height = ActionBar.getCurrentActionBarHeight();
 
                 int textTop;
@@ -273,24 +280,17 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         this.fragmentView = fragmentView;
         fragmentView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
 
-        ActionBarMenu menu2 = actionBar.createMenu();
+        SimpleActionBarMenu menu2 = simpleActionBar.createMenu();
         if (type == TYPE_STORIES || type == TYPE_ARCHIVED_CHANNEL_STORIES) {
-            FrameLayout menu = new FrameLayout(context);
-            actionBar.addView(menu, LayoutHelper.createFrame(56, 56, Gravity.RIGHT | Gravity.BOTTOM));
-
-            deleteItem = new ActionBarMenuItem(context, menu2, getThemedColor(Theme.key_actionBarActionModeDefaultSelector), getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
-            deleteItem.setIcon(R.drawable.msg_delete);
+            deleteItem = menu2.addItem(2, R.drawable.msg_delete);
             deleteItem.setVisibility(View.GONE);
             deleteItem.setAlpha(0f);
             deleteItem.setOnClickListener(v -> menu2.onItemClick(2));
-            menu.addView(deleteItem);
 
-            optionsItem = new ActionBarMenuItem(context, menu2, getThemedColor(Theme.key_actionBarActionModeDefaultSelector), getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
-            optionsItem.setIcon(R.drawable.ic_ab_other);
+            optionsItem = menu2.addItem(0, R.drawable.ic_ab_other);
             optionsItem.setOnClickListener(v -> optionsItem.toggleSubMenu());
             optionsItem.setVisibility(View.GONE);
             optionsItem.setAlpha(0f);
-            menu.addView(optionsItem);
             zoomInItem = optionsItem.addSubItem(8, R.drawable.msg_zoomin, LocaleController.getString(R.string.MediaZoomIn));
             zoomInItem.setOnClickListener(v -> {
                 boolean canZoomOut, canZoomIn;
@@ -728,6 +728,11 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
             sharedMediaLayout.getSearchOptionsItem().setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), PorterDuff.Mode.SRC_IN));
         }
         sharedMediaLayout.setPinnedToTop(true);
+
+        final BaseFragmentSimpleGlass glass = getBaseSimpleGlass();
+        glass.setViews(fragmentView, simpleActionBar, getResourceProvider());
+        glass.setCapture((canvas, position) -> sharedMediaLayout.capturePages(canvas, position, fragmentView));
+        simpleActionBar.setBackground(null);
         sharedMediaLayout.getSearchItem().setTranslationY(0);
         sharedMediaLayout.photoVideoOptionsItem.setTranslationY(0);
         if (sharedMediaLayout.getSearchOptionsItem() != null) {
@@ -832,7 +837,6 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
             sharedMediaLayout.photoVideoOptionsItem.setVisibility(View.INVISIBLE);
         }
 
-        actionBar.setDrawBlurBackground(fragmentView);
         AndroidUtilities.updateViewVisibilityAnimated(avatarContainer, true, 1, false);
         updateMediaCount();
         updateColors();
@@ -1071,11 +1075,10 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         if (sharedMediaLayout.getSearchOptionsItem() != null) {
             sharedMediaLayout.getSearchOptionsItem().setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), PorterDuff.Mode.SRC_IN));
         }
-        actionBar.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
-        actionBar.setItemsColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), false);
-        actionBar.setItemsColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), true);
-        actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), false);
-        actionBar.setTitleColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        simpleActionBar.setItemsColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), false);
+        simpleActionBar.setItemsColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), true);
+        simpleActionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), false);
+        simpleActionBar.setTitleColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         if (nameTextView[0] != null) {
             nameTextView[0].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         }
@@ -1101,7 +1104,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
             return false;
         }
         int color = Theme.getColor(Theme.key_windowBackgroundWhite);
-        if (actionBar.isActionModeShowed()) {
+        if (simpleActionBar.isActionModeShowed()) {
             color = Theme.getColor(Theme.key_actionBarActionModeDefault);
         }
         return ColorUtils.calculateLuminance(color) > 0.7f;
