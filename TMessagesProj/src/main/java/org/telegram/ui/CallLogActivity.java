@@ -727,7 +727,6 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 	}
 
 @Override
-		@Override
 	protected boolean useSimpleActionBar() {
 		return true;
 	}

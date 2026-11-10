@@ -280,7 +280,6 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     }
 
 @Override
-        @Override
     protected boolean useSimpleActionBar() {
         return true;
     }
