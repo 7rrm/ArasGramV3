@@ -68,8 +68,9 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_bots;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
@@ -530,15 +531,24 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
     }
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected SectionsScrollView getScrollViewForSimpleGlass() {
+        return scrollView;
+    }
+
     public View createView(Context context) {
+        setHasOwnBackground(true);
         if (nameTextView != null) {
             nameTextView.onDestroy();
         }
 
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setAllowOverlayTitle(true);
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
 
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -685,13 +695,12 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         scrollView = new SectionsScrollView(context, linearLayout, resourceProvider, false);
         scrollView.setFillViewport(true);
         sizeNotifierFrameLayout.addView(scrollView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
-        actionBar.setAdaptiveBackground(scrollView);
 
         scrollView.addView(linearLayout1, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         linearLayout1.setOrientation(LinearLayout.VERTICAL);
 
-        actionBar.setTitle(getString(R.string.ChannelEdit));
+        simpleActionBar.setTitle(getString(R.string.ChannelEdit));
 
         avatarContainer = new LinearLayout(context);
         avatarContainer.setOrientation(LinearLayout.VERTICAL);
@@ -1205,7 +1214,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
             updateColorCell();
         }
 
-        ActionBarMenu menu = actionBar.createMenu();
+        SimpleActionBarMenu menu = simpleActionBar.createMenu();
         if (canEditBotInfo() || currentUser == null && (ChatObject.canChangeChatInfo(currentChat) || /*signCell != null ||*/ historyCell != null)) {
             doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_ab_done, dp(56));
             doneButton.setContentDescription(getString("Done", R.string.Done));

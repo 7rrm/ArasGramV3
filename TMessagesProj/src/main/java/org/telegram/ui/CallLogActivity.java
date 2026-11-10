@@ -57,7 +57,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_phone;
 import org.telegram.tgnet.tl.TL_update;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
@@ -726,22 +726,31 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		Bulletin.removeDelegate(this);
 	}
 
-	@SuppressLint("UseCompatLoadingForDrawables")
-    @Override
+@Override
+		@Override
+	protected boolean useSimpleActionBar() {
+		return true;
+	}
+
+	@Override
+	protected RecyclerListView getListViewForSimpleGlass() {
+		return listView;
+	}
+
 	public View createView(Context context) {
+		setHasOwnBackground(true);
 		additionNavigationBarHeight = hasMainTabs ? dp(MainTabsHelper.getMainTabsHeightWithMargins()) : 0;
 		additionFloatingButtonOffset = hasMainTabs ? dp(MainTabsHelper.getMainTabsHeight() + MainTabsHelper.getMainTabsMargin()) : 0;
 
 		if (!hasMainTabs) {
-			actionBar.setBackButtonDrawable(new BackDrawable(false));
+			simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
 		}
-		actionBar.setAllowOverlayTitle(true);
-		actionBar.setTitle(getString(R.string.Calls));
-		actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+		simpleActionBar.setTitle(getString(R.string.Calls));
+		simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
 			@Override
 			public void onItemClick(int id) {
 				if (id == -1) {
-					if (actionBar.isActionModeShowed()) {
+					if (simpleActionBar.isActionModeShowed()) {
 						hideActionMode(true);
 					} else {
 						finishFragment();
@@ -752,7 +761,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 			}
 		});
 
-		ActionBarMenu menu = actionBar.createMenu();
+		SimpleActionBarMenu menu = simpleActionBar.createMenu();
 		otherItem = menu.addItem(10, R.drawable.ic_ab_other);
 		otherItem.setContentDescription(getString(R.string.AccDescrMoreOptions));
 		otherItem.setOnClickListener(v -> showItemOptions());
@@ -765,9 +774,9 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 			@Override
 			protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 				measureChildWithMargins(actionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
-				((MarginLayoutParams) topPanelLayout.getLayoutParams()).topMargin = actionBar.getMeasuredHeight() - dp(14);
-				((MarginLayoutParams) emptyView.getLayoutParams()).topMargin = actionBar.getMeasuredHeight();
-				((MarginLayoutParams) headerShadowView.getLayoutParams()).topMargin = actionBar.getMeasuredHeight();
+				((MarginLayoutParams) topPanelLayout.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight() - dp(14);
+				((MarginLayoutParams) emptyView.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight();
+				((MarginLayoutParams) headerShadowView.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight();
 				checkUi_listViewPadding();
 				super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 			}
@@ -932,8 +941,6 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		headerShadowView.setShadowVisible(false, false);
 		contentView.addView(headerShadowView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 5, Gravity.TOP));
 
-		actionBar.setDrawBlurBackground(contentView);
-		actionBar.setAdaptiveBackground(listView);
 
 		Bulletin.addDelegate(this, new Bulletin.Delegate() {
 			@Override
@@ -1060,7 +1067,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 			openCreateCall();
 		} else if (item.object instanceof CallLogRow) {
 			CallLogRow row = (CallLogRow) item.object;
-			if (actionBar.isActionModeShowed()) {
+			if (simpleActionBar.isActionModeShowed()) {
 				addOrRemoveSelectedDialog(row.calls, (CallCell) view);
 			} else if (row.call_id != 0 && !row.calls.isEmpty()) {
 				final boolean video = row.video;
@@ -1221,7 +1228,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 	}
 
 	private void hideActionMode(boolean animated) {
-		actionBar.hideActionMode();
+		simpleActionBar.hideActionMode();
 		selectedIds.clear();
 		for (int a = 0, N = listView.getChildCount(); a < N; a++) {
 			View child = listView.getChildAt(a);
@@ -1242,10 +1249,10 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 	}
 
 	private void createActionMode() {
-		if (actionBar.actionModeIsExist(null)) {
+		if (simpleActionBar.actionModeIsExist()) {
 			return;
 		}
-		final ActionBarMenu actionMode = actionBar.createActionMode();
+		final SimpleActionBarMenu actionMode = simpleActionBar.createActionMode();
 
 		if (hasMainTabs) {
 			actionModeCloseView = new ImageView(getContext());
@@ -1294,7 +1301,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 
 	private void showOrUpdateActionMode() {
 		boolean updateAnimated = false;
-		if (actionBar.isActionModeShowed()) {
+		if (simpleActionBar.isActionModeShowed()) {
 			if (selectedIds.isEmpty()) {
 				hideActionMode(true);
 				return;
@@ -1302,7 +1309,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 			updateAnimated = true;
 		} else {
 			createActionMode();
-			actionBar.showActionMode();
+			simpleActionBar.showActionMode();
 
 			AnimatorSet animatorSet = new AnimatorSet();
 			ArrayList<Animator> animators = new ArrayList<>();
@@ -1541,7 +1548,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 	private void checkUi_listViewPadding() {
 		listView.setPadding(
 			0,
-			dp(ADDITIONAL_LIST_HEIGHT_DP) + actionBar.getMeasuredHeight() + (int) topPanelLayout.getAnimatedHeightWithPadding(dp(14)),
+			dp(ADDITIONAL_LIST_HEIGHT_DP) + simpleActionBar.getMeasuredHeight() + (int) topPanelLayout.getAnimatedHeightWithPadding(dp(14)),
 			0,
 			dp(ADDITIONAL_LIST_HEIGHT_DP) + navigationBarHeight + additionNavigationBarHeight
 		);
@@ -1556,7 +1563,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 			listView.setClipBounds(null);
 			return;
 		}
-		tmpClipRect.set(0, dp(ADDITIONAL_LIST_HEIGHT_DP) + actionBar.getMeasuredHeight(), listView.getMeasuredWidth(), listView.getMeasuredHeight() - dp(ADDITIONAL_LIST_HEIGHT_DP));
+		tmpClipRect.set(0, dp(ADDITIONAL_LIST_HEIGHT_DP) + simpleActionBar.getMeasuredHeight(), listView.getMeasuredWidth(), listView.getMeasuredHeight() - dp(ADDITIONAL_LIST_HEIGHT_DP));
 		listView.setClipBounds(tmpClipRect);
 	}
 
@@ -1567,7 +1574,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 
 	@Override
 	public boolean onBackPressed(boolean invoked) {
-		if (actionBar.isActionModeShowed()) {
+		if (simpleActionBar.isActionModeShowed()) {
 			if (invoked) hideActionMode(true);
 			return false;
 		}
@@ -1596,7 +1603,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 			}
 
 			if (actionBar != null) {
-				actionBar.updateColors();
+				simpleActionBar.updateColors();
 			}
 		};
 
@@ -2084,7 +2091,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		final int mainTabBottom = fragmentView.getMeasuredHeight() - navigationBarHeight - dp(MainTabsHelper.getMainTabsMargin());
 		final int mainTabTop = mainTabBottom - dp(MainTabsHelper.getMainTabsHeight());
 
-		iBlur3PositionActionBar.set(0, -additionalList, fragmentView.getMeasuredWidth(), actionBar.getMeasuredHeight() + additionalList);
+		iBlur3PositionActionBar.set(0, -additionalList, fragmentView.getMeasuredWidth(), simpleActionBar.getMeasuredHeight() + additionalList);
 		iBlur3PositionMainTabs.set(0, mainTabTop, fragmentView.getMeasuredWidth(), mainTabBottom);
 		iBlur3PositionMainTabs.inset(0, LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0 : -dp(48));
 

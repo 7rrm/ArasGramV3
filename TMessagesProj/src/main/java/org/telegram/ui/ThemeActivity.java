@@ -70,7 +70,7 @@ import org.telegram.messenger.time.SunDate;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -1048,13 +1048,23 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
     }
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
     public View createView(Context context) {
+        setHasOwnBackground(true);
         lastIsDarkTheme = !Theme.isCurrentThemeDay();
 
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
         if (currentType == THEME_TYPE_THEMES_BROWSER) {
-            actionBar.setTitle(getString("BrowseThemes", R.string.BrowseThemes));
-            ActionBarMenu menu = actionBar.createMenu();
+            simpleActionBar.setTitle(getString("BrowseThemes", R.string.BrowseThemes));
+            SimpleActionBarMenu menu = simpleActionBar.createMenu();
             sunDrawable = new RLottieDrawable(R.raw.sun, dp(28), dp(28), true, null);
             if (lastIsDarkTheme) {
                 sunDrawable.setCurrentFrame(sunDrawable.getFramesCount() - 1);
@@ -1064,8 +1074,8 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             sunDrawable.setPlayInDirectionOfCustomEndFrame(true);
             menuItem = menu.addItem(day_night_switch, sunDrawable);
         } else if (currentType == THEME_TYPE_BASIC) {
-            actionBar.setTitle(getString("ChatSettings", R.string.ChatSettings));
-            ActionBarMenu menu = actionBar.createMenu();
+            simpleActionBar.setTitle(getString("ChatSettings", R.string.ChatSettings));
+            SimpleActionBarMenu menu = simpleActionBar.createMenu();
             menuItem = menu.addItem(0, R.drawable.ic_ab_other);
             menuItem.setContentDescription(getString("AccDescrMoreOptions", R.string.AccDescrMoreOptions));
             menuItem.addSubItem(share_theme, R.drawable.msg_share, getString("ShareTheme", R.string.ShareTheme));
@@ -1085,13 +1095,13 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                 });
             }
         } else {
-            actionBar.setTitle(getString(R.string.AutoNightTheme));
+            simpleActionBar.setTitle(getString(R.string.AutoNightTheme));
         }
         if (parentLayout != null && parentLayout.isRightLayout()) {
-            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            simpleActionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
 
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {

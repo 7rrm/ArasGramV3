@@ -48,6 +48,7 @@ import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AdjustPanLayoutHelper;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.Theme;
@@ -147,12 +148,21 @@ public class ChatCustomReactionsEditActivity extends BaseFragment implements Not
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public View createView(Context context) {
-        actionBar.setTitle(LocaleController.getString(R.string.Reactions));
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setAllowOverlayTitle(true);
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
 
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+    @Override
+    protected SectionsScrollView getScrollViewForSimpleGlass() {
+        return scrollView;
+    }
+
+    public View createView(Context context) {
+        setHasOwnBackground(true);
+        simpleActionBar.setTitle(LocaleController.getString(R.string.Reactions));
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -166,7 +176,6 @@ public class ChatCustomReactionsEditActivity extends BaseFragment implements Not
         contentLayout = new SectionsScrollView.SectionsLinearLayout(context);
         scrollView = new SectionsScrollView(context, contentLayout, resourceProvider);
         scrollView.setFillViewport(true);
-        actionBar.setAdaptiveBackground(scrollView);
 
         FrameLayout rootLayout = new FrameLayout(context) {
             final AdjustPanLayoutHelper adjustPanLayoutHelper = new AdjustPanLayoutHelper(this) {

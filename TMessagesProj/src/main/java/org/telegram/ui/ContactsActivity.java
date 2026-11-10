@@ -79,7 +79,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.messenger.utils.SearchTextWatcher;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
@@ -279,7 +279,17 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         }
     }
 
+@Override
+        @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
     @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
     public View createView(Context context) {
         searching = false;
         searchWas = false;
@@ -287,26 +297,25 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         additionNavigationBarHeight = hasMainTabs ? dp(MainTabsHelper.getMainTabsHeightWithMargins()) : 0;
         additionFloatingButtonOffset = hasMainTabs ? dp(MainTabsHelper.getMainTabsHeight() + MainTabsHelper.getMainTabsMargin()) : 0;
 
-        actionBar.setAllowOverlayTitle(true);
         if (destroyAfterSelect) {
             if (returnAsResult) {
-                actionBar.setTitle(getString(R.string.SelectContact));
+                simpleActionBar.setTitle(getString(R.string.SelectContact));
             } else {
-                actionBar.setTitle(getString(createSecretChat ? R.string.NewSecretChat : R.string.NewMessageTitle));
+                simpleActionBar.setTitle(getString(createSecretChat ? R.string.NewSecretChat : R.string.NewMessageTitle));
             }
         } else {
-            actionBar.setTitle(getString(R.string.Contacts));
+            simpleActionBar.setTitle(getString(R.string.Contacts));
         }
 
         backDrawable = new BackDrawable(false);
         if (!hasMainTabs) {
-            actionBar.setBackButtonDrawable(backDrawable);
+            simpleActionBar.setBackButtonDrawable(backDrawable);
         }
 
         searchField = new FragmentSearchField(context, resourceProvider);
         searchField.setSectionBackground();
         searchField.setPivotY(0);
-        final ActionBarMenu actionMode = actionBar.createActionMode(false, null);
+        final SimpleActionBarMenu actionMode = simpleActionBar.createActionMode();
         actionMode.setBackgroundColor(0);
 
         if (hasMainTabs) {
@@ -327,11 +336,11 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         selectedContactsCountTextView.setOnTouchListener((v, event) -> true);
 
         actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(54), getString(R.string.Delete));
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
-                    if (actionBar.isActionModeShowed()) {
+                    if (simpleActionBar.isActionModeShowed()) {
                         hideActionMode();
                     } else {
                         finishFragment();
@@ -355,7 +364,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
             }
         });
 
-        ActionBarMenu menu = actionBar.createMenu();
+        SimpleActionBarMenu menu = simpleActionBar.createMenu();
 
         searchItem = menu.addItem(search_button, R.drawable.outline_header_search);
         searchItem.setContentDescription(getString(R.string.SearchContacts));
@@ -518,8 +527,8 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 measureChildWithMargins(actionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
-                ((MarginLayoutParams) emptyView.getLayoutParams()).topMargin = actionBar.getMeasuredHeight() + dp(DialogsActivity.SEARCH_FIELD_HEIGHT);
-                ((MarginLayoutParams) headerShadowView.getLayoutParams()).topMargin = actionBar.getMeasuredHeight();
+                ((MarginLayoutParams) emptyView.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight() + dp(DialogsActivity.SEARCH_FIELD_HEIGHT);
+                ((MarginLayoutParams) headerShadowView.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight();
 
                 checkUi_listViewPadding();
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -956,7 +965,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         }
 
         if (initialSearchString != null) {
-            actionBar.openSearchField(initialSearchString, false);
+            simpleActionBar.openSearchField(initialSearchString, false);
             initialSearchString = null;
         }
 
@@ -966,8 +975,6 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         headerShadowView.setShadowVisible(false, false);
         contentView.addView(headerShadowView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 5, Gravity.TOP));
 
-        actionBar.setAdaptiveBackground(listView);
-        actionBar.setDrawBlurBackground(contentView);
 
 //        animatorSearchFieldHeight.forceFactor(dp(DialogsActivity.SEARCH_FIELD_HEIGHT));
         animatorSearchFieldVisible.setValue(true, false);
@@ -1045,7 +1052,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         }
         boolean updateAnimated = false;
 
-        if (actionBar.isActionModeShowed()) {
+        if (simpleActionBar.isActionModeShowed()) {
             if (selectedContacts.isEmpty()) {
                 hideActionMode();
                 return;
@@ -1053,7 +1060,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
             updateAnimated = true;
         } else if (checked) {
             AndroidUtilities.hideKeyboard(fragmentView.findFocus());
-            actionBar.showActionMode();
+            simpleActionBar.showActionMode();
 
             backDrawable.setRotation(1, true);
         }
@@ -1062,7 +1069,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     }
 
     private void hideActionMode() {
-        actionBar.hideActionMode();
+        simpleActionBar.hideActionMode();
         int count = listView.getChildCount();
         for (int i = 0; i < count; i++) {
             View view = listView.getChildAt(i);
@@ -1227,7 +1234,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
 
     @Override
     public boolean onBackPressed(boolean invoked) {
-        if (actionBar.isActionModeShowed()) {
+        if (simpleActionBar.isActionModeShowed()) {
             if (invoked) hideActionMode();
             return false;
         } else if (animatorSearchHasQuery.getValue()) {
@@ -1354,7 +1361,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     public void onPause() {
         super.onPause();
         if (actionBar != null) {
-            actionBar.closeSearchField();
+            simpleActionBar.closeSearchField();
         }
     }
 
@@ -1455,7 +1462,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
                 actionModeCloseView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector)));
             }
             if (actionBar != null) {
-                actionBar.updateColors();
+                simpleActionBar.updateColors();
             }
             if (contentView != null) {
                 contentView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
@@ -1615,7 +1622,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     private void checkUi_listViewPadding() {
         listView.setPadding(
             0,
-            dp(ADDITIONAL_LIST_HEIGHT_DP + 44) + actionBar.getMeasuredHeight(),
+            dp(ADDITIONAL_LIST_HEIGHT_DP + 44) + simpleActionBar.getMeasuredHeight(),
             0,
             dp(ADDITIONAL_LIST_HEIGHT_DP) + navigationBarHeight + additionNavigationBarHeight
         );
@@ -1707,7 +1714,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         final int mainTabBottom = fragmentView.getMeasuredHeight() - navigationBarHeight - dp(MainTabsHelper.getMainTabsMargin());
         final int mainTabTop = mainTabBottom - dp(MainTabsHelper.getMainTabsHeight());
 
-        iBlur3PositionActionBar.set(0, -additionalList, fragmentView.getMeasuredWidth(), actionBar.getMeasuredHeight() + additionalList + additionalSearch );
+        iBlur3PositionActionBar.set(0, -additionalList, fragmentView.getMeasuredWidth(), simpleActionBar.getMeasuredHeight() + additionalList + additionalSearch );
         iBlur3PositionMainTabs.set(0, mainTabTop, fragmentView.getMeasuredWidth(), mainTabBottom);
         iBlur3PositionMainTabs.inset(0, LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0 : -dp(48));
 

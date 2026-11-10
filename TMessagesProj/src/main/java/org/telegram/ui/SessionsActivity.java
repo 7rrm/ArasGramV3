@@ -198,17 +198,27 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
     }
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
     public View createView(Context context) {
+        setHasOwnBackground(true);
         globalFlickerLoadingView = new FlickerLoadingView(context);
         globalFlickerLoadingView.setIsSingleCell(true);
 
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
         if (currentType == 0) {
-            actionBar.setTitle(getString(R.string.Devices));
+            simpleActionBar.setTitle(getString(R.string.Devices));
         } else {
-            actionBar.setTitle(getString(R.string.WebSessionsTitle));
+            simpleActionBar.setTitle(getString(R.string.WebSessionsTitle));
         }
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -217,7 +227,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
             }
         });
         if (parentLayout != null && parentLayout.isRightLayout()) {
-            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            simpleActionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
 
         listAdapter = new ListAdapter(context);

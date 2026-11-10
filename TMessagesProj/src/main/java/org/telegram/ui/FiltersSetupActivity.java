@@ -637,11 +637,20 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
     }
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
     public View createView(Context context) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.Filters));
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        setHasOwnBackground(true);
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        simpleActionBar.setTitle(LocaleController.getString(R.string.Filters));
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -650,7 +659,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             }
         });
         if (parentLayout != null && parentLayout.isRightLayout()) {
-            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            simpleActionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
 
         fragmentView = new FrameLayout(context);
@@ -669,7 +678,6 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
             }
         };
         listView.setSections();
-        actionBar.setAdaptiveBackground(listView);
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
         itemAnimator.setDurations(350);
         itemAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);

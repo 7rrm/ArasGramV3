@@ -69,12 +69,21 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
     }
 
     @Override
-    public View createView(Context context) {
-        actionBar.setTitle(getString(R.string.Reactions));
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setAllowOverlayTitle(true);
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
 
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
+    public View createView(Context context) {
+        setHasOwnBackground(true);
+        simpleActionBar.setTitle(getString(R.string.Reactions));
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -88,7 +97,6 @@ public class ReactionsDoubleTapManageActivity extends BaseFragment implements No
 
         listView = new RecyclerListView(context);
         listView.setSections();
-        actionBar.setAdaptiveBackground(listView);
         ((DefaultItemAnimator)listView.getItemAnimator()).setSupportsChangeAnimations(false);
         listView.setLayoutManager(new LinearLayoutManager(context));
         listView.setAdapter(listAdapter = new RecyclerListView.SelectionAdapter() {

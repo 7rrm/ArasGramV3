@@ -28,7 +28,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -128,33 +128,42 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
     }
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
     public View createView(Context context) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setAllowOverlayTitle(true);
+        setHasOwnBackground(true);
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
         if (currentType == TYPE_BLOCKED) {
-            actionBar.setTitle(getString(R.string.BlockedUsers));
+            simpleActionBar.setTitle(getString(R.string.BlockedUsers));
         } else if (currentType == TYPE_FILTER) {
             if (isAlwaysShare) {
-                actionBar.setTitle(getString(R.string.FilterAlwaysShow));
+                simpleActionBar.setTitle(getString(R.string.FilterAlwaysShow));
             } else {
-                actionBar.setTitle(getString(R.string.FilterNeverShow));
+                simpleActionBar.setTitle(getString(R.string.FilterNeverShow));
             }
         } else {
             if (isGroup) {
                 if (isAlwaysShare) {
-                    actionBar.setTitle(getString(R.string.AlwaysAllow));
+                    simpleActionBar.setTitle(getString(R.string.AlwaysAllow));
                 } else {
-                    actionBar.setTitle(getString(R.string.NeverAllow));
+                    simpleActionBar.setTitle(getString(R.string.NeverAllow));
                 }
             } else {
                 if (isAlwaysShare) {
-                    actionBar.setTitle(getString(R.string.AlwaysShareWithTitle));
+                    simpleActionBar.setTitle(getString(R.string.AlwaysShareWithTitle));
                 } else {
-                    actionBar.setTitle(getString(R.string.NeverShareWithTitle));
+                    simpleActionBar.setTitle(getString(R.string.NeverShareWithTitle));
                 }
             }
         }
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -192,7 +201,7 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
         });
 
         if (blockedUsersActivity) {
-            ActionBarMenu menu = actionBar.createMenu();
+            SimpleActionBarMenu menu = simpleActionBar.createMenu();
             ActionBarMenuItem otherItem = menu.addItem(0, R.drawable.ic_ab_other);
             otherItem.setContentDescription(getString(R.string.AccDescrMoreOptions));
             otherItem.addSubItem(unblockAll, getString(R.string.UnblockAll));
@@ -213,7 +222,6 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
 
         listView = new RecyclerListView(context);
         listView.setSections();
-        actionBar.setAdaptiveBackground(listView);
         listView.setItemSelectorColorProvider(position -> {
             if (position == deleteAllRow) {
                 return Theme.multAlpha(Theme.getColor(Theme.key_text_RedRegular), .12f);

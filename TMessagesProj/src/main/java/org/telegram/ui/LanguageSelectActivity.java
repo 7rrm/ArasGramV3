@@ -38,7 +38,7 @@ import org.telegram.messenger.TranslateController;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
@@ -123,18 +123,27 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
     }
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
     public View createView(Context context) {
+        setHasOwnBackground(true);
         searching = false;
         searchWas = false;
 
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.Language));
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        simpleActionBar.setTitle(LocaleController.getString(R.string.Language));
         if (parentLayout != null && parentLayout.isRightLayout()) {
-            actionBar.setBackButtonImage(R.drawable.ic_ab_close);
+            simpleActionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
 
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -143,7 +152,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
             }
         });
 
-        ActionBarMenu menu = actionBar.createMenu();
+        SimpleActionBarMenu menu = simpleActionBar.createMenu();
         searchItem = menu.addItem(0, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
             @Override
             public void onSearchExpand() {
@@ -197,7 +206,6 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
 
         listView = new RecyclerListView(context);
         listView.setSections();
-        actionBar.setAdaptiveBackground(listView);
         listView.setEmptyView(emptyView);
         listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
         listView.setVerticalScrollBarEnabled(false);
@@ -332,7 +340,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
                         progressDialog.dismiss();
                         if (!sameLang) {
                             AndroidUtilities.runOnUIThread(() -> {
-                                actionBar.closeSearchField();
+                                simpleActionBar.closeSearchField();
                                 updateLanguage();
                             }, 10);
                         }
@@ -511,8 +519,8 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
     private void updateLanguage() {
         if (actionBar != null) {
             String newTitle = LocaleController.getString(R.string.Language);
-            if (!TextUtils.equals(actionBar.getTitle(), newTitle)) {
-                actionBar.setTitleAnimated(newTitle, true, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
+            if (!TextUtils.equals(simpleActionBar.getTitle(), newTitle)) {
+                simpleActionBar.setTitleAnimated(newTitle, true, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
             }
         }
         if (listAdapter != null) {

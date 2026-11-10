@@ -50,7 +50,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.utils.proxy.ProxySettings;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.ActionBar.ActionBar;
-import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
@@ -371,15 +371,23 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     private final static int na_menu_delete_unavailable = 1006;
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
     public View createView(Context context) {
-        actionBar.setBackButtonDrawable(new BackDrawable(false));
-        actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(getString(R.string.ProxySettings));
+        setHasOwnBackground(true);
+        simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
+        simpleActionBar.setTitle(getString(R.string.ProxySettings));
         if (parentLayout != null && parentLayout.isLayersLayout()) {
-            actionBar.setOccupyStatusBar(false);
+            simpleActionBar.setOccupyStatusBar(false);
         }
-        actionBar.setAllowOverlayTitle(false);
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -389,7 +397,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         });
 
         // na: action bar menu
-        ActionBarMenu menu = actionBar.createMenu();
+        SimpleActionBarMenu menu = simpleActionBar.createMenu();
         otherItem = menu.addItem(na_menu_other, R.drawable.ic_ab_other);
         otherItem.setContentDescription(LocaleController.getString("AccDescrMoreOptions", R.string.AccDescrMoreOptions));
         otherItem.addSubItem(na_menu_add_input_telegram, LocaleController.getString("AddProxyTelegram", R.string.AddProxyTelegram)).setOnClickListener((v) -> presentFragment(new ProxySettingsActivity()));
@@ -449,7 +457,6 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
 
         listView = new RecyclerListView(context);
         listView.setSections();
-        actionBar.setAdaptiveBackground(listView);
         ((DefaultItemAnimator) listView.getItemAnimator()).setDelayAnimations(false);
         ((DefaultItemAnimator) listView.getItemAnimator()).setTranslationInterpolator(CubicBezierInterpolator.DEFAULT);
         listView.setVerticalScrollBarEnabled(false);
@@ -567,7 +574,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             return false;
         });
 
-        ActionBarMenu actionMode = actionBar.createActionMode();
+        SimpleActionBarMenu actionMode = simpleActionBar.createActionMode();
         selectedCountTextView = new NumberTextView(actionMode.getContext());
         selectedCountTextView.setTextSize(18);
         selectedCountTextView.setTypeface(AndroidUtilities.bold());
@@ -580,7 +587,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         deleteMenuItem = actionMode.addItemWithWidth(MENU_DELETE, R.drawable.msg_delete, AndroidUtilities.dp(54));
         deleteMenuItem.setContentDescription(getString(R.string.Delete));
 
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 switch (id) {
@@ -881,15 +888,15 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
 
         private void checkActionMode() {
             int selectedCount = selectedItems.size();
-            boolean actionModeShowed = actionBar.isActionModeShowed();
+            boolean actionModeShowed = simpleActionBar.isActionModeShowed();
             if (selectedCount > 0) {
                 selectedCountTextView.setNumber(selectedCount, actionModeShowed);
                 if (!actionModeShowed) {
-                    actionBar.showActionMode();
+                    simpleActionBar.showActionMode();
                     notifyItemRangeChanged(proxyStartRow, proxyEndRow - proxyStartRow, PAYLOAD_SELECTION_MODE_CHANGED);
                 }
             } else if (actionModeShowed) {
-                actionBar.hideActionMode();
+                simpleActionBar.hideActionMode();
                 notifyItemRangeChanged(proxyStartRow, proxyEndRow - proxyStartRow, PAYLOAD_SELECTION_MODE_CHANGED);
             }
         }
