@@ -97,6 +97,8 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
+import org.telegram.utils.glass.BaseFragmentSimpleGlass;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -254,6 +256,16 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     }
 
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
+    @Override
     public View createView(Context context) {
         additionNavigationBarHeight = hasMainTabs ? dp(MainTabsHelper.getMainTabsHeightWithMargins()) : 0;
 
@@ -318,13 +330,12 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             }
         };
 
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        setHasOwnBackground(true);
+
+        simpleActionBar.setBackButtonImage(R.drawable.ic_ab_back);
         leftButtonIsBack = true; // the view may be rebuilt (theme, language): checkUi_menuItems swaps it to QR again
-        actionBar.setAllowOverlayTitle(true);
-        actionBar.setUseContainerForTitles();
-        actionBar.setTitle(getString(R.string.Settings));
-        actionBar.setAdditionalTextLeft(-dp(4));
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setTitle(getString(R.string.Settings));
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -342,12 +353,11 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 }
             }
         });
-        actionBar.setAddToContainer(false);
-        actionBar.setOccupyStatusBar(true);
-        actionBar.setBackgroundColor(Color.TRANSPARENT);
-        actionBar.setBackground(null);
+        simpleActionBar.setOccupyStatusBar(true);
+        simpleActionBar.setBackgroundColor(Color.TRANSPARENT);
+        simpleActionBar.setBackground(null);
 
-        final ActionBarMenu menu = actionBar.createMenu();
+        final SimpleActionBarMenu menu = simpleActionBar.createMenu();
         searchItem = menu.addItem(0, R.drawable.outline_header_search, resourceProvider).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
 
             @Override
@@ -387,7 +397,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
         listView.adapter.setApplyBackground(false);
         listView.setSections();
-        listView.setPadding(0, AndroidUtilities.statusBarHeight + dp(12), 0, AndroidUtilities.navigationBarHeight + additionNavigationBarHeight);
+        BaseFragmentSimpleGlass.setListViewParams(listView, 0, 0, dp(12), additionNavigationBarHeight);
         listView.setClipToPadding(false);
         listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -411,7 +421,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             private final Paint blurScrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             @Override
             protected void onDraw(@NonNull Canvas canvas) {
-                int top = actionBar.getHeight();
+                int top = simpleActionBar.getHeight();
                 AndroidUtilities.rectTmp2.set(0, 0, getMeasuredWidth(), top);
                 blurScrimPaint.setColor(Theme.getColor(Theme.key_actionBarDefault, resourceProvider));
                 contentView.drawBlurRect(canvas, 0, AndroidUtilities.rectTmp2, blurScrimPaint, true);
@@ -421,7 +431,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             }
         };
         contentView.addView(actionBarBackground, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 200, Gravity.TOP));
-        contentView.addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP));
+        contentView.addView(simpleActionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.TOP));
 
         imageUpdater = new ImageUpdater(true, ImageUpdater.FOR_TYPE_USER, true);
         imageUpdater.setOpenWithFrontfaceCamera(true);
@@ -591,8 +601,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
 
     public void updateColors() {
-        actionBar.setTitleColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
-        actionBar.setItemsColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), false);
+        simpleActionBar.setTitleColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
+        simpleActionBar.setItemsColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), false);
         contentView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
         titleView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
         subtitleView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText));
@@ -627,7 +637,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             final View firstChild = listView.getChildAt(0);
             visible = (
                 listView.getChildAdapterPosition(firstChild) > 0 ||
-                firstChild.getY() + firstChild.getHeight() < actionBar.getHeight()
+                firstChild.getY() + firstChild.getHeight() < simpleActionBar.getHeight()
             );
         } else {
             visible = false;
@@ -640,13 +650,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             actionBarVisibleAnimator = null;
         }
         if (!animated) {
-            actionBar.getTitlesContainer().setAlpha(visible ? 1.0f : 0.0f);
+            simpleActionBar.setTitlesAlpha(visible ? 1.0f : 0.0f);
             actionBarBackground.setAlpha(visible ? 1.0f : 0.0f);
         } else {
-            actionBarVisibleAnimator = ValueAnimator.ofFloat(actionBar.getTitlesContainer().getAlpha(), visible ? 1.0f : 0.0f);
+            actionBarVisibleAnimator = ValueAnimator.ofFloat(simpleActionBar.getTitlesAlpha(), visible ? 1.0f : 0.0f);
             actionBarVisibleAnimator.addUpdateListener(a -> {
                 final float t = (float) a.getAnimatedValue();
-                actionBar.getTitlesContainer().setAlpha(t);
+                simpleActionBar.setTitlesAlpha(t);
                 actionBarBackground.setAlpha(t);
             });
             actionBarVisibleAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -1081,7 +1091,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         final Insets systemInsets = AndroidUtilities.getDefaultWindowInsets(insets, false);
         navigationBarHeight = systemInsets.bottom;
         final int statusBarHeight = systemInsets.top;
-        listView.setPadding(0, statusBarHeight + dp(12), 0, navigationBarHeight + additionNavigationBarHeight);
+        BaseFragmentSimpleGlass.setListViewParams(listView, systemInsets.top, systemInsets.bottom, dp(12), additionNavigationBarHeight);
         return WindowInsetsCompat.CONSUMED;
     }
 
@@ -1244,8 +1254,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
     @Override
     public boolean onBackPressed(boolean invoked) {
-        if (actionBar.isSearchFieldVisible()) {
-            if (invoked) actionBar.closeSearchField();
+        if (simpleActionBar.isSearchFieldVisible()) {
+            if (invoked) simpleActionBar.closeSearchField();
             return false;
         }
         return super.onBackPressed(invoked);
@@ -2165,7 +2175,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 avatarView.setImage(ImageLocation.getForLocal(avatar), "90_90", avatarDrawable, null);
                 showAvatarProgress(true, false);
             }
-            actionBar.createMenu().requestLayout();
+            simpleActionBar.createMenu().requestLayout();
         });
     }
 
@@ -2247,18 +2257,18 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         final float searchVisible = animatorSearchPageVisible.getFloatValue();
         FragmentFloatingButton.setAnimatedVisibility(otherItem, 1f - searchVisible);
         if (!hasMainTabs) {
-            FragmentFloatingButton.setAnimatedVisibility(actionBar.getBackButton(), 1f);
+            FragmentFloatingButton.setAnimatedVisibility(simpleActionBar.getBackButton(), 1f);
             return;
         }
         // the main tab has no back: the left button is the QR code, turning into back while the search is open
         // (shrinks away and grows back with the other icon; stays visible, so the title does not move)
-        final ImageView button = actionBar.getBackButton();
+        final View button = simpleActionBar.getBackButton();
         if (button == null) return;
         final boolean back = searchVisible > 0.5f;
         if (back != leftButtonIsBack) {
             leftButtonIsBack = back;
-            button.setImageResource(back ? R.drawable.ic_ab_back : R.drawable.outline_header_qr_24);
-            button.setContentDescription(getString(back ? R.string.AccDescrGoBack : R.string.QrCode));
+            simpleActionBar.setBackButtonImageAnimated(back ? R.drawable.ic_ab_back : R.drawable.outline_header_qr_24);
+            simpleActionBar.setBackButtonContentDescription(getString(back ? R.string.AccDescrGoBack : R.string.QrCode));
         }
         final float f = Math.abs(searchVisible * 2f - 1f);
         button.setVisibility(View.VISIBLE);
@@ -2293,7 +2303,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         final int mainTabBottom = fragmentView.getMeasuredHeight() - navigationBarHeight - dp(MainTabsHelper.getMainTabsMargin());
         final int mainTabTop = mainTabBottom - dp(MainTabsHelper.getMainTabsHeight());
 
-        iBlur3PositionActionBar.set(0, -additionalList, fragmentView.getMeasuredWidth(), actionBar.getMeasuredHeight() + additionalList);
+        iBlur3PositionActionBar.set(0, -additionalList, fragmentView.getMeasuredWidth(), simpleActionBar.getMeasuredHeight() + additionalList);
         iBlur3PositionMainTabs.set(0, mainTabTop, fragmentView.getMeasuredWidth(), mainTabBottom);
         iBlur3PositionMainTabs.inset(0, LiteMode.isEnabled(LiteMode.FLAG_LIQUID_GLASS) ? 0 : -dp(48));
 

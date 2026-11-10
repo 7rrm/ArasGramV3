@@ -132,6 +132,7 @@ import tw.nekomimi.nekogram.utils.FileUtil;
 import tw.nekomimi.nekogram.utils.ShareUtil;
 import tw.nekomimi.nekogram.utils.StickersUtil;
 import org.telegram.ui.ActionBar.ActionBarMenu;
+import org.telegram.ui.ActionBar.SimpleActionBarMenu;
 import org.telegram.ui.Components.NumberTextView;
 
 public class StickersActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
@@ -255,16 +256,28 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
+    protected boolean useSimpleActionBar() {
+        return true;
+    }
+
+    @Override
+    protected RecyclerListView getListViewForSimpleGlass() {
+        return listView;
+    }
+
+    @Override
     public View createView(Context context) {
-        actionBar.setBackButtonDrawable(new BackDrawable(false));
+        setHasOwnBackground(true);
+
+        simpleActionBar.setBackButtonDrawable(new BackDrawable(false));
         if (currentType == TYPE_IMAGE) {
-            actionBar.setTitle(getString(R.string.StickersName));
+            simpleActionBar.setTitle(getString(R.string.StickersName));
         } else if (currentType == TYPE_MASK) {
-            actionBar.setTitle(getString(R.string.Masks));
+            simpleActionBar.setTitle(getString(R.string.Masks));
         } else if (currentType == TYPE_EMOJIPACKS) {
-            actionBar.setTitle(getString(R.string.Emoji));
+            simpleActionBar.setTitle(getString(R.string.Emoji));
         }
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+        simpleActionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
@@ -277,14 +290,14 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
             }
         });
 
-        ActionBarMenu menu = actionBar.createMenu();
+        SimpleActionBarMenu menu = simpleActionBar.createMenu();
 
         ActionBarMenuItem otherItem = menu.addItem(menu_other, R.drawable.ic_ab_other);
 
         otherItem.addSubItem(menu_export, R.drawable.msg_instant_link_solar, getString(R.string.ExportStickers));
         otherItem.addSubItem(menu_import, R.drawable.msg_photo_settings_solar, getString(R.string.ImportStickersX));
 
-        ActionBarMenu actionMode = actionBar.createActionMode();
+        SimpleActionBarMenu actionMode = simpleActionBar.createActionMode();
         selectedCountTextView = new NumberTextView(actionMode.getContext());
         selectedCountTextView.setTextSize(18);
         selectedCountTextView.setTypeface(AndroidUtilities.bold());
@@ -844,12 +857,12 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
 
     private void checkActionMode() {
         final int selectedCount = getSelectedCount();
-        final boolean actionModeShowed = actionBar.isActionModeShowed();
+        final boolean actionModeShowed = simpleActionBar.isActionModeShowed();
         if (selectedCount > 0) {
             checkActionModeIcons();
             selectedCountTextView.setNumber(selectedCount, actionModeShowed);
             if (!actionModeShowed) {
-                actionBar.showActionMode();
+                simpleActionBar.showActionMode();
                 listView.allowReorder(true);
                 if (!SharedConfig.stickersReorderingHintUsed && currentType != MediaDataController.TYPE_EMOJIPACKS) {
                     SharedConfig.setStickersReorderingHintUsed(true);
@@ -858,7 +871,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
                 }
             }
         } else if (actionModeShowed) {
-            actionBar.hideActionMode();
+            simpleActionBar.hideActionMode();
             listView.allowReorder(false);
             sendReorder();
         }
