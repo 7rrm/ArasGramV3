@@ -729,9 +729,6 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         }
         sharedMediaLayout.setPinnedToTop(true);
 
-        final BaseFragmentSimpleGlass glass = getBaseSimpleGlass();
-        glass.setViews(fragmentView, simpleActionBar, getResourceProvider());
-        glass.setCapture((canvas, position) -> sharedMediaLayout.capturePages(canvas, position, fragmentView));
         simpleActionBar.setBackground(null);
         sharedMediaLayout.getSearchItem().setTranslationY(0);
         sharedMediaLayout.photoVideoOptionsItem.setTranslationY(0);
@@ -744,7 +741,9 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         } else {
             fragmentView.addView(sharedMediaLayout);
         }
-        fragmentView.addView(simpleActionBar);
+        final BaseFragmentSimpleGlass glass = getBaseSimpleGlass();
+        glass.setViews(fragmentView, simpleActionBar, getResourceProvider());
+        glass.setCapture((canvas, position) -> sharedMediaLayout.capturePages(canvas, position, fragmentView));
         fragmentView.addView(avatarContainer);
         fragmentView.blurBehindViews.add(sharedMediaLayout);
         if (type == TYPE_STORIES) {
