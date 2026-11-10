@@ -525,7 +525,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
 
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                measureChildWithMargins(actionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
+                measureChildWithMargins(simpleActionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
                 ((MarginLayoutParams) emptyView.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight() + dp(DialogsActivity.SEARCH_FIELD_HEIGHT);
                 ((MarginLayoutParams) headerShadowView.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight();
 
@@ -968,7 +968,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
             initialSearchString = null;
         }
 
-        contentView.addView(actionBar);
+        contentView.addView(simpleActionBar);
 
         headerShadowView = new HeaderShadowView(context, parentLayout);
         headerShadowView.setShadowVisible(false, false);
@@ -1359,7 +1359,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     @Override
     public void onPause() {
         super.onPause();
-        if (actionBar != null) {
+        if (simpleActionBar != null) {
             simpleActionBar.closeSearchField();
         }
     }
@@ -1460,7 +1460,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
                 actionModeCloseView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
                 actionModeCloseView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector)));
             }
-            if (actionBar != null) {
+            if (simpleActionBar != null) {
                 simpleActionBar.updateColors();
             }
             if (contentView != null) {

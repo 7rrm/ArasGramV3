@@ -772,7 +772,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		contentView = new SizeNotifierFrameLayout(context) {
 			@Override
 			protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-				measureChildWithMargins(actionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
+				measureChildWithMargins(simpleActionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
 				((MarginLayoutParams) topPanelLayout.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight() - dp(14);
 				((MarginLayoutParams) emptyView.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight();
 				((MarginLayoutParams) headerShadowView.getLayoutParams()).topMargin = simpleActionBar.getMeasuredHeight();
@@ -934,7 +934,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 		fragmentContextViewWrapper.addView(fragmentContextView);
 		topPanelLayout.setCallFragmentContextView(fragmentContextView);
 		contentView.addView(topPanelLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 0, -14, 0, 0));
-		contentView.addView(actionBar);
+		contentView.addView(simpleActionBar);
 
 		headerShadowView = new HeaderShadowView(context, parentLayout);
 		headerShadowView.setShadowVisible(false, false);
@@ -1601,7 +1601,7 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 				actionModeCloseView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector)));
 			}
 
-			if (actionBar != null) {
+			if (simpleActionBar != null) {
 				simpleActionBar.updateColors();
 			}
 		};

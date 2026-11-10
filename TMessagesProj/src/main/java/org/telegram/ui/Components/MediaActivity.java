@@ -744,7 +744,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
         } else {
             fragmentView.addView(sharedMediaLayout);
         }
-        fragmentView.addView(actionBar);
+        fragmentView.addView(simpleActionBar);
         fragmentView.addView(avatarContainer);
         fragmentView.blurBehindViews.add(sharedMediaLayout);
         if (type == TYPE_STORIES) {

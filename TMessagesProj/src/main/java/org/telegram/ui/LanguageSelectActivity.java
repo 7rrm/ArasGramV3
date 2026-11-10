@@ -517,7 +517,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
     }
 
     private void updateLanguage() {
-        if (actionBar != null) {
+        if (simpleActionBar != null) {
             String newTitle = LocaleController.getString(R.string.Language);
             if (!TextUtils.equals(simpleActionBar.getTitle(), newTitle)) {
                 simpleActionBar.setTitleAnimated(newTitle, true, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -928,7 +928,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
     }
     @Override
     public void onInsets(int left, int top, int right, int bottom) {
-        listView.setPadding(0, 0, 0, bottom);
+        listView.setPadding(0, listView.getPaddingTop(), 0, bottom);
         listView.setClipToPadding(false);
     }
 }

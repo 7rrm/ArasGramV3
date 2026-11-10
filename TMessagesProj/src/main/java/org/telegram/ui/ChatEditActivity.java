@@ -579,7 +579,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                 setMeasuredDimension(widthSize, heightSize);
                 heightSize -= getPaddingTop();
 
-                measureChildWithMargins(actionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
+                measureChildWithMargins(simpleActionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
 
                 int keyboardSize = measureKeyboardHeight();
                 if (keyboardSize > dp(20)) {
@@ -591,7 +591,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
                 int childCount = getChildCount();
                 for (int i = 0; i < childCount; i++) {
                     View child = getChildAt(i);
-                    if (child == null || child.getVisibility() == GONE || child == actionBar) {
+                    if (child == null || child.getVisibility() == GONE || child == simpleActionBar) {
                         continue;
                     }
                     if (nameTextView != null && nameTextView.isPopupView(child)) {

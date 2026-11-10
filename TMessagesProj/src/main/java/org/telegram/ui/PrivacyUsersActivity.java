@@ -652,7 +652,7 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
     }
     @Override
     public void onInsets(int left, int top, int right, int bottom) {
-        listView.setPadding(0, 0, 0, bottom);
+        listView.setPadding(0, listView.getPaddingTop(), 0, bottom);
         listView.setClipToPadding(false);
     }
 }
