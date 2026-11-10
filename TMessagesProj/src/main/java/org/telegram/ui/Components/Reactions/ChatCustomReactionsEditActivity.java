@@ -916,6 +916,11 @@ public class ChatCustomReactionsEditActivity extends BaseFragment implements Not
         return false;
     }
 
+    @Override
+    public boolean isSupportEdgeToEdge() {
+        return true;
+    }
+
     private boolean isClearFocusNotWorking() {
         return Build.MODEL.toLowerCase().startsWith("zte") && Build.VERSION.SDK_INT <= Build.VERSION_CODES.P;
     }

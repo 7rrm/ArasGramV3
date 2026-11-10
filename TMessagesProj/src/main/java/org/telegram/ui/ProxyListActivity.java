@@ -1102,6 +1102,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     }
 
     @Override
+    @Override
+    public boolean isSupportEdgeToEdge() {
+        return true;
+    }
+
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
