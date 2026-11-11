@@ -1041,6 +1041,19 @@ JNIEXPORT void JNICALL Java_org_telegram_messenger_voip_NativeInstance_setMuteMi
     }
 }
 
+// External PCM input for group call audio broadcast.
+extern "C"
+JNIEXPORT void JNICALL Java_org_telegram_messenger_voip_NativeInstance_addExternalAudioData(JNIEnv *env, jobject obj, jbyteArray data) {
+    InstanceHolder *instance = getInstanceHolder(env, obj);
+    if (!instance || !instance->groupNativeInstance || !data) return;
+    const jsize size = env->GetArrayLength(data);
+    if (size <= 0 || (size & 1) != 0) return;
+    std::vector<uint8_t> samples(static_cast<size_t>(size));
+    env->GetByteArrayRegion(data, 0, size, reinterpret_cast<jbyte *>(samples.data()));
+    if (env->ExceptionCheck()) return;
+    instance->groupNativeInstance->addExternalAudioSamples(std::move(samples));
+}
+
 extern "C"
 JNIEXPORT void JNICALL Java_org_telegram_messenger_voip_NativeInstance_setVolume(JNIEnv *env, jobject obj, jint ssrc, jdouble volume) {
     InstanceHolder *instance = getInstanceHolder(env, obj);

@@ -219,6 +219,8 @@ public class NativeInstance {
     public native void setBufferSize(int size);
     public native void setNetworkType(int networkType);
     public native void setMuteMicrophone(boolean muteMicrophone);
+    // PCM mono 16-bit, 48 kHz. Only for the active group call.
+    public native void addExternalAudioData(byte[] data);
     public native void setVolume(int ssrc, double volume);
     public native void setAudioOutputGainControlEnabled(boolean enabled);
     public native void setEchoCancellationStrength(int strength);
