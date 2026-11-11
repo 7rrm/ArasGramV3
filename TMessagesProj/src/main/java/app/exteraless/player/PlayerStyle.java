@@ -221,6 +221,10 @@ public final class PlayerStyle {
         return item(AppearanceConfig.playerMiniNext).Bool();
     }
 
+    public static boolean miniSeekFive() {
+        return item(AppearanceConfig.playerMiniSeekFive).Bool();
+    }
+
     public static boolean miniClose() {
         return item(AppearanceConfig.playerMiniClose).Bool();
     }

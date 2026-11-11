@@ -16,6 +16,7 @@ import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -35,6 +36,8 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.RLottieDrawable;
+import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.BlobDrawable;
 
 import app.exteraless.player.CoverImage;
@@ -98,6 +101,13 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     private boolean dragArmed;
     private boolean dragging;
     private boolean bubbleTouchSequence;
+    private boolean deleteMode;
+    private boolean deleteReady;
+    private FrameLayout deleteTarget;
+    private View deleteTargetBackground;
+    private RLottieImageView deleteTargetIcon;
+    private RLottieDrawable deleteAnimation;
+    private final Runnable activateDeleteMode = this::activateDeleteMode;
     /** الهامش السفلي المحسوب (تبويبات + شريط تنقّل) — يُستعمل في الموضع الافتراضي. */
     private int bottomInsetDp;
     private float downRawX, downRawY, downX, downY;
@@ -255,6 +265,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     }
 
     public void detach() {
+        bubble.removeCallbacks(activateDeleteMode);
+        hideDeleteTarget();
         NotificationCenter.getInstance(currentAccount).removeObserver(this,
                 NotificationCenter.messagePlayingDidStart);
         NotificationCenter.getInstance(currentAccount).removeObserver(this,
@@ -286,6 +298,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         }
         current = mo;
         if (mo == null) {
+            bubble.removeCallbacks(activateDeleteMode);
+            hideDeleteTarget();
             closePanel(false);
             setState(STATE_HIDDEN, animated);
             return;
@@ -378,6 +392,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     public void place(int hostWidth, int hostHeight, int bottomInset) {
         final int size = dp(SIZE_DP);
         bottomInsetDp = (int) (bottomInset / getResources().getDisplayMetrics().density);
+        if (deleteTarget != null) positionDeleteTarget();
         if (Float.isNaN(posX) || Float.isNaN(posY)) {
             // المطلوب: منتصف الشاشة عمودياً، على اليسار أفقياً
             posX = dp(16);
@@ -478,6 +493,117 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         return v < min ? min : (v > max ? max : v);
     }
 
+    private void activateDeleteMode() {
+        if (!dragArmed || dragging || current == null || previewMode) return;
+        deleteMode = true;
+        closePanel(false);
+        showDeleteTarget();
+        try {
+            if (!tw.nekomimi.nekogram.NekoConfig.disableVibration.Bool())
+                bubble.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        } catch (Exception ignored) { }
+    }
+
+    // The same animated delete resource and hit radius as GroupCallPip.
+    private void ensureDeleteTarget() {
+        if (deleteTarget != null) return;
+        Context context = getContext();
+        deleteTarget = new FrameLayout(context);
+        deleteTarget.setClickable(false);
+        deleteTargetBackground = new View(context) {
+            private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            @Override protected void onDraw(Canvas canvas) {
+                paint.setColor(deleteReady ? 0x66350C12 : 0x66050D15);
+                canvas.drawCircle(getWidth() / 2f, getHeight() / 2f,
+                        dp(deleteReady ? 40 : 35), paint);
+            }
+        };
+        deleteTarget.addView(deleteTargetBackground, LayoutHelper.createFrame(80, 80, Gravity.CENTER));
+        deleteTargetIcon = new RLottieImageView(context);
+        deleteTargetIcon.setScaleType(ImageView.ScaleType.CENTER);
+        deleteAnimation = new RLottieDrawable(R.raw.group_pip_delete_icon, dp(40), dp(40), true, null);
+        deleteAnimation.setPlayInDirectionOfCustomEndFrame(true);
+        deleteTargetIcon.setAnimation(deleteAnimation);
+        deleteTargetIcon.setColorFilter(Color.WHITE);
+        deleteTarget.addView(deleteTargetIcon, LayoutHelper.createFrame(40, 40, Gravity.CENTER));
+        deleteTarget.setVisibility(GONE);
+        // Behind the bubble, but above the chat list. It never captures touches.
+        addView(deleteTarget, 0, LayoutHelper.createFrame(80, 80, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+        positionDeleteTarget();
+    }
+
+    private void positionDeleteTarget() {
+        if (deleteTarget == null) return;
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) deleteTarget.getLayoutParams();
+        int bottom = dp(Math.max(12, bottomInsetDp));
+        if (lp.bottomMargin != bottom) {
+            lp.bottomMargin = bottom;
+            deleteTarget.setLayoutParams(lp);
+        }
+    }
+
+    private void showDeleteTarget() {
+        ensureDeleteTarget();
+        deleteReady = false;
+        deleteTargetBackground.invalidate();
+        deleteAnimation.setCurrentFrame(0);
+        deleteTarget.animate().cancel();
+        deleteTarget.setVisibility(VISIBLE);
+        deleteTarget.setAlpha(0f);
+        deleteTarget.setScaleX(.5f);
+        deleteTarget.setScaleY(.5f);
+        deleteTarget.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(150).start();
+    }
+
+    private void updateDeleteTarget() {
+        if (!deleteMode || deleteTarget == null || deleteTarget.getVisibility() != VISIBLE) return;
+        float cx = posX + dp(SIZE_DP) / 2f;
+        float cy = posY + dp(SIZE_DP) / 2f;
+        // Derive its position directly from the parent so it also works before
+        // the next layout pass after the long press.
+        float tx = getWidth() / 2f;
+        float ty = getHeight() - dp(Math.max(12, bottomInsetDp)) - dp(40);
+        boolean ready = Math.hypot(cx - tx, cy - ty) < dp(80);
+        if (deleteReady != ready) {
+            deleteReady = ready;
+            deleteTargetBackground.invalidate();
+            deleteAnimation.setCustomEndFrame(ready ? 33 : 0);
+            deleteTargetIcon.playAnimation();
+            if (ready) {
+                try {
+                    if (!tw.nekomimi.nekogram.NekoConfig.disableVibration.Bool())
+                        bubble.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                } catch (Exception ignored) { }
+            }
+        }
+    }
+
+    private void hideDeleteTarget() {
+        deleteMode = false;
+        deleteReady = false;
+        if (deleteTarget != null) {
+            deleteTarget.animate().cancel();
+            deleteTarget.setVisibility(GONE);
+        }
+    }
+
+    private void seekMiniFive(int offsetMs) {
+        MessageObject mo = current;
+        if (previewMode || mo == null || mo.getDuration() <= 0) return;
+        MediaController mc = MediaController.getInstance();
+        if (mc.isDownloadingCurrentMessage()) return;
+        long position = mc.getProgressMs(mo);
+        if (position < 0) return;
+        long duration = (long) (mo.getDuration() * 1000);
+        long target = Math.max(0L, Math.min(duration, position + offsetMs));
+        if (mc.seekToProgressMs(mo, target)) {
+            mo.audioProgress = Math.min(1f, (float) target / duration);
+            mo.audioProgressSec = (int) (target / 1000);
+            panel.invalidateProgress();
+            bubble.invalidate();
+        }
+    }
+
     // ======================= اللمس =======================
 
     @SuppressLint("ClickableViewAccessibility")
@@ -552,6 +678,9 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                 case MotionEvent.ACTION_DOWN:
                     dragArmed = true;
                     dragging = false;
+                    hideDeleteTarget();
+                    bubble.removeCallbacks(activateDeleteMode);
+                    bubble.postDelayed(activateDeleteMode, ViewConfiguration.getLongPressTimeout());
                     downRawX = event.getRawX();
                     downRawY = event.getRawY();
                     downX = event.getX();
@@ -564,6 +693,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                     float dx = event.getRawX() - downRawX;
                     float dy = event.getRawY() - downRawY;
                     if (dragArmed && Math.hypot(dx, dy) > touchSlop) {
+                        if (!deleteMode) bubble.removeCallbacks(activateDeleteMode);
                         dragging = true;
                     }
                     if (dragging) {
@@ -580,22 +710,35 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                             downRawY = event.getRawY();
                             owner().layoutBubble();
                             owner().layoutPanel(parent.getWidth(), parent.getHeight());
+                            updateDeleteTarget();
                         }
                     }
                     return true;
                 }
-                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_UP: {
+                    bubble.removeCallbacks(activateDeleteMode);
                     bubble.setScaleX(1f);
                     bubble.setScaleY(1f);
-                    if (!dragging) {
+                    boolean removeMusic = deleteMode && dragging && deleteReady;
+                    boolean wasDeleteMode = deleteMode;
+                    hideDeleteTarget();
+                    dragArmed = false;
+                    if (removeMusic) {
+                        dragging = false;
+                        MediaController.getInstance().cleanupPlayer(true, true);
+                        owner().closePanel(false);
+                        owner().refresh(false);
+                    } else if (!dragging && !wasDeleteMode) {
                         owner().togglePanel();
                     } else if (owner().onLayoutChanged != null) {
                         owner().onLayoutChanged.run();
                     }
-                    dragArmed = false;
                     dragging = false;
                     return true;
+                }
                 case MotionEvent.ACTION_CANCEL:
+                    bubble.removeCallbacks(activateDeleteMode);
+                    hideDeleteTarget();
                     bubble.setScaleX(1f);
                     bubble.setScaleY(1f);
                     dragArmed = false;
@@ -714,11 +857,11 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         private final PlayerIcon prevIcon = PlayerIcon.stroke(PlayerIcon.PREV, 18);
         private final PlayerIcon nextIcon = PlayerIcon.stroke(PlayerIcon.NEXT, 18);
         private final PlayerIcon playIcon = PlayerIcon.stroke(PlayerIcon.PAUSE, 18);
-        private final PlayerIcon closeIcon = PlayerIcon.stroke(PlayerIcon.CLOSE, 18);
         private final ImageView prev;
         private final ImageView play;
         private final ImageView next;
-        private final ImageView close;
+        private final TextView seekBack;
+        private final TextView seekForward;
         private final View progressLine;
         private final Paint progressPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private boolean seeking;
@@ -840,9 +983,10 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             progressLine.setContentDescription(getString(R.string.OEPlayerSeek));
             addView(progressLine, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 28, Gravity.CENTER, 2, 0, 2, 0));
 
-            // ---- الأزرار: السابق · إيقاف/تشغيل · التالي · إغلاق المشغل ----
+            // ---- الأزرار: −5 · السابق · تشغيل/إيقاف · التالي · +5 ----
             LinearLayout buttons = new LinearLayout(context);
             buttons.setOrientation(HORIZONTAL);
+            buttons.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
             buttons.setGravity(Gravity.CENTER);
 
             prev = makeButton(context, prevIcon);
@@ -893,19 +1037,16 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                 refreshPanelOnly();
             });
 
-            // v255 fix6: ✕ يطفئ الموسيقى وتختفي الدائرة (كما في المشغل القديم)
-            close = makeButton(context, closeIcon);
-            close.setOnClickListener(v -> {
-                if (previewMode) return;
-                MediaController.getInstance().cleanupPlayer(true, true);
-                closePanel(false);
-                refresh(false);
-            });
+            seekBack = makeSeekButton(context, "−5s", R.string.OEPlayerSeekBackFive);
+            seekForward = makeSeekButton(context, "+5s", R.string.OEPlayerSeekForwardFive);
+            seekBack.setOnClickListener(v -> seekMiniFive(-5000));
+            seekForward.setOnClickListener(v -> seekMiniFive(5000));
 
-            buttons.addView(prev, LayoutHelper.createLinear(40, 40));
-            buttons.addView(play, LayoutHelper.createLinear(46, 46, Gravity.CENTER, 4, 0, 4, 0));
-            buttons.addView(next, LayoutHelper.createLinear(40, 40, Gravity.CENTER, 4, 0, 0, 0));
-            buttons.addView(close, LayoutHelper.createLinear(36, 36, Gravity.CENTER, 4, 0, 0, 0));
+            buttons.addView(seekBack, LayoutHelper.createLinear(34, 40));
+            buttons.addView(prev, LayoutHelper.createLinear(34, 40));
+            buttons.addView(play, LayoutHelper.createLinear(42, 42, Gravity.CENTER, 2, 0, 2, 0));
+            buttons.addView(next, LayoutHelper.createLinear(34, 40));
+            buttons.addView(seekForward, LayoutHelper.createLinear(34, 40));
             addView(buttons, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 0, 6, 0, 0));
         }
 
@@ -913,6 +1054,18 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             ImageView v = new ImageView(context);
             v.setImageDrawable(icon);
             v.setScaleType(ImageView.ScaleType.CENTER);
+            v.setClickable(true);
+            v.setFocusable(true);
+            v.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
+            return v;
+        }
+
+        private TextView makeSeekButton(Context context, String text, int description) {
+            TextView v = new TextView(context);
+            v.setText(text);
+            v.setTextSize(11);
+            v.setGravity(Gravity.CENTER);
+            v.setContentDescription(getString(description));
             v.setClickable(true);
             v.setFocusable(true);
             v.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
@@ -931,7 +1084,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             artistView.setVisibility(PlayerStyle.miniArtist() ? VISIBLE : GONE);
             prev.setVisibility(PlayerStyle.miniPrevious() ? VISIBLE : GONE);
             next.setVisibility(PlayerStyle.miniNext() ? VISIBLE : GONE);
-            close.setVisibility(PlayerStyle.miniClose() ? VISIBLE : GONE);
+            seekBack.setVisibility(PlayerStyle.miniSeekFive() ? VISIBLE : GONE);
+            seekForward.setVisibility(PlayerStyle.miniSeekFive() ? VISIBLE : GONE);
             progressLine.setVisibility(PlayerStyle.miniProgress() == PlayerStyle.MINI_PROGRESS_LINE ? VISIBLE : GONE);
             titleView.setTextSize(compact ? 12 : 13);
             titleView.setTextColor(c.onSurface);
@@ -944,11 +1098,11 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             prevIcon.setColor(tint);
             nextIcon.setColor(tint);
             playIcon.setColor(tint);
-            closeIcon.setColor(tint);
             prev.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
             play.setBackground(Theme.createRoundRectDrawable(dp(23), c.primaryContainer));
             next.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
-            close.setBackground(Theme.createSelectorDrawable(0x22000000, Theme.RIPPLE_MASK_CIRCLE_20DP));
+            seekBack.setTextColor(tint);
+            seekForward.setTextColor(tint);
             boolean paused = MediaController.getInstance().isMessagePaused();
             playIcon.setIcon(paused ? PlayerIcon.PLAY : PlayerIcon.PAUSE);
             invalidateProgress();

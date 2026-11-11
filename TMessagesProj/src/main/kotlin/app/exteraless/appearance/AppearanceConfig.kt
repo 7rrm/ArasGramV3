@@ -156,6 +156,9 @@ object AppearanceConfig {
     val playerMiniNext = addConfig("OEPlayerMiniNext", ConfigItem.configTypeBool, true)
 
     @JvmField
+    val playerMiniSeekFive = addConfig("OEPlayerMiniSeekFive", ConfigItem.configTypeBool, false)
+
+    @JvmField
     val playerMiniClose = addConfig("OEPlayerMiniClose", ConfigItem.configTypeBool, true)
 
     @JvmField
@@ -170,7 +173,7 @@ object AppearanceConfig {
             playerShowModes, playerShowSeekFive, playerShowLike, playerShowSource, playerWavy, playerControlsSize, playerActionsStyle,
             playerColors, playerBackground, playerCoverExtend, playerMiniCover, playerMiniShape, playerMiniProgress,
             playerMiniColors, playerMiniCompact, playerMiniArtist, playerMiniPrevious, playerMiniNext,
-            playerMiniClose
+            playerMiniClose, playerMiniSeekFive
         )
     }
 

@@ -192,7 +192,7 @@ public class PlayerStyleEditor extends LinearLayout {
         addChip(miniChips, R.string.OEPlayerMiniArtist, AppearanceConfig.playerMiniArtist);
         addChip(miniChips, R.string.OEPlayerMiniPrevious, AppearanceConfig.playerMiniPrevious);
         addChip(miniChips, R.string.OEPlayerMiniNext, AppearanceConfig.playerMiniNext);
-        addChip(miniChips, R.string.OEPlayerMiniClose, AppearanceConfig.playerMiniClose);
+        addChip(miniChips, R.string.OEPlayerShowSeekFive, AppearanceConfig.playerMiniSeekFive);
 
         selectSection(selectedSection);
         refreshVisibility();
