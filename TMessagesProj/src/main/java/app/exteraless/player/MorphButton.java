@@ -207,9 +207,17 @@ public class MorphButton extends android.view.View {
         }
         if (text != null) {
             textPaint.setColor(fg);
-            float tx = iconCx + iconSize / 2f + dp(8);
             float ty = cy - (textPaint.descent() + textPaint.ascent()) / 2f;
-            canvas.drawText(text, tx, ty, textPaint);
+            if (icon == null) {
+                // Text-only controls scale with the row, just like its icons.
+                canvas.save();
+                canvas.scale(scale, scale, w / 2f, cy);
+                canvas.drawText(text, (w - textPaint.measureText(text)) / 2f, ty, textPaint);
+                canvas.restore();
+            } else {
+                float tx = iconCx + iconSize / 2f + dp(8);
+                canvas.drawText(text, tx, ty, textPaint);
+            }
         }
         float b = Math.max(0f, Math.min(1f, badge.value));
         if (b > 0f && badgeText != null) {

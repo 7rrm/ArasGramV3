@@ -148,6 +148,7 @@ public class PlayerStyleEditor extends LinearLayout {
         }, value -> AppearanceConfig.playerControlsSize.setConfigInt(value));
         ChipGroup controlChips = addChips();
         addChip(controlChips, R.string.OEPlayerShowModes, AppearanceConfig.playerShowModes);
+        addChip(controlChips, R.string.OEPlayerShowSeekFive, AppearanceConfig.playerShowSeekFive);
 
         blockCard[PlayerStyle.BLOCK_ACTIONS] = new ElementCard(context, TARGET_ACTIONS, getString(R.string.OEPlayerBlockActions),
                 AppearanceConfig.playerShowActions, true);

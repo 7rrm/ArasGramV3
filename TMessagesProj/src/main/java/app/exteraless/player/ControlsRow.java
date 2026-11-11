@@ -9,9 +9,11 @@ import android.view.ViewGroup;
 public class ControlsRow extends ViewGroup implements MorphButton.PressListener {
 
     public final MorphButton shuffle;
+    public final MorphButton seekBack;
     public final MorphButton prev;
     public final MorphButton play;
     public final MorphButton next;
+    public final MorphButton seekForward;
     public final MorphButton repeat;
     private final MorphButton[] buttons;
     private MorphButton pressed;
@@ -21,6 +23,7 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
     private float scale = 1f;
     private float userScale = 1f;
     private boolean modesVisible = true;
+    private boolean seekButtonsVisible;
     private long lastFrame;
     private boolean ticking;
     private final Runnable tick = this::tick;
@@ -28,16 +31,22 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
     public ControlsRow(Context context) {
         super(context);
         shuffle = new MorphButton(context, PlayerIcon.stroke(PlayerIcon.SHUFFLE, 22));
+        seekBack = new MorphButton(context, null);
+        seekBack.setText("−5s");
+        seekBack.setVisibility(GONE);
         prev = new MorphButton(context, PlayerIcon.fill(PlayerIcon.PREV, 28));
         play = new MorphButton(context, PlayerIcon.fill(PlayerIcon.PLAY, 36));
         play.setAltIcon(PlayerIcon.fill(PlayerIcon.PAUSE, 36));
         next = new MorphButton(context, PlayerIcon.fill(PlayerIcon.NEXT, 28));
+        seekForward = new MorphButton(context, null);
+        seekForward.setText("+5s");
+        seekForward.setVisibility(GONE);
         repeat = new MorphButton(context, PlayerIcon.stroke(PlayerIcon.REPEAT, 22));
         shuffle.setAltIcon(PlayerIcon.stroke(PlayerIcon.REVERSE, 22));
         repeat.setAltIcon(PlayerIcon.stroke(PlayerIcon.ONCE, 22));
-        buttons = new MorphButton[]{shuffle, prev, play, next, repeat};
-        float[] widths = {48, 64, 88, 64, 48};
-        float[] heights = {48, 64, 88, 64, 48};
+        buttons = new MorphButton[]{shuffle, seekBack, prev, play, next, seekForward, repeat};
+        float[] widths = {48, 48, 64, 88, 64, 48, 48};
+        float[] heights = {48, 48, 64, 88, 64, 48, 48};
         for (int i = 0; i < buttons.length; i++) {
             MorphButton b = buttons[i];
             b.width.snap(dp(widths[i]));
@@ -47,6 +56,8 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
         }
         shuffle.setRadius(dp(24), false);
         repeat.setRadius(dp(24), false);
+        seekBack.setRadius(dp(24), false);
+        seekForward.setRadius(dp(24), false);
         prev.setRadius(dp(32), false);
         next.setRadius(dp(32), false);
         play.setRadius(dp(44), false);
@@ -57,12 +68,15 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
         return false;
     }
 
-    public void setStyle(float userScale, boolean modesVisible) {
-        if (this.userScale == userScale && this.modesVisible == modesVisible) {
+    public void setStyle(float userScale, boolean modesVisible, boolean seekButtonsVisible) {
+        if (this.userScale == userScale && this.modesVisible == modesVisible && this.seekButtonsVisible == seekButtonsVisible) {
             return;
         }
         this.userScale = userScale;
         this.modesVisible = modesVisible;
+        this.seekButtonsVisible = seekButtonsVisible;
+        seekBack.setVisibility(seekButtonsVisible ? VISIBLE : GONE);
+        seekForward.setVisibility(seekButtonsVisible ? VISIBLE : GONE);
         shuffle.setVisibility(modesVisible ? VISIBLE : GONE);
         repeat.setVisibility(modesVisible ? VISIBLE : GONE);
         requestLayout();
@@ -165,8 +179,9 @@ public class ControlsRow extends ViewGroup implements MorphButton.PressListener 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
-        float base = modesVisible ? 312 : 232;
-        scale = Math.min(userScale, (width - dp(16)) / (float) dp(base));
+        float base = (modesVisible ? 312 : 232) + (seekButtonsVisible ? 96 : 0);
+        float availableScale = Math.max(0.01f, (width - dp(16)) / (float) dp(base));
+        scale = Math.min(userScale * (seekButtonsVisible ? 0.86f : 1f), availableScale);
         int height = Math.round(dp(88) * scale);
         measureButtons();
         setMeasuredDimension(width, height);

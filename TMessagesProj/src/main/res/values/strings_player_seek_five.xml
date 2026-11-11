@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OEPlayerShowSeekFive">Skip 5 seconds</string>
+    <string name="OEPlayerSeekBackFive">Back 5 seconds</string>
+    <string name="OEPlayerSeekForwardFive">Forward 5 seconds</string>
+</resources>

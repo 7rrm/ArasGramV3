@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OEPlayerShowSeekFive">أزرار التقديم والترجيع ٥ ثوانٍ</string>
+    <string name="OEPlayerSeekBackFive">الرجوع ٥ ثوانٍ</string>
+    <string name="OEPlayerSeekForwardFive">التقديم ٥ ثوانٍ</string>
+</resources>

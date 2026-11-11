@@ -105,6 +105,9 @@ object AppearanceConfig {
     val playerShowModes = addConfig("OEPlayerShowModes", ConfigItem.configTypeBool, true)
 
     @JvmField
+    val playerShowSeekFive = addConfig("OEPlayerShowSeekFive", ConfigItem.configTypeBool, false)
+
+    @JvmField
     val playerShowLike = addConfig("OEPlayerShowLike", ConfigItem.configTypeBool, true)
 
     @JvmField
@@ -164,7 +167,7 @@ object AppearanceConfig {
         return listOf(
             playerCoverStyle, playerCoverSize, playerCoverRadius, playerDiscSpin, playerCoverSwipe,
             playerTitleAlign, playerTitleSize, playerTitleAbove, playerOrder, playerShowActions,
-            playerShowModes, playerShowLike, playerShowSource, playerWavy, playerControlsSize, playerActionsStyle,
+            playerShowModes, playerShowSeekFive, playerShowLike, playerShowSource, playerWavy, playerControlsSize, playerActionsStyle,
             playerColors, playerBackground, playerCoverExtend, playerMiniCover, playerMiniShape, playerMiniProgress,
             playerMiniColors, playerMiniCompact, playerMiniArtist, playerMiniPrevious, playerMiniNext,
             playerMiniClose

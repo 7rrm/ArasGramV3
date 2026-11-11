@@ -148,6 +148,10 @@ public final class PlayerStyle {
         return item(AppearanceConfig.playerShowModes).Bool();
     }
 
+    public static boolean showSeekFive() {
+        return item(AppearanceConfig.playerShowSeekFive).Bool();
+    }
+
     public static boolean showLike() {
         return item(AppearanceConfig.playerShowLike).Bool();
     }

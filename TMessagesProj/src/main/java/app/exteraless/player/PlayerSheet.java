@@ -521,6 +521,10 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             showPlaybackOptions(v);
             return true;
         });
+        controls.seekBack.setOnClickListener(v -> seekFiveSeconds(-5000));
+        controls.seekForward.setOnClickListener(v -> seekFiveSeconds(5000));
+        controls.seekBack.setContentDescription(getString(R.string.OEPlayerSeekBackFive));
+        controls.seekForward.setContentDescription(getString(R.string.OEPlayerSeekForwardFive));
         controls.prev.setOnClickListener(v -> MediaController.getInstance().playPreviousMessage());
         controls.next.setOnClickListener(v -> MediaController.getInstance().playNextMessage());
         controls.play.setOnClickListener(v -> togglePlay());
@@ -1414,6 +1418,22 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         return mo != null ? mo.audioProgress : 0f;
     }
 
+    private void seekFiveSeconds(int offsetMs) {
+        MessageObject mo = current;
+        if (previewMode || editing || mo == null || mo.getDuration() <= 0) return;
+        MediaController mc = MediaController.getInstance();
+        if (mc.isDownloadingCurrentMessage()) return;
+        long position = mc.getProgressMs(mo);
+        if (position < 0) return;
+        long duration = (long) (mo.getDuration() * 1000);
+        long target = Math.max(0L, Math.min(duration, position + offsetMs));
+        if (mc.seekToProgressMs(mo, target)) {
+            mo.audioProgress = Math.min(1f, (float) target / duration);
+            mo.audioProgressSec = (int) (target / 1000);
+            updateProgress();
+        }
+    }
+
     private void updateProgress() {
         MessageObject mo = current;
         if (mo == null) {
@@ -1875,6 +1895,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         controls.shuffle.setColors(0, c.onSurfaceVariant, c.secondaryContainer, c.onSecondaryContainer);
         controls.repeat.setColors(0, c.onSurfaceVariant, c.secondaryContainer, c.onSecondaryContainer);
         controls.repeat.setBadgeColors(c.primary, c.onPrimary);
+        controls.seekBack.setColors(0, c.onSurfaceVariant, 0, c.onSurfaceVariant);
+        controls.seekForward.setColors(0, c.onSurfaceVariant, 0, c.onSurfaceVariant);
         controls.prev.setColors(c.primaryContainer, c.onPrimaryContainer, c.primaryContainer, c.onPrimaryContainer);
         controls.next.setColors(c.primaryContainer, c.onPrimaryContainer, c.primaryContainer, c.onPrimaryContainer);
         controls.play.setColors(c.primary, c.onPrimary, c.primary, c.onPrimary);
@@ -2138,7 +2160,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
         headerCenter.setVisibility(PlayerStyle.showSource() ? View.VISIBLE : View.INVISIBLE);
         seekBar.setMaxAmplitude(PlayerStyle.wavy() ? dp(4) : 0);
-        controls.setStyle(PlayerStyle.controlsScale(), PlayerStyle.showModes());
+        controls.setStyle(PlayerStyle.controlsScale(), PlayerStyle.showModes(), PlayerStyle.showSeekFive());
         group.setVisibility(PlayerStyle.showActions() ? View.VISIBLE : View.GONE);
         applyActionsStyle();
 
