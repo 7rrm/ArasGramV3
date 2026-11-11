@@ -11754,4 +11754,9 @@
     <string name="FpnvConsentCountry">Country</string>
     <string name="FpnvConsentMccMnc">MCC / MNC</string>
     <string name="FpnvConsentPhoneNumber">Phone Number</string>
+    <string name="VoiceBroadcastPlay">Play in Voice Chat</string>
+    <string name="VoiceBroadcastStop">Stop Voice Chat Broadcast</string>
+    <string name="VoiceBroadcastInvalid">Audio must be smaller than 128 MB.</string>
+    <string name="VoiceBroadcastPreparing">Preparing audio for voice chat…</string>
+    <string name="VoiceBroadcastFailed">Could not play the audio in the voice chat.</string>
 </resources>

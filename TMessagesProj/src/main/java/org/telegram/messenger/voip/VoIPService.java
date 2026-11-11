@@ -1031,6 +1031,15 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 		return chat;
 	}
 
+    // Called on the UI thread; never inject into a private or non-connected call.
+    public boolean addExternalAudioData(byte[] data) {
+        NativeInstance instance = tgVoip[CAPTURE_DEVICE_CAMERA];
+        if (data == null || groupCall == null || currentState != STATE_ESTABLISHED || instance == null) return false;
+        instance.addExternalAudioData(data);
+        return true;
+    }
+
+
 	public void setNoiseSupressionEnabled(boolean enabled) {
 		if (tgVoip[CAPTURE_DEVICE_CAMERA] == null) {
 			return;

@@ -1400,4 +1400,9 @@
     <string name="MeeroPlayerCustomize">تخصيص المشغّل</string>
     <string name="MeeroMd3Loading">مؤشرات التحميل</string>
     <string name="MeeroMusicBubble">مشغّل موسيقى دائري في المحادثات</string>
+    <string name="VoiceBroadcastPlay">شغّل في المكالمة الصوتية</string>
+    <string name="VoiceBroadcastStop">أوقف البث في المكالمة</string>
+    <string name="VoiceBroadcastInvalid">يجب أن يكون حجم الملف الصوتي أقل من 128 ميغابايت.</string>
+    <string name="VoiceBroadcastPreparing">جارٍ تجهيز الصوت للمكالمة…</string>
+    <string name="VoiceBroadcastFailed">تعذّر تشغيل الصوت في المكالمة الصوتية.</string>
 </resources>

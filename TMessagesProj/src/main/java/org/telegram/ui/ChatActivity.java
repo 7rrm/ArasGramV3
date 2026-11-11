@@ -1422,6 +1422,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_SEND_NOW = 100;
     public final static int OPTION_EDIT_SCHEDULE_TIME = 102;
     public final static int OPTION_SPEED_PROMO = 103;
+    private static final int OPTION_VOICE_BROADCAST = 17100;
     public final static int OPTION_OPEN_PROFILE = 104;
     public final static int OPTION_FACT_CHECK = 106;
     public final static int OPTION_EDIT_PRICE = 107;
@@ -33188,6 +33189,18 @@ public class ChatActivity extends BaseFragment implements
             }
             // AyuMoments menu end
 
+            // Voice broadcast is available for audio messages in groups and channels.
+            if (!suggestEdit && currentChat != null && message.isSent() && !message.isEphemeral()
+                    && !message.isVoiceOnce() && message.getDocument() != null
+                    && (message.isVoice() || message.isMusic() || (message.getDocument().mime_type != null && message.getDocument().mime_type.startsWith("audio/")))) {
+                selectedObject = message;
+                selectedObjectGroup = null;
+                boolean active = org.telegram.messenger.voip.VoiceChatAudioBroadcast.getInstance().isActive(message, currentAccount);
+                items.add(getString(active ? R.string.VoiceBroadcastStop : R.string.VoiceBroadcastPlay));
+                options.add(OPTION_VOICE_BROADCAST);
+                icons.add(R.drawable.msg_voicechat);
+            }
+
             if (options.isEmpty() && optionsView == null) {
                 return false;
             }
@@ -35805,6 +35818,9 @@ public class ChatActivity extends BaseFragment implements
         }
         boolean preserveDim = false;
         switch (option) {
+            case OPTION_VOICE_BROADCAST:
+                org.telegram.messenger.voip.VoiceChatAudioBroadcast.getInstance().toggle(this, currentChat, selectedObject);
+                break;
             case AyuConstants.OPTION_HISTORY:
                 presentFragment(new AyuMessageHistory(selectedObject));
                 break;
