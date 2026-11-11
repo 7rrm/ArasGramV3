@@ -203,7 +203,7 @@ jobs:
         # ينشر الـ APK على صفحة الإصدارات باسم ثابت، فيصير رابط التنزيل
         # على الموبايل ثابتًا وبدون أي zip أو فك ضغط:
         # https://github.com/<owner>/<repo>/releases/download/meerox-latest/ArasGram-latest-arm64-v8a.apk
-        if: success()
+        if: success() && github.ref == 'refs/heads/dev'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
