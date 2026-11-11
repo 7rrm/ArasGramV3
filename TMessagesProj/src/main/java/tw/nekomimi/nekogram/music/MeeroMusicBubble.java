@@ -107,7 +107,6 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     private View deleteTargetBackground;
     private RLottieImageView deleteTargetIcon;
     private RLottieDrawable deleteAnimation;
-    private final Runnable activateDeleteMode = this::activateDeleteMode;
     /** الهامش السفلي المحسوب (تبويبات + شريط تنقّل) — يُستعمل في الموضع الافتراضي. */
     private int bottomInsetDp;
     private float downRawX, downRawY, downX, downY;
@@ -265,7 +264,6 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     }
 
     public void detach() {
-        bubble.removeCallbacks(activateDeleteMode);
         hideDeleteTarget();
         NotificationCenter.getInstance(currentAccount).removeObserver(this,
                 NotificationCenter.messagePlayingDidStart);
@@ -298,7 +296,6 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         }
         current = mo;
         if (mo == null) {
-            bubble.removeCallbacks(activateDeleteMode);
             hideDeleteTarget();
             closePanel(false);
             setState(STATE_HIDDEN, animated);
@@ -494,14 +491,10 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     }
 
     private void activateDeleteMode() {
-        if (!dragArmed || dragging || current == null || previewMode) return;
+        if (!dragArmed || current == null || previewMode) return;
         deleteMode = true;
         closePanel(false);
         showDeleteTarget();
-        try {
-            if (!tw.nekomimi.nekogram.NekoConfig.disableVibration.Bool())
-                bubble.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-        } catch (Exception ignored) { }
     }
 
     // The same animated delete resource and hit radius as GroupCallPip.
@@ -560,7 +553,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         float cx = posX + dp(SIZE_DP) / 2f;
         float cy = posY + dp(SIZE_DP) / 2f;
         // Derive its position directly from the parent so it also works before
-        // the next layout pass after the long press.
+        // the next layout pass after dragging starts.
         float tx = getWidth() / 2f;
         float ty = getHeight() - dp(Math.max(12, bottomInsetDp)) - dp(40);
         boolean ready = Math.hypot(cx - tx, cy - ty) < dp(80);
@@ -679,8 +672,6 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                     dragArmed = true;
                     dragging = false;
                     hideDeleteTarget();
-                    bubble.removeCallbacks(activateDeleteMode);
-                    bubble.postDelayed(activateDeleteMode, ViewConfiguration.getLongPressTimeout());
                     downRawX = event.getRawX();
                     downRawY = event.getRawY();
                     downX = event.getX();
@@ -692,8 +683,8 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                 case MotionEvent.ACTION_MOVE: {
                     float dx = event.getRawX() - downRawX;
                     float dy = event.getRawY() - downRawY;
-                    if (dragArmed && Math.hypot(dx, dy) > touchSlop) {
-                        if (!deleteMode) bubble.removeCallbacks(activateDeleteMode);
+                    if (dragArmed && !dragging && Math.hypot(dx, dy) > touchSlop) {
+                        activateDeleteMode();
                         dragging = true;
                     }
                     if (dragging) {
@@ -716,7 +707,6 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                     return true;
                 }
                 case MotionEvent.ACTION_UP: {
-                    bubble.removeCallbacks(activateDeleteMode);
                     bubble.setScaleX(1f);
                     bubble.setScaleY(1f);
                     boolean removeMusic = deleteMode && dragging && deleteReady;
@@ -737,7 +727,6 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
                     return true;
                 }
                 case MotionEvent.ACTION_CANCEL:
-                    bubble.removeCallbacks(activateDeleteMode);
                     hideDeleteTarget();
                     bubble.setScaleX(1f);
                     bubble.setScaleY(1f);
