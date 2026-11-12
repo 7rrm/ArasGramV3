@@ -7045,8 +7045,12 @@ public class ChatActivity extends BaseFragment implements
                             canvas.scale(1f - getSideMenuAlpha(), 1f - getSideMenuAlpha(), imageReceiver.getImageX2(), imageReceiver.getImageY2());
                             canvas.translate(dp(24) * getSideMenuAlpha(), 0f);
                         }
-                        // imageReceiver.draw(canvas);
-                        cell.drawStatusWithImage(canvas, imageReceiver, AndroidUtilities.dp(7));
+                        // An old retained/deleted cell may still be drawn by the item animator
+                        // after it has lost its adapter position. Its avatar coordinates are
+                        // stale then: never paint a floating avatar from that old cell.
+                        if (updateVisibility || !message.isAyuDeleted()) {
+                            cell.drawStatusWithImage(canvas, imageReceiver, AndroidUtilities.dp(7));
+                        }
                         canvas.restore();
 
                         if (!replaceAnimation && child.getTranslationY() != 0) {
@@ -26501,6 +26505,7 @@ public class ChatActivity extends BaseFragment implements
                 if (currentMessage != null) {
                     currentMessage.messageOwner.ayuDeleted = true;
                     chatAdapter.updateRowWithMessageObject(currentMessage, false, false);
+                    refreshAvatarGroupingAround(currentMessage);
                 }
             }
 
@@ -27970,6 +27975,9 @@ public class ChatActivity extends BaseFragment implements
                     chatAdapter.checkRemoveBotForumRowsStartThreadRow(false);
                     chatAdapter.notifyItemChanged(chatAdapter.messagesStartRow + placeToPaste);
                     chatAdapter.notifyItemInserted(chatAdapter.messagesStartRow + placeToPaste);
+                    if (obj.isAyuDeleted()) {
+                        refreshAvatarGroupingAround(obj);
+                    }
                 }
                 if ((obj.isOut() || chatMode == MODE_WELCOME_MESSAGES) && waitingForSendingMessageLoad) {
                     waitingForSendingMessageLoad = false;
@@ -28243,6 +28251,21 @@ public class ChatActivity extends BaseFragment implements
         return sponsoredMessagesCount;
     }
 
+    // Avatar placement depends on the pinned/grouped flags of both neighbours.
+    // A retained deleted message changes a row without removing it, so explicitly
+    // rebind those neighbours as well without resetting the scroll position.
+    private void refreshAvatarGroupingAround(MessageObject message) {
+        if (message == null || chatAdapter == null || chatAdapter.isFrozen || chatAdapter.isFiltered || chatAdapter.messagesStartRow < 0) {
+            return;
+        }
+        int index = messages.indexOf(message);
+        if (index < 0) return;
+        int first = Math.max(0, index - 1);
+        int last = Math.min(messages.size() - 1, index + 1);
+        chatAdapter.notifyItemRangeChanged(chatAdapter.messagesStartRow + first, last - first + 1);
+        if (chatListView != null) chatListView.invalidate();
+    }
+
     private void processDeletedMessages(ArrayList<Integer> markAsDeletedMessages, long channelId, boolean sent) {
         processDeletedMessages(markAsDeletedMessages, channelId, sent, true);
     }
@@ -28299,6 +28322,7 @@ public class ChatActivity extends BaseFragment implements
             if (!AyuSavePreferences.saveDeletedMessageFor(currentAccount, getDialogId(), obj) || AyuState.isDeletePermitted(getDialogId(), mid)) {
                 AyuState.messageDeleted(getDialogId(), mid);
             } else {
+                refreshAvatarGroupingAround(obj);
                 continue;
             }
 
