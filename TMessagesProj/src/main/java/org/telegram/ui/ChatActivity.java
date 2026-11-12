@@ -35799,7 +35799,7 @@ public class ChatActivity extends BaseFragment implements
         MediaController.saveFile(messageObject, path, getParentActivity(), messageObject.isVideo() ? 1 : 0, null, null);
     }
 
-    // A photo is burned only after the Saved Messages upload is confirmed by Telegram.
+    // Media is burned only after the Saved Messages upload is confirmed by Telegram.
     // Keeping the source and destination operations separate prevents a failed upload
     // from destroying the only locally available copy.
     private static final java.util.HashSet<String> meeroBurnPending = new java.util.HashSet<>();
@@ -35807,8 +35807,8 @@ public class ChatActivity extends BaseFragment implements
     private String meeroBurnCaption(MessageObject object) {
         TLRPC.Peer from = object.messageOwner.from_id;
         long senderId = org.telegram.messenger.DialogObject.getPeerDialogId(from);
-        String name = "غير معروف";
-        String username = "لا يوجد";
+        String name = getString(R.string.MeeroBurnUnknown);
+        String username = getString(R.string.MeeroBurnNoUsername);
         if (senderId > 0) {
             TLRPC.User user = getMessagesController().getUser(senderId);
             if (user != null) {
@@ -35825,15 +35825,10 @@ public class ChatActivity extends BaseFragment implements
                 if (!TextUtils.isEmpty(publicUsername)) username = "@" + publicUsername;
             }
         }
-        String id = senderId == 0 ? "غير معروف" : String.valueOf(senderId < 0 ? -senderId : senderId);
-        return "ᯓ 𝗮𝗥𝗥𝗮𝗦 - حفـظ الصوره الذاتيه 🖼️\n\n"
-                + "⋆─┄─┄─┄─┄─┄─┄─⋆\n\n"
-                + "⌔ مࢪحبـاً .. عـزيـزي 🫂\n\n"
-                + "⌔ تـم حفظ الصورة الذاتية .. تلقائياً ☑️ ❝\n\n"
-                + "⌔ معلومـات المـرسـل :-\n\n"
-                + "• الاسم : " + name + "\n\n"
-                + "• اليوزر : " + username + "\n\n"
-                + "• الايدي : " + id;
+        String id = senderId == 0 ? getString(R.string.MeeroBurnUnknown) : String.valueOf(senderId < 0 ? -senderId : senderId);
+        int captionRes = object.isVoiceOnce() ? R.string.MeeroBurnCaptionVoice :
+                (object.isVideo() || object.isRoundOnce()) ? R.string.MeeroBurnCaptionVideo : R.string.MeeroBurnCaptionPhoto;
+        return LocaleController.formatString(captionRes, name, username, id);
     }
 
     private void meeroBurnNotice(String text) {
@@ -35851,51 +35846,93 @@ public class ChatActivity extends BaseFragment implements
         BotWebViewVibrationEffect.SELECTION_CHANGE.vibrate();
     }
 
-    private void meeroSavePhotoThenBurn(final MessageObject original) {
+    private void meeroSaveMediaThenBurn(final MessageObject original) {
         final String key = currentAccount + ":" + original.getDialogId() + ":" + original.getId();
         if (!meeroBurnPending.add(key)) {
-            meeroBurnNotice("جارٍ حفظ الصورة، انتظر اكتمال الإرسال");
+            meeroBurnNotice(getString(R.string.MeeroBurnPending));
             return;
         }
         final String caption = meeroBurnCaption(original);
         final int account = currentAccount;
         final long savedDialog = getUserConfig().getClientUserId();
         final org.telegram.messenger.AccountInstance accountInstance = getAccountInstance();
-        meeroBurnNotice("جارٍ إرسال الصورة إلى الرسائل المحفوظة");
+        meeroBurnNotice(getString(R.string.MeeroBurnSending));
         Utilities.globalQueue.postRunnable(() -> {
             java.io.File copy = null;
             TLRPC.TL_photo photo = null;
+            TLRPC.TL_document documentCopy = null;
             try {
-                if (AyuMessageUtils.isExpiredPhoto(original)) throw new java.io.IOException("Photo expired");
-                TLRPC.PhotoSize size = FileLoader.getClosestPhotoSizeWithSize(original.photoThumbs, AndroidUtilities.getPhotoSize());
-                if (size == null) throw new java.io.IOException("Photo unavailable");
-                java.io.File source = FileLoader.getInstance(account).getPathToAttach(size, true);
-                if (source == null) throw new java.io.IOException("Photo path unavailable");
+                boolean isPhoto = original.isPhoto();
+                java.io.File source = null;
+                TLRPC.Document sourceDocument = null;
+                if (isPhoto) {
+                    if (AyuMessageUtils.isExpiredPhoto(original)) throw new java.io.IOException("Photo expired");
+                    TLRPC.PhotoSize size = FileLoader.getClosestPhotoSizeWithSize(original.photoThumbs, AndroidUtilities.getPhotoSize());
+                    if (size == null) throw new java.io.IOException("Photo unavailable");
+                    source = FileLoader.getInstance(account).getPathToAttach(size, true);
+                } else {
+                    if (AyuMessageUtils.isExpiredDocument(original)) throw new java.io.IOException("Media expired");
+                    sourceDocument = original.getDocument();
+                    if (sourceDocument == null) throw new java.io.IOException("Document unavailable");
+                    if (!TextUtils.isEmpty(original.messageOwner.attachPath)) {
+                        java.io.File attached = new java.io.File(original.messageOwner.attachPath);
+                        if (attached.isFile() && attached.length() > 0) source = attached;
+                    }
+                    if (source == null) {
+                        java.io.File[] candidates = {
+                                FileLoader.getInstance(account).getPathToAttach(sourceDocument),
+                                FileLoader.getInstance(account).getPathToMessage(original.messageOwner)
+                        };
+                        for (java.io.File candidate : candidates) {
+                            if (candidate == null) continue;
+                            java.io.File encrypted = new java.io.File(candidate.getAbsolutePath() + ".enc");
+                            if (candidate.isFile() && candidate.length() > 0) { source = candidate; break; }
+                            if (encrypted.isFile() && encrypted.length() > 0) { source = encrypted; break; }
+                        }
+                    }
+                }
+                if (source == null) throw new java.io.IOException("Media path unavailable");
                 if (!source.isFile() || source.length() == 0) {
                     java.io.File encrypted = new java.io.File(source.getAbsolutePath() + ".enc");
-                    if (!encrypted.isFile()) throw new java.io.IOException("Photo not downloaded");
-                    source = AyuMessageUtils.decryptAndSaveMedia(source.getName(), encrypted, original);
+                    if (!encrypted.isFile()) throw new java.io.IOException("Media not downloaded");
+                    source = encrypted;
                 }
-                if (source == null || !source.isFile() || source.length() == 0) throw new java.io.IOException("Photo unavailable or decryption failed");
-                copy = java.io.File.createTempFile("meero_burn_", ".jpg", FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE));
+                if (source.getName().endsWith(".enc")) {
+                    String name = source.getName().substring(0, source.getName().length() - 4);
+                    source = AyuMessageUtils.decryptAndSaveMedia(name, source, original);
+                }
+                if (source == null || !source.isFile() || source.length() == 0) throw new java.io.IOException("Media unavailable or decryption failed");
+                String extension = isPhoto ? ".jpg" : original.isVoiceOnce() ? ".ogg" : ".mp4";
+                copy = java.io.File.createTempFile("meero_burn_", extension, FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE));
                 try (java.io.FileInputStream input = new java.io.FileInputStream(source); java.io.FileOutputStream output = new java.io.FileOutputStream(copy)) {
                     byte[] buffer = new byte[32768];
                     int read;
                     while ((read = input.read(buffer)) != -1) output.write(buffer, 0, read);
                 }
                 if (copy.length() == 0) throw new java.io.IOException("Photo copy empty");
-                photo = accountInstance.getSendMessagesHelper().generatePhotoSizes(copy.getAbsolutePath(), null);
-                if (photo == null) throw new java.io.IOException("Cannot prepare photo");
+                if (isPhoto) {
+                    photo = accountInstance.getSendMessagesHelper().generatePhotoSizes(copy.getAbsolutePath(), null);
+                    if (photo == null) throw new java.io.IOException("Cannot prepare photo");
+                } else {
+                    documentCopy = new TLRPC.TL_document();
+                    documentCopy.file_reference = new byte[0];
+                    documentCopy.date = accountInstance.getConnectionsManager().getCurrentTime();
+                    documentCopy.mime_type = sourceDocument.mime_type;
+                    if (TextUtils.isEmpty(documentCopy.mime_type)) throw new java.io.IOException("Missing media type");
+                    documentCopy.size = copy.length();
+                    documentCopy.attributes = new java.util.ArrayList<>(sourceDocument.attributes);
+                }
             } catch (Exception e) {
                 org.telegram.messenger.FileLog.e(e);
             }
             final java.io.File savedCopy = copy;
             final TLRPC.TL_photo preparedPhoto = photo;
+            final TLRPC.TL_document preparedDocument = documentCopy;
             AndroidUtilities.runOnUIThread(() -> {
-                if (preparedPhoto == null || savedCopy == null) {
+                if ((preparedPhoto == null && preparedDocument == null) || savedCopy == null) {
                     meeroBurnPending.remove(key);
                     if (savedCopy != null) savedCopy.delete();
-                    meeroBurnNotice("تعذر حفظ الصورة؛ لم يتم حرقها");
+                    meeroBurnNotice(getString(R.string.MeeroBurnSaveFailed));
                     return;
                 }
                 final String token = java.util.UUID.randomUUID().toString();
@@ -35905,7 +35942,7 @@ public class ChatActivity extends BaseFragment implements
                 final class SavedObserver implements NotificationCenter.NotificationCenterDelegate {
                     private int outgoingId;
                     private boolean done;
-                    private final Runnable timeout = () -> meeroBurnNotice("لم يتأكد إرسال الصورة بعد؛ لن تُحرق حتى يكتمل الإرسال");
+                    private final Runnable timeout = () -> meeroBurnNotice(getString(R.string.MeeroBurnWaiting));
                     void start() {
                         notifications.addObserver(this, NotificationCenter.didReceiveNewMessages);
                         notifications.addObserver(this, NotificationCenter.messageReceivedByServer);
@@ -35925,7 +35962,7 @@ public class ChatActivity extends BaseFragment implements
                             meeroBurnAfterSaved(original);
                         } else {
                             // A timed-out upload may still be retrying: never delete its source file.
-                            meeroBurnNotice(timedOut ? "لم يتأكد إرسال الصورة؛ لم يتم حرقها وقد يستمر الإرسال" : "تعذر إرسال الصورة؛ لم يتم حرقها");
+                            meeroBurnNotice(getString(R.string.MeeroBurnSendFailed));
                         }
                     }
                     @Override public void didReceivedNotification(int id, int eventAccount, Object... args) {
@@ -35949,7 +35986,9 @@ public class ChatActivity extends BaseFragment implements
                 SavedObserver observer = new SavedObserver();
                 observer.start();
                 try {
-                    SendMessagesHelper.SendMessageParams send = SendMessagesHelper.SendMessageParams.of(preparedPhoto, savedCopy.getAbsolutePath(), savedDialog, null, null, caption, null, null, params, true, 0, 0, 0, null, false);
+                    SendMessagesHelper.SendMessageParams send = preparedPhoto != null
+                            ? SendMessagesHelper.SendMessageParams.of(preparedPhoto, savedCopy.getAbsolutePath(), savedDialog, null, null, caption, null, null, params, true, 0, 0, 0, null, false)
+                            : SendMessagesHelper.SendMessageParams.of(preparedDocument, null, savedCopy.getAbsolutePath(), savedDialog, null, null, caption, null, null, params, true, 0, 0, 0, null, null, false);
                     accountInstance.getSendMessagesHelper().sendMessage(send);
                 } catch (Exception e) {
                     org.telegram.messenger.FileLog.e(e);
@@ -35969,8 +36008,8 @@ public class ChatActivity extends BaseFragment implements
                 presentFragment(new AyuMessageHistory(selectedObject));
                 break;
             case AyuConstants.OPTION_TTL:
-                if (selectedObject.isPhoto()) {
-                    meeroSavePhotoThenBurn(selectedObject);
+                if (selectedObject.isPhoto() || selectedObject.isVideo() || selectedObject.isVoiceOnce() || selectedObject.isRoundOnce()) {
+                    meeroSaveMediaThenBurn(selectedObject);
                     break;
                 }
                 AyuState.setAllowReadPacket(true, 1);

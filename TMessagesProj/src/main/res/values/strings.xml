@@ -11754,4 +11754,16 @@
     <string name="FpnvConsentCountry">Country</string>
     <string name="FpnvConsentMccMnc">MCC / MNC</string>
     <string name="FpnvConsentPhoneNumber">Phone Number</string>
+
+    <!-- Saved once media -->
+    <string name="MeeroBurnUnknown">Unknown</string>
+    <string name="MeeroBurnNoUsername">None</string>
+    <string name="MeeroBurnPending">Saving, please wait for the upload to finish</string>
+    <string name="MeeroBurnSending">Sending to Saved Messages</string>
+    <string name="MeeroBurnSaveFailed">Could not save the media; it was not burned</string>
+    <string name="MeeroBurnSendFailed">Could not send the media; it was not burned</string>
+    <string name="MeeroBurnWaiting">Upload not yet confirmed; the media will not be burned until it completes</string>
+    <string name="MeeroBurnCaptionPhoto">ᯓ 𝗮𝗥𝗥𝗮𝗦 - Saved self-destructing photo 🖼️\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ Hello, dear 🫂\n⌔ The self-destructing photo was saved automatically ☑️ ❝\n⌔ Sender information :-\n• Name : %1$s\n• Username : %2$s\n• ID : %3$s</string>
+    <string name="MeeroBurnCaptionVideo">ᯓ 𝗮𝗥𝗥𝗮𝗦 - Saved self-destructing video 🎥\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ Hello, dear 🫂\n⌔ The self-destructing video was saved automatically ☑️ ❝\n⌔ Sender information :-\n• Name : %1$s\n• Username : %2$s\n• ID : %3$s</string>
+    <string name="MeeroBurnCaptionVoice">ᯓ 𝗮𝗥𝗥𝗮𝗦 - Saved self-destructing voice message 🎙️\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ Hello, dear 🫂\n⌔ The self-destructing voice message was saved automatically ☑️ ❝\n⌔ Sender information :-\n• Name : %1$s\n• Username : %2$s\n• ID : %3$s</string>
 </resources>

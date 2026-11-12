@@ -1400,4 +1400,16 @@
     <string name="MeeroPlayerCustomize">تخصيص المشغّل</string>
     <string name="MeeroMd3Loading">مؤشرات التحميل</string>
     <string name="MeeroMusicBubble">مشغّل موسيقى دائري في المحادثات</string>
+
+    <!-- Saved once media -->
+    <string name="MeeroBurnUnknown">غير معروف</string>
+    <string name="MeeroBurnNoUsername">لا يوجد</string>
+    <string name="MeeroBurnPending">جارٍ الحفظ، انتظر اكتمال الإرسال</string>
+    <string name="MeeroBurnSending">جارٍ الإرسال إلى الرسائل المحفوظة</string>
+    <string name="MeeroBurnSaveFailed">تعذر حفظ الوسائط؛ لم يتم حرقها</string>
+    <string name="MeeroBurnSendFailed">تعذر إرسال الوسائط؛ لم يتم حرقها</string>
+    <string name="MeeroBurnWaiting">لم يتأكد الإرسال بعد؛ لن تُحرق الوسائط حتى يكتمل الإرسال</string>
+    <string name="MeeroBurnCaptionPhoto">ᯓ 𝗮𝗥𝗥𝗮𝗦 - حفـظ الصوره الذاتيه 🖼️\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ مࢪحبـاً .. عـزيـزي 🫂\n⌔ تـم حفظ الصورة الذاتية .. تلقائياً ☑️ ❝\n⌔ معلومـات المـرسـل :-\n• الاسم : %1$s\n• اليوزر : %2$s\n• الايدي : %3$s</string>
+    <string name="MeeroBurnCaptionVideo">ᯓ 𝗮𝗥𝗥𝗮𝗦 - حفـظ الفيديو الذاتي 🎥\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ مࢪحبـاً .. عـزيـزي 🫂\n⌔ تـم حفظ الفيديو الذاتي .. تلقائياً ☑️ ❝\n⌔ معلومـات المـرسـل :-\n• الاسم : %1$s\n• اليوزر : %2$s\n• الايدي : %3$s</string>
+    <string name="MeeroBurnCaptionVoice">ᯓ 𝗮𝗥𝗥𝗮𝗦 - حفـظ البصمة الذاتية 🎙️\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ مࢪحبـاً .. عـزيـزي 🫂\n⌔ تـم حفظ البصمة الذاتية .. تلقائياً ☑️ ❝\n⌔ معلومـات المـرسـل :-\n• الاسم : %1$s\n• اليوزر : %2$s\n• الايدي : %3$s</string>
 </resources>
