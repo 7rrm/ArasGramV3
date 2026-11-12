@@ -564,7 +564,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                     } else if (position == mixerRow) {
                         textCell.setTextAndIcon(MeeroStrings.s(336), R.drawable.filter_palette_solar, true);
                     } else if (position == onceGuardRow) {
-                        textCell.setTextAndIcon(MeeroStrings.s(186), R.drawable.msg_download_solar, true);
+                        textCell.setTextAndIcon(getString(R.string.MeeroOnceTitle), R.drawable.msg_download_solar, true);
                     } else if (position == lockRow) {
                         textCell.setTextAndIcon(MeeroStrings.s(64), R.drawable.baseline_lock_base_24, true);
                     } else if (position == chatRow) {

@@ -30,6 +30,7 @@ import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 public class MeeroOnceGuardActivity extends BaseNekoSettingsActivity {
 
     private int masterRow;
+    private int saveToSavedMessagesRow;
     private int countHeaderRow;
     private int countRow;
     private int infoRow;
@@ -38,6 +39,7 @@ public class MeeroOnceGuardActivity extends BaseNekoSettingsActivity {
     protected void updateRows() {
         super.updateRows();
         masterRow = addRow();
+        saveToSavedMessagesRow = addRow();
         countHeaderRow = addRow();
         countRow = addRow();
         infoRow = addRow();
@@ -52,7 +54,7 @@ public class MeeroOnceGuardActivity extends BaseNekoSettingsActivity {
 
     @Override
     protected String getActionBarTitle() {
-        return MeeroStrings.s(186);
+        return getString(R.string.MeeroOnceTitle);
     }
 
     @Override
@@ -77,6 +79,9 @@ public class MeeroOnceGuardActivity extends BaseNekoSettingsActivity {
         if (position == masterRow) {
             NekoConfig.meeroOnceGuard.toggleConfigBool();
             ((TextCheckCell) view).setChecked(NekoConfig.meeroOnceGuard.Bool());
+        } else if (position == saveToSavedMessagesRow) {
+            NekoConfig.meeroOnceSaveToSavedMessages.toggleConfigBool();
+            ((TextCheckCell) view).setChecked(NekoConfig.meeroOnceSaveToSavedMessages.Bool());
         } else if (position == infoRow) {
             // v111: usage-guide popup instead of the long footer.
             tw.nekomimi.nekogram.MeeroUsageGuide.show(this, 181);
@@ -102,6 +107,8 @@ public class MeeroOnceGuardActivity extends BaseNekoSettingsActivity {
                     TextCheckCell checkCell = (TextCheckCell) holder.itemView;
                     if (position == masterRow) {
                         checkCell.setTextAndCheck(MeeroStrings.s(184), NekoConfig.meeroOnceGuard.Bool(), true);
+                    } else if (position == saveToSavedMessagesRow) {
+                        checkCell.setTextAndCheck(getString(R.string.MeeroOnceSaveToSavedMessages), NekoConfig.meeroOnceSaveToSavedMessages.Bool(), true);
                     }
                     break;
                 case TYPE_HEADER:
@@ -124,7 +131,7 @@ public class MeeroOnceGuardActivity extends BaseNekoSettingsActivity {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == masterRow) {
+            if (position == masterRow || position == saveToSavedMessagesRow) {
                 return TYPE_CHECK;
             } else if (position == countHeaderRow) {
                 return TYPE_HEADER;

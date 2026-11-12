@@ -11766,4 +11766,8 @@
     <string name="MeeroBurnCaptionPhoto">ᯓ 𝗮𝗥𝗥𝗮𝗦 - Saved self-destructing photo 🖼️\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ Hello, dear 🫂\n⌔ The self-destructing photo was saved automatically ☑️ ❝\n⌔ Sender information :-\n• Name : %1$s\n• Username : %2$s\n• ID : %3$s</string>
     <string name="MeeroBurnCaptionVideo">ᯓ 𝗮𝗥𝗥𝗮𝗦 - Saved self-destructing video 🎥\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ Hello, dear 🫂\n⌔ The self-destructing video was saved automatically ☑️ ❝\n⌔ Sender information :-\n• Name : %1$s\n• Username : %2$s\n• ID : %3$s</string>
     <string name="MeeroBurnCaptionVoice">ᯓ 𝗮𝗥𝗥𝗮𝗦 - Saved self-destructing voice message 🎙️\n⋆─┄─┄─┄─┄─┄─┄─⋆\n⌔ Hello, dear 🫂\n⌔ The self-destructing voice message was saved automatically ☑️ ❝\n⌔ Sender information :-\n• Name : %1$s\n• Username : %2$s\n• ID : %3$s</string>
+
+    <string name="MeeroOnceTitle">Save View-Once Media</string>
+    <string name="MeeroOnceSaveToSavedMessages">Save to Saved Messages</string>
+    <string name="MeeroBurnDownloadVideo">Please download the video in Telegram first, then try again. It was not burned.</string>
 </resources>

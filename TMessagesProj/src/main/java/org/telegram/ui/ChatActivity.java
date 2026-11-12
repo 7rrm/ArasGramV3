@@ -35804,6 +35804,8 @@ public class ChatActivity extends BaseFragment implements
     // from destroying the only locally available copy.
     private static final java.util.HashSet<String> meeroBurnPending = new java.util.HashSet<>();
 
+    private static class MeeroMediaNotDownloadedException extends java.io.IOException {}
+
     private String meeroBurnCaption(MessageObject object) {
         TLRPC.Peer from = object.messageOwner.from_id;
         long senderId = org.telegram.messenger.DialogObject.getPeerDialogId(from);
@@ -35861,6 +35863,7 @@ public class ChatActivity extends BaseFragment implements
             java.io.File copy = null;
             TLRPC.TL_photo photo = null;
             TLRPC.TL_document documentCopy = null;
+            boolean notDownloaded = false;
             try {
                 boolean isPhoto = original.isPhoto();
                 java.io.File source = null;
@@ -35891,10 +35894,10 @@ public class ChatActivity extends BaseFragment implements
                         }
                     }
                 }
-                if (source == null) throw new java.io.IOException("Media path unavailable");
+                if (source == null) throw new MeeroMediaNotDownloadedException();
                 if (!source.isFile() || source.length() == 0) {
                     java.io.File encrypted = new java.io.File(source.getAbsolutePath() + ".enc");
-                    if (!encrypted.isFile()) throw new java.io.IOException("Media not downloaded");
+                    if (!encrypted.isFile() || encrypted.length() == 0) throw new MeeroMediaNotDownloadedException();
                     source = encrypted;
                 }
                 if (source.getName().endsWith(".enc")) {
@@ -35922,9 +35925,13 @@ public class ChatActivity extends BaseFragment implements
                     documentCopy.size = copy.length();
                     documentCopy.attributes = new java.util.ArrayList<>(sourceDocument.attributes);
                 }
+            } catch (MeeroMediaNotDownloadedException e) {
+                notDownloaded = original.isVideo() || original.isRoundOnce();
+                org.telegram.messenger.FileLog.e(e);
             } catch (Exception e) {
                 org.telegram.messenger.FileLog.e(e);
             }
+            final boolean needsVideoDownload = notDownloaded;
             final java.io.File savedCopy = copy;
             final TLRPC.TL_photo preparedPhoto = photo;
             final TLRPC.TL_document preparedDocument = documentCopy;
@@ -35932,7 +35939,7 @@ public class ChatActivity extends BaseFragment implements
                 if ((preparedPhoto == null && preparedDocument == null) || savedCopy == null) {
                     meeroBurnPending.remove(key);
                     if (savedCopy != null) savedCopy.delete();
-                    meeroBurnNotice(getString(R.string.MeeroBurnSaveFailed));
+                    meeroBurnNotice(getString(needsVideoDownload ? R.string.MeeroBurnDownloadVideo : R.string.MeeroBurnSaveFailed));
                     return;
                 }
                 final String token = java.util.UUID.randomUUID().toString();
@@ -36008,22 +36015,18 @@ public class ChatActivity extends BaseFragment implements
                 presentFragment(new AyuMessageHistory(selectedObject));
                 break;
             case AyuConstants.OPTION_TTL:
-                if (selectedObject.isPhoto() || selectedObject.isVideo() || selectedObject.isVoiceOnce() || selectedObject.isRoundOnce()) {
-                    meeroSaveMediaThenBurn(selectedObject);
+                // Do not bypass an already running upload by toggling the option off.
+                String burnKey = currentAccount + ":" + selectedObject.getDialogId() + ":" + selectedObject.getId();
+                if (meeroBurnPending.contains(burnKey)) {
+                    meeroBurnNotice(getString(R.string.MeeroBurnPending));
                     break;
                 }
-                AyuState.setAllowReadPacket(true, 1);
-                if (selectedObject.messageOwner.ttl == 0x7FFFFFFF) {
-                    selectedObject.messageOwner.ttl = 1;
+                if (NekoConfig.meeroOnceSaveToSavedMessages.Bool() &&
+                        (selectedObject.isPhoto() || selectedObject.isVideo() || selectedObject.isVoiceOnce() || selectedObject.isRoundOnce())) {
+                    meeroSaveMediaThenBurn(selectedObject);
+                } else {
+                    meeroBurnAfterSaved(selectedObject);
                 }
-                sendSecretMessageRead(selectedObject, true, true);
-
-                var prefs = new AyuSavePreferences(selectedObject.messageOwner, currentAccount);
-                prefs.setDialogId(selectedObject.getDialogId());
-                AyuMessagesController.getInstance().onMessageDeleted(prefs);
-
-                Utilities.globalQueue.postRunnable(() -> sendSecretMediaDelete(selectedObject, true), 1000);
-                BotWebViewVibrationEffect.SELECTION_CHANGE.vibrate();
                 break;
             case AyuConstants.OPTION_TTL_SAVE:
                 if ((Build.VERSION.SDK_INT <= 28 || BuildVars.NO_SCOPED_STORAGE) && getParentActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {

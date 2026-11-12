@@ -114,7 +114,7 @@ public final class MeeroOnceGuard {
             NotificationManager manager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26) {
                 NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-                        MeeroStrings.s(186), NotificationManager.IMPORTANCE_DEFAULT);
+                        LocaleController.getString(R.string.MeeroOnceTitle), NotificationManager.IMPORTANCE_DEFAULT);
                 manager.createNotificationChannel(channel);
             }
             Intent intent = new Intent(ctx, LaunchActivity.class);
@@ -124,7 +124,7 @@ public final class MeeroOnceGuard {
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(ctx, CHANNEL_ID)
                     .setSmallIcon(R.drawable.nagram_notification)
-                    .setContentTitle(MeeroStrings.s(186))
+                    .setContentTitle(LocaleController.getString(R.string.MeeroOnceTitle))
                     .setContentText(MeeroStrings.s(185))
                     .setAutoCancel(true)
                     .setContentIntent(pendingIntent);

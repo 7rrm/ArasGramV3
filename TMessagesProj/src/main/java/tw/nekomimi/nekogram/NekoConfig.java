@@ -287,6 +287,8 @@ public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackB
     public static ConfigItem meeroKeywordStore = addConfig("meeroKeywordStore", configTypeString, "");
     // --- v105: view-once guard (auto-save incoming once media to gallery) ---
     public static ConfigItem meeroOnceGuard = addConfig("meeroOnceGuard", configTypeBool, false);
+    // Preserve existing save-before-burn behavior until the user turns it off.
+    public static ConfigItem meeroOnceSaveToSavedMessages = addConfig("meeroOnceSaveToSavedMessages", configTypeBool, true);
     public static ConfigItem meeroOnceSavedCount = addConfig("meeroOnceSavedCount", configTypeInt, 0);
     // --- v109: once-guard legal/religious consent - granted ONCE and only
     // ever set by the explicit "موافق/gree" press; any declined entry keeps
