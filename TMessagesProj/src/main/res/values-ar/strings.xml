@@ -1416,4 +1416,5 @@
     <string name="MeeroOnceTitle">حفظ الذاتية</string>
     <string name="MeeroOnceSaveToSavedMessages">الحفظ في الرسائل المحفوظة</string>
     <string name="MeeroBurnDownloadVideo">يرجى تنزيل الفيديو في تيليجرام أولاً، ثم المحاولة مجدداً. لم يتم حرقه.</string>
+    <string name="ReplyUsesEmojiPacks">يستخدم هذا الرد إيموجي من حزمة %s لخلفيته.</string>
 </resources>

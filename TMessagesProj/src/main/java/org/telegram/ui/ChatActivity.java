@@ -44110,8 +44110,98 @@ public class ChatActivity extends BaseFragment implements
             }
         }
 
+        // Resolve the background emoji from the author of the quoted message,
+        // matching the AyuGram/exteraGram reply-background behavior.
+        private long getReplyBackgroundEmojiId(MessageObject message) {
+            if (message == null || message.replyMessageObject == null ||
+                    message.replyMessageObject.messageOwner == null ||
+                    message.replyMessageObject.messageOwner.from_id == null) {
+                return 0;
+            }
+            MessageObject replied = message.replyMessageObject;
+            if (DialogObject.isEncryptedDialog(replied.getDialogId())) {
+                TLRPC.User user = replied.isOutOwner() ? getUserConfig().getCurrentUser() : currentUser;
+                return user != null ? UserObject.getEmojiId(user) : 0;
+            }
+            if (replied.isFromUser()) {
+                TLRPC.User user = getMessagesController().getUser(replied.messageOwner.from_id.user_id);
+                return user != null ? UserObject.getEmojiId(user) : 0;
+            }
+            if (replied.isFromChannel()) {
+                TLRPC.Chat chat = getMessagesController().getChat(replied.messageOwner.from_id.channel_id);
+                return chat != null ? ChatObject.getEmojiId(chat) : 0;
+            }
+            return 0;
+        }
+
+        private boolean showReplyBackgroundEmojiMenu(ChatMessageCell cell, float x, float y) {
+            if (cell == null || getParentActivity() == null || getFragmentView() == null ||
+                    actionBar == null || actionBar.isActionModeShowed() || isReport()) {
+                return false;
+            }
+            final long emojiId = getReplyBackgroundEmojiId(cell.getMessageObject());
+            if (emojiId <= 0) return false;
+
+            final ActionBarPopupWindow.ActionBarPopupWindowLayout layout =
+                    new ActionBarPopupWindow.ActionBarPopupWindowLayout(getContext(), R.drawable.popup_fixed_alert, getResourceProvider());
+            layout.setFitItems(true);
+            final ActionBarPopupWindow popup = new ActionBarPopupWindow(layout, LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT);
+            ActionBarMenuItem.addItem(layout, R.drawable.msg_select, LocaleController.getString(R.string.Select), false, getResourceProvider())
+                    .setOnClickListener(v -> {
+                        popup.dismiss();
+                        didLongPress(cell, x, y);
+                    });
+            TLRPC.InputStickerSet inputSet = AnimatedEmojiDrawable.findStickerSet(currentAccount, emojiId);
+            if (inputSet != null) {
+                ArrayList<TLRPC.InputStickerSet> sets = new ArrayList<>(1);
+                sets.add(inputSet);
+                ActionBarPopupWindow.GapView gap = new ActionBarPopupWindow.GapView(getContext(), themeDelegate);
+                layout.addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
+                MessageContainsEmojiButton button = new MessageContainsEmojiButton(currentAccount, getContext(), themeDelegate, sets, MessageContainsEmojiButton.REPLY_BACKGROUND_TYPE);
+                button.setOnClickListener(v -> {
+                    if (getParentActivity() == null) return;
+                    popup.dismiss();
+                    EmojiPacksAlert alert = new EmojiPacksAlert(ChatActivity.this, getParentActivity(), themeDelegate, sets);
+                    alert.setCalcMandatoryInsets(isKeyboardVisible());
+                    showDialog(alert);
+                });
+                layout.addView(button, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+            }
+            popup.setPauseNotifications(true);
+            popup.setDismissAnimationDuration(220);
+            popup.setOutsideTouchable(true);
+            popup.setClippingEnabled(true);
+            popup.setAnimationStyle(R.style.PopupContextAnimation);
+            popup.setFocusable(true);
+            layout.measure(View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST),
+                    View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST));
+            popup.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
+            popup.getContentView().setFocusableInTouchMode(true);
+            popup.setOnDismissListener(() -> {
+                if (chatLayoutManager != null) chatLayoutManager.setCanScrollVertically(true);
+            });
+            float popupX = x;
+            float popupY = y + cell.getY() + chatListView.getY();
+            if (AndroidUtilities.isTablet() && parentLayout != null) {
+                ViewGroup view = parentLayout.getView();
+                popupX += view.getX() + view.getPaddingLeft();
+                popupY += view.getY() + view.getPaddingTop();
+            }
+            popup.showAtLocation(getFragmentView(), Gravity.NO_GRAVITY,
+                    (int) (popupX - layout.getMeasuredWidth() / 2f),
+                    (int) (popupY - layout.getMeasuredHeight() / 2f));
+            popup.dimBehind();
+            cell.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+            chatListView.stopScroll();
+            chatLayoutManager.setCanScrollVertically(false);
+            return true;
+        }
+
         @Override
         public void didPressReplyMessage(ChatMessageCell cell, int id, float x, float y, boolean longpress) {
+            if (longpress && showReplyBackgroundEmojiMenu(cell, x, y)) {
+                return;
+            }
             if (!canPerformActions()) {
                 if (!longpress) {
                     if (actionBar.isActionModeShowed() || isReport()) {

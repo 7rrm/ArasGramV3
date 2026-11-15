@@ -60,6 +60,7 @@ public class MessageContainsEmojiButton extends FrameLayout implements Notificat
     public final static int EMOJI_STICKER_TYPE = 2;
     public final static int SINGLE_REACTION_TYPE = 3;
     public final static int STICKERS_BOT_TYPE = 4;
+    public final static int REPLY_BACKGROUND_TYPE = 5;
     int type;
 
     @Override
@@ -120,7 +121,9 @@ public class MessageContainsEmojiButton extends FrameLayout implements Notificat
             }
         } else if (inputStickerSets.size() == 1) {
             String string;
-            if (type == EMOJI_TYPE) {
+            if (type == REPLY_BACKGROUND_TYPE) {
+                string = LocaleController.getString(R.string.ReplyUsesEmojiPacks);
+            } else if (type == EMOJI_TYPE) {
                 string = LocaleController.getString(R.string.MessageContainsEmojiPack);
             } else if (type == SINGLE_REACTION_TYPE) {
                 string = LocaleController.getString(R.string.MessageContainsReactionPack);

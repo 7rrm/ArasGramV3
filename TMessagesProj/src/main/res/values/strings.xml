@@ -11770,4 +11770,5 @@
     <string name="MeeroOnceTitle">Save View-Once Media</string>
     <string name="MeeroOnceSaveToSavedMessages">Save to Saved Messages</string>
     <string name="MeeroBurnDownloadVideo">Please download the video in Telegram first, then try again. It was not burned.</string>
+    <string name="ReplyUsesEmojiPacks">This reply uses emoji from the %s pack for its background.</string>
 </resources>
