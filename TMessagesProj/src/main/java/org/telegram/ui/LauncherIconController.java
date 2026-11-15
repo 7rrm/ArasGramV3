@@ -10,33 +10,25 @@ import org.telegram.messenger.R;
 
 public class LauncherIconController {
     public static void tryFixLauncherIconIfNeeded() {
-        // MeeroX: exactly one launcher alias may be enabled. After an update
-        // more than one can end up enabled (e.g. the old BlueIcon plus the new
-        // default), which shows two icons in the launcher. Rule: keep the user
-        // pick when there is one, otherwise fall back to the K Dark default.
-        LauncherIcon enabled = null;
+        // Keep explicitly selected icons across updates when the new manifest
+        // default would otherwise add a second launcher icon.
+        LauncherIcon explicit = null;
         int count = 0;
+        Context ctx = ApplicationLoader.applicationContext;
         for (LauncherIcon icon : LauncherIcon.values()) {
-            if (isEnabled(icon)) {
-                count++;
-                if (enabled == null) {
-                    enabled = icon;
+            if (!isEnabled(icon)) continue;
+            count++;
+            try {
+                if (ctx.getPackageManager().getComponentEnabledSetting(icon.getComponentName(ctx)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
+                    if (explicit == null || explicit == LauncherIcon.MMARKER) explicit = icon;
                 }
+            } catch (Throwable t) {
+                FileLog.e(t);
             }
         }
-        if (count == 1) {
-            return;
+        if (count != 1) {
+            setIcon(explicit != null ? explicit : LauncherIcon.MMARKER);
         }
-        LauncherIcon target = LauncherIcon.MKBLACK;
-        if (count > 1) {
-            for (LauncherIcon icon : LauncherIcon.values()) {
-                if (isEnabled(icon) && icon != LauncherIcon.MKBLACK && icon != LauncherIcon.BLUE) {
-                    target = icon;
-                    break;
-                }
-            }
-        }
-        setIcon(target);
     }
 
     public static boolean isEnabled(LauncherIcon icon) {
@@ -47,7 +39,7 @@ public class LauncherIconController {
         try {
             Context ctx = ApplicationLoader.applicationContext;
             int i = ctx.getPackageManager().getComponentEnabledSetting(icon.getComponentName(ctx));
-            return i == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || i == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && icon == LauncherIcon.MKBLACK;
+            return i == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || i == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT && icon == LauncherIcon.MMARKER;
         } catch (Throwable t) {
             FileLog.e(t);
             return false;
@@ -70,7 +62,7 @@ public class LauncherIconController {
     }
 
     public enum LauncherIcon {
-        // ---- Aras icons first (6) - default is K Dark ----
+        // ---- Aras icons first (6) - default is Crimson ----
         BLUE("BlueIcon", R.drawable.ic_launcher_nagram_blue_bg, R.drawable.ic_launcher_nagram_blue_foreground, R.string.AppIconArasPurple),
         MKBLACK("MeeroMKBlackIcon", R.drawable.meero_m_kblack_bg, R.drawable.meero_m_kblack_foreground, R.string.AppIconArasKBlack),
         MBOLD("MeeroMBoldIcon", R.drawable.meero_m_bold_bg, R.drawable.meero_m_bold_foreground, R.string.AppIconArasPink),
