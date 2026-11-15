@@ -6813,7 +6813,12 @@ public class ChatActivity extends BaseFragment implements
                     final ImageReceiver imageReceiver = mcell.getAvatarImage();
                     if (imageReceiver != null && getSideMenuAlpha() < 1.f) {
                         final MessageObject.GroupedMessages groupedMessages = getValidGroupedMessage(message);
-                        boolean updateVisibility = !mcell.getMessageObject().deleted && chatListView.getChildAdapterPosition(child) != RecyclerView.NO_POSITION;
+                        // A message kept by anti-delete can still have Telegram's transient
+                        // deleted flag set. It is a live row if Ayu retained it and it still
+                        // has an adapter position; only detached/old animation cells must be
+                        // prevented from drawing their stale avatar.
+                        boolean updateVisibility = (!message.deleted || message.isAyuDeleted()) &&
+                            chatListView.getChildAdapterPosition(child) != RecyclerView.NO_POSITION;
 
                         boolean replaceAnimation = chatListView.isFastScrollAnimationRunning() || (groupedMessages != null && groupedMessages.transitionParams.backgroundChangeBounds);
                         int top = (replaceAnimation ? child.getTop() : (int) child.getY()) + child.getPaddingTop();
