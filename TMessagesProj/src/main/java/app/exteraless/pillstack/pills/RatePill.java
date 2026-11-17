@@ -370,6 +370,7 @@ public class RatePill extends BasePill implements PillStackEvents.Listener {
         layout.setBackground("TON".equals(base)
                 ? new ColoredBackground()
                 : new ColoredBackground(RateInstances.getBaseColorTop(base), RateInstances.getBaseColorBottom(base)));
+        setNavigationColor("TON".equals(base) ? 0xFF1BA4ED : RateInstances.getBaseColorTop(base));
         textView.setTextColor(0xFFFFFFFF);
         iconView.setColorFilter(0xFFFFFFFF);
         updateLoadingColors();

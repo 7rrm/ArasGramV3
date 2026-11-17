@@ -29,6 +29,13 @@ public class PillStackView extends FrameLayout {
     private final float touchSlop;
 
     private int currentIndex;
+    private Runnable colorChangedListener;
+
+    public void setColorChangedListener(Runnable listener) { colorChangedListener = listener; }
+    private void notifyColorChanged() { if (colorChangedListener != null) colorChangedListener.run(); }
+    public int getCurrentPillColor() {
+        return pills.isEmpty() ? 0xFF777777 : pills.get(currentIndex).getNavigationColor();
+    }
     private ValueAnimator currentAnimator;
     private float currentSwipeProgress;
     private boolean isSwiping;
@@ -62,6 +69,7 @@ public class PillStackView extends FrameLayout {
 
     public void addPill(BasePill pill) {
         pills.add(pill);
+        pill.setNavigationColorListener(() -> { if (!pills.isEmpty() && pills.get(currentIndex) == pill) notifyColorChanged(); });
         addView(pill);
         if (pills.size() - 1 != currentIndex) {
             pill.setAlpha(0f);
@@ -85,6 +93,7 @@ public class PillStackView extends FrameLayout {
         if (!pills.isEmpty() && currentIndex < pills.size()) {
             pills.get(currentIndex).onPillUnselected();
         }
+        for (BasePill pill : pills) pill.setNavigationColorListener(null);
         pills.clear();
         removeAllViews();
         currentIndex = 0;
@@ -105,6 +114,7 @@ public class PillStackView extends FrameLayout {
         next.setScaleY(1f);
         next.setTranslationY(0f);
         next.onPillSelected();
+        notifyColorChanged();
         requestLayout();
     }
 
@@ -389,6 +399,7 @@ public class PillStackView extends FrameLayout {
                 selected.setTranslationY(0f);
                 selected.setAlpha(1f);
                 selected.onPillSelected();
+                notifyColorChanged();
                 currentSwipeProgress = 0f;
                 PillStackConfig.saveLastActivePillId(selected.getPillId());
             }

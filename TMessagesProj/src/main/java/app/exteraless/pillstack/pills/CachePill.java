@@ -271,6 +271,7 @@ public class CachePill extends BasePill implements PillStackEvents.Listener {
                 Theme.isCurrentThemeDark() ? getThemedColor(Theme.key_windowBackgroundWhite) : Theme.multAlpha(color, 0.09f),
                 Theme.multAlpha(color, 0.1f)));
         textView.setTextColor(color);
+        setNavigationColor(color);
         progressDrawable.setColor(color);
         updateLoadingColors();
     }

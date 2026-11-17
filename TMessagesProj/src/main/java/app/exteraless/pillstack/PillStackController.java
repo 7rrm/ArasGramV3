@@ -6,7 +6,9 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.TextView;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 
@@ -32,7 +34,7 @@ public class PillStackController implements PillStackEvents.Listener {
     private final FrameLayout container;
     private final EditText editText;
     private PillStackView stackView;
-    private TextView arrowView;
+    private View arrowView;
     private boolean attached;
     private int builtLayoutVersion = -1;
 
@@ -133,6 +135,7 @@ public class PillStackController implements PillStackEvents.Listener {
         }
         if (stackView == null) {
             stackView = new PillStackView(container.getContext());
+            stackView.setColorChangedListener(() -> { if (arrowView != null) arrowView.invalidate(); });
             // Отступ от края строки поиска — 6dp с обеих сторон, как в exteraGram
             // (FragmentSearchField.updatePillStack, :421). Раньше со стороны края
             // стояло 44dp «под крестик очистки», из-за чего полоса заметно не
@@ -193,15 +196,30 @@ public class PillStackController implements PillStackEvents.Listener {
             return;
         }
         if (arrowView == null) {
-            arrowView = new TextView(container.getContext());
-            arrowView.setText("⌄");
-            arrowView.setTextSize(19);
-            arrowView.setGravity(Gravity.CENTER);
+            arrowView = new View(container.getContext()) {
+                private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                @Override
+                protected void onDraw(Canvas canvas) {
+                    super.onDraw(canvas);
+                    float cx = getWidth() / 2f, cy = getHeight() / 2f;
+                    float d = AndroidUtilities.density;
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setColor(stackView != null ? stackView.getCurrentPillColor() : 0xFF777777);
+                    canvas.drawCircle(cx, cy, 9 * d, paint);
+                    paint.setColor(Color.WHITE);
+                    paint.setStyle(Paint.Style.STROKE);
+                    paint.setStrokeCap(Paint.Cap.ROUND);
+                    paint.setStrokeJoin(Paint.Join.ROUND);
+                    paint.setStrokeWidth(2 * d);
+                    canvas.drawLine(cx - 2 * d, cy - 4 * d, cx + 2 * d, cy, paint);
+                    canvas.drawLine(cx + 2 * d, cy, cx - 2 * d, cy + 4 * d, paint);
+                }
+            };
             arrowView.setContentDescription(LocaleController.getString(R.string.PillStackNext));
             arrowView.setOnClickListener(v -> { if (stackView != null) stackView.showNextPill(); });
             container.addView(arrowView, LayoutHelper.createFrame(30, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.CENTER_VERTICAL));
         }
-        arrowView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
+        arrowView.invalidate();
         positionArrow();
     }
 

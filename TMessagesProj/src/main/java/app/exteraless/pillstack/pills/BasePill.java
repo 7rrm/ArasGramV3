@@ -35,6 +35,21 @@ public abstract class BasePill extends FrameLayout {
 
     private final RectF rectF = new RectF();
     private boolean stackVisible = true;
+    private int navigationColor;
+    private Runnable navigationColorListener;
+
+    public int getNavigationColor() {
+        return navigationColor != 0 ? navigationColor : getThemedColor(Theme.key_windowBackgroundWhiteBlackText);
+    }
+
+    protected void setNavigationColor(int color) {
+        navigationColor = color | 0xFF000000;
+        if (navigationColorListener != null) navigationColorListener.run();
+    }
+
+    public void setNavigationColorListener(Runnable listener) {
+        navigationColorListener = listener;
+    }
 
     private final Runnable autoRefreshRunnable = () -> {
         onUpdateData(false);

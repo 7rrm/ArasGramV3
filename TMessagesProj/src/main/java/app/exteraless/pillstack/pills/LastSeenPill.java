@@ -189,6 +189,7 @@ public class LastSeenPill extends BasePill {
                 Theme.isCurrentThemeDark() ? getThemedColor(Theme.key_windowBackgroundWhite) : Theme.multAlpha(color, 0.09f),
                 Theme.multAlpha(color, 0.1f)));
         textView.setTextColor(color);
+        setNavigationColor(color);
         iconView.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
         updateLoadingColors();
     }

@@ -356,6 +356,7 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
             if (info != null) {
                 cell.setMeeroIconTile(-1);
                 cell.setColorfulIcon(info.iconColorTop, info.iconColorBottom, info.iconRes);
+                cell.setOffsetFromImage(73);
             }
         }
 
