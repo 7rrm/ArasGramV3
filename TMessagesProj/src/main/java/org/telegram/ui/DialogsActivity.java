@@ -15285,10 +15285,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         // being searched.
         final String hint = topics
                 ? getString(R.string.SearchTopics)
-                : (NekoConfig.meeroPillStack.Bool() ? getString(R.string.Search) : (FragmentSearchField.meeroIosSearch() ? MeeroStrings.s(224) : getString(R.string.SearchChats)));
+                : (NekoConfig.meeroPillStack.Bool() ? getString(R.string.MeeroPillSearchChats) : (FragmentSearchField.meeroIosSearch() ? MeeroStrings.s(224) : getString(R.string.SearchChats)));
 
         fragmentSearchField.editText.setContentDescription(hint);
-        fragmentSearchField.editText.setHint(hint);
+        if (!topics && NekoConfig.meeroPillStack.Bool() && FragmentSearchField.meeroIosSearch()) {
+            // The reference search hint is 15dp; leave the actual typed text at
+            // the existing iOS size and scale only the placeholder.
+            android.text.SpannableString referenceHint = new android.text.SpannableString(hint);
+            referenceHint.setSpan(new android.text.style.RelativeSizeSpan(15f / 17f), 0, hint.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            fragmentSearchField.editText.setHint(referenceHint);
+        } else {
+            fragmentSearchField.editText.setHint(hint);
+        }
     }
 
     private void checkUi_menuItems() {
