@@ -48,4 +48,9 @@
     <string name="MeeroPillStackEnable">تفعيل شريط الكبسولات</string>
     <string name="MeeroPillStackSettings">إعدادات شريط الكبسولات</string>
     <string name="MeeroPillSearchChats">البحث في المحادثات</string>
+    <string name="PillStackNavigation">طريقة التنقل بين الكبسولات</string>
+    <string name="PillStackGestures">الإيماءات</string>
+    <string name="PillStackArrow">السهم</string>
+    <string name="PillStackBoth">الإيماءات والسهم</string>
+    <string name="PillStackNext">الكبسولة التالية</string>
 </resources>

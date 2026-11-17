@@ -76,6 +76,12 @@ public class PillStackView extends FrameLayout {
     }
 
     public void clearPills() {
+        if (currentAnimator != null) {
+            currentAnimator.cancel();
+            currentAnimator = null;
+        }
+        removeCallbacks(longPressRunnable);
+        currentSwipeProgress = 0f;
         if (!pills.isEmpty() && currentIndex < pills.size()) {
             pills.get(currentIndex).onPillUnselected();
         }
@@ -138,6 +144,14 @@ public class PillStackView extends FrameLayout {
         }
     }
 
+    public void showNextPill() {
+        if (pills.size() < 2) return;
+        settleAnimation();
+        if (!PillStackConfig.infiniteScrolling() && currentIndex >= pills.size() - 1) return;
+        currentSwipeProgress = 0f;
+        animateToNextPill(true);
+    }
+
     // ---- Жесты ----
 
     @Override
@@ -154,7 +168,7 @@ public class PillStackView extends FrameLayout {
         } else if (action == MotionEvent.ACTION_MOVE) {
             float dx = event.getRawX() - startX;
             float dy = event.getRawY() - startY;
-            if (Math.abs(dy) > touchSlop && Math.abs(dy) > Math.abs(dx) && pills.size() > 1) {
+            if (PillStackConfig.navigationMode.Int() != 1 && Math.abs(dy) > touchSlop && Math.abs(dy) > Math.abs(dx) && pills.size() > 1) {
                 isSwiping = true;
                 if (currentAnimator != null) {
                     currentAnimator.cancel();
@@ -202,7 +216,7 @@ public class PillStackView extends FrameLayout {
                     maybeClick = false;
                     removeCallbacks(longPressRunnable);
                     current.setPressed(false);
-                    if (Math.abs(dy) > Math.abs(dx) && pills.size() > 1) {
+                    if (PillStackConfig.navigationMode.Int() != 1 && Math.abs(dy) > Math.abs(dx) && pills.size() > 1) {
                         isSwiping = true;
                         if (currentAnimator != null) {
                             currentAnimator.cancel();
