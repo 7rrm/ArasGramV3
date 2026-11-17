@@ -46,10 +46,6 @@ object PillStackConfig {
     @JvmField
     val infiniteScrolling = addConfig("OEPillInfiniteScrolling", ConfigItem.configTypeBool, true)
 
-    // 0 = gestures, 1 = arrow, 2 = both.
-    @JvmField
-    val navigationMode = addConfig("OEPillNavigationMode", ConfigItem.configTypeInt, 0)
-
     /** Какая пилюля была показана последней — чтобы восстановить её при следующем открытии. */
     @JvmField
     val lastActivePillId = addConfig("OEPillLastActiveId", ConfigItem.configTypeInt, -1)

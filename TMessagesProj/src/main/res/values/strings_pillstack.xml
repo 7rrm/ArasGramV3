@@ -48,9 +48,4 @@
     <string name="MeeroPillStackEnable">Enable Pill Stack</string>
     <string name="MeeroPillStackSettings">Pill Stack settings</string>
     <string name="MeeroPillSearchChats">Search in Chats</string>
-    <string name="PillStackNavigation">Switch between pills</string>
-    <string name="PillStackGestures">Gestures</string>
-    <string name="PillStackArrow">Arrow</string>
-    <string name="PillStackBoth">Gestures and arrow</string>
-    <string name="PillStackNext">Next pill</string>
 </resources>

@@ -6,9 +6,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import org.telegram.messenger.AndroidUtilities;
 
 import androidx.annotation.NonNull;
 
@@ -32,8 +29,6 @@ public class PillStackController implements PillStackEvents.Listener {
     private final FrameLayout container;
     private final EditText editText;
     private PillStackView stackView;
-    private LinearLayout stackContainer;
-    private TextView arrowView;
     private boolean attached;
     private int builtLayoutVersion = -1;
 
@@ -59,7 +54,7 @@ public class PillStackController implements PillStackEvents.Listener {
             public void onViewAttachedToWindow(@NonNull View v) {
                 attached = true;
                 PillStackEvents.addListener(PillStackController.this);
-                if (stackView != null && stackContainer != null && stackContainer.getParent() == container
+                if (stackView != null && stackView.getParent() == container
                         && builtLayoutVersion == PillStackEvents.getLayoutVersion()) {
                     stackView.updateColors();
                     updateVisibility();
@@ -117,50 +112,32 @@ public class PillStackController implements PillStackEvents.Listener {
 
     public void rebuildContents() {
         builtLayoutVersion = PillStackEvents.getLayoutVersion();
-        if (stackView != null && (stackContainer == null || stackContainer.getParent() != container)) {
+        if (stackView != null && stackView.getParent() != container) {
             stackView.clearPills();
             stackView = null;
-            stackContainer = null;
         }
         List<Integer> active = tw.nekomimi.nekogram.NekoConfig.meeroPillStack.Bool()
                 ? new ArrayList<>(PillStackConfig.getActivePills()) : new ArrayList<>();
         if (active.isEmpty()) {
             if (stackView != null) {
                 stackView.clearPills();
-                container.removeView(stackContainer);
-                stackContainer = null;
+                container.removeView(stackView);
                 stackView = null;
             }
             return;
         }
         if (stackView == null) {
             stackView = new PillStackView(container.getContext());
-            stackContainer = new LinearLayout(container.getContext());
-            stackContainer.setGravity(Gravity.CENTER_VERTICAL);
-            // Keep the physical pill/arrow ordering explicit in RTL as well.
-            stackContainer.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
-            arrowView = new TextView(container.getContext());
-            arrowView.setText("⌄");
-            arrowView.setTextSize(19);
-            arrowView.setGravity(Gravity.CENTER);
-            arrowView.setContentDescription(container.getContext().getString(org.telegram.messenger.R.string.PillStackNext));
-            arrowView.setOnClickListener(v -> { if (stackView != null) stackView.showNextPill(); });
-            LinearLayout.LayoutParams arrowParams = new LinearLayout.LayoutParams(AndroidUtilities.dp(30), LayoutHelper.MATCH_PARENT);
-            LinearLayout.LayoutParams pillParams = new LinearLayout.LayoutParams(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT);
-            if (LocaleController.isRTL) {
-                stackContainer.addView(stackView, pillParams);
-                stackContainer.addView(arrowView, arrowParams);
-            } else {
-                stackContainer.addView(arrowView, arrowParams);
-                stackContainer.addView(stackView, pillParams);
-            }
-            container.addView(stackContainer, LayoutHelper.createFrame(
+            // Отступ от края строки поиска — 6dp с обеих сторон, как в exteraGram
+            // (FragmentSearchField.updatePillStack, :421). Раньше со стороны края
+            // стояло 44dp «под крестик очистки», из-за чего полоса заметно не
+            // доходила до правого бока поиска; крестика при пустом поле нет, а с
+            // набранным текстом пилюли и так спрятаны.
+            container.addView(stackView, LayoutHelper.createFrame(
                     LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT,
                     (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL,
                     6, 0, 6, 0));
         }
-        arrowView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
-        arrowView.setVisibility(PillStackConfig.navigationMode.Int() != 0 && active.size() > 1 ? View.VISIBLE : View.GONE);
         stackView.clearPills();
 
         Theme.ResourcesProvider resourcesProvider = null;
@@ -181,8 +158,7 @@ public class PillStackController implements PillStackEvents.Listener {
             }
         }
         if (stackView.getPillsCount() == 0) {
-            container.removeView(stackContainer);
-            stackContainer = null;
+            container.removeView(stackView);
             stackView = null;
             return;
         }
@@ -197,7 +173,6 @@ public class PillStackController implements PillStackEvents.Listener {
         }
         boolean hasText = editText != null && editText.getText() != null && editText.getText().length() > 0;
         stackView.setVisibilityFactor(hasText ? 0f : 1f);
-        if (stackContainer != null) stackContainer.setVisibility(hasText ? View.GONE : View.VISIBLE);
     }
 
     public void updateColors() {
