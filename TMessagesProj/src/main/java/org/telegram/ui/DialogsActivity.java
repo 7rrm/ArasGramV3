@@ -3571,6 +3571,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         // top and bottom rather than 4dp - a small change, but it is the only
         // way to alter the pill's height without touching SEARCH_FIELD_HEIGHT,
         // which nine other call sites reserve layout space with.
+        app.exteraless.pillstack.PillStackController.attach(fragmentSearchField, fragmentSearchField.editText);
         final int meeroFieldPadV = FragmentSearchField.meeroIosSearch() ? dp(3.5f) : dp(4);
         fragmentSearchField.setPadding(dp(4), meeroFieldPadV, dp(4), meeroFieldPadV);
         fragmentSearchField.setPivotX(0);
@@ -7561,6 +7562,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        if (fragmentSearchField != null) {
+            checkUi_searchFieldHint();
+            fragmentSearchField.updatePillStack(false);
+        }
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
         }
@@ -15280,7 +15285,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         // being searched.
         final String hint = topics
                 ? getString(R.string.SearchTopics)
-                : (FragmentSearchField.meeroIosSearch() ? MeeroStrings.s(224) : getString(R.string.SearchChats));
+                : (FragmentSearchField.meeroIosSearch() && !NekoConfig.meeroPillStack.Bool() ? MeeroStrings.s(224) : getString(R.string.SearchChats));
 
         fragmentSearchField.editText.setContentDescription(hint);
         fragmentSearchField.editText.setHint(hint);

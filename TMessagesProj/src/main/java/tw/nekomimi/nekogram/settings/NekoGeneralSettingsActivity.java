@@ -178,6 +178,9 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell headerDialogs = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.DialogsSettings)));
     private final AbstractConfigCell sortByUnreadRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getSortByUnread()));
     private final AbstractConfigCell hideDialogsSearchFieldRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getHideDialogsSearchField()));
+    private final AbstractConfigCell pillStackRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.meeroPillStack, null, getString(R.string.MeeroPillStackEnable)));
+    private final AbstractConfigCell pillStackSettingsRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellText("MeeroPillStackSettings", () -> presentFragment(new app.exteraless.pillstack.PillStackSettingsActivity())));
+
     private final AbstractConfigCell disableDialogsFloatingButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableDialogsFloatingButton()));
     private final AbstractConfigCell disableBotOpenButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableBotOpenButton()));
     private final AbstractConfigCell mediaPreviewRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.mediaPreview));
@@ -325,7 +328,10 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
 
         // Cells: Set OnSettingChanged Callbacks
         cellGroup.callBackSettingsChanged = (key, newValue) -> {
-            if (key.equals(NekoConfig.actionBarDecoration.getKey())) {
+            if (key.equals(NekoConfig.meeroPillStack.getKey())) {
+                app.exteraless.pillstack.PillStackEvents.notifyLayoutChanged();
+                if ((boolean) newValue) presentFragment(new app.exteraless.pillstack.PillStackSettingsActivity());
+            } else if (key.equals(NekoConfig.actionBarDecoration.getKey())) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             } else if (key.equals(NaConfig.INSTANCE.getNotificationIcon().getKey())) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
