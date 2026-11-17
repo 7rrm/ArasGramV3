@@ -1417,4 +1417,8 @@
     <string name="MeeroOnceSaveToSavedMessages">الحفظ في الرسائل المحفوظة</string>
     <string name="MeeroBurnDownloadVideo">يرجى تنزيل الفيديو في تيليجرام أولاً، ثم المحاولة مجدداً. لم يتم حرقه.</string>
     <string name="ReplyUsesEmojiPacks">يستخدم هذا الرد إيموجي من حزمة %s لخلفيته.</string>
+    <string name="ProxyDisableOn">تعطيل البروكسي</string>
+    <string name="ProxyDisableOnVpn">VPN</string>
+    <string name="ProxyDisableOnMobileData">بيانات الجوال</string>
+    <string name="ProxyDisableOnWiFi">Wi-Fi</string>
 </resources>

@@ -7380,7 +7380,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         }
 
-        if (NaConfig.INSTANCE.getDisableProxyWhenVpnEnabled().Bool()) {
+        if (ProxyUtil.hasProxyDisableConditions()) {
             ProxyUtil.registerNetworkCallback();
         }
 

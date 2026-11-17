@@ -42,6 +42,7 @@ import org.telegram.messenger.R
 import org.telegram.messenger.SharedConfig
 import org.telegram.messenger.TelegramQRCodeWriter
 import org.telegram.messenger.browser.Browser
+import xyz.nextalone.nagram.NaConfig
 import tw.nekomimi.nekogram.ui.BottomBuilder
 import tw.nekomimi.nekogram.utils.AlertUtil.showToast
 import java.io.File
@@ -49,42 +50,67 @@ import java.io.File
 
 object ProxyUtil {
 
+    const val PROXY_DISABLE_VPN = 1
+    const val PROXY_DISABLE_MOBILE = 2
+    const val PROXY_DISABLE_WIFI = 4
+    private const val CONDITIONS_KEY = "oe_proxy_disable_conditions"
+    private const val AUTO_DISABLED_KEY = "oe_proxy_auto_disabled"
     private var networkCallbackRegistered = false
+
+    private fun settings() = MessagesController.getGlobalMainSettings()
+
+    private fun conditions(): Int {
+        val prefs = settings()
+        if (!prefs.contains(CONDITIONS_KEY)) {
+            val legacy = NaConfig.disableProxyWhenVpnEnabled.Bool()
+            prefs.edit().putInt(CONDITIONS_KEY, if (legacy) PROXY_DISABLE_VPN else 0).apply()
+            if (legacy) NaConfig.disableProxyWhenVpnEnabled.setConfigBool(false)
+        }
+        return prefs.getInt(CONDITIONS_KEY, 0)
+    }
+
+    @JvmStatic fun isProxyDisabledOn(flag: Int) = conditions() and flag != 0
+    @JvmStatic fun hasProxyDisableConditions() = conditions() != 0
+    @JvmStatic fun setProxyDisabledOn(flag: Int, enabled: Boolean) {
+        val current = conditions()
+        settings().edit().putInt(CONDITIONS_KEY, if (enabled) current or flag else current and flag.inv()).apply()
+    }
+
+    private fun shouldDisableProxyOn(capabilities: NetworkCapabilities): Boolean =
+        isProxyDisabledOn(PROXY_DISABLE_VPN) && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) ||
+        isProxyDisabledOn(PROXY_DISABLE_MOBILE) && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+        isProxyDisabledOn(PROXY_DISABLE_WIFI) && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+
+    private fun applyProxyDisableConditions(disable: Boolean) {
+        if (disable) {
+            if (!SharedConfig.isProxyEnabled() || SharedConfig.currentProxy == null) return
+            settings().edit().putBoolean(AUTO_DISABLED_KEY, true).apply()
+            SharedConfig.setProxyEnable(false)
+        } else {
+            if (!settings().getBoolean(AUTO_DISABLED_KEY, false)) return
+            settings().edit().putBoolean(AUTO_DISABLED_KEY, false).apply()
+            if (SharedConfig.isProxyEnabled() || SharedConfig.currentProxy == null) return
+            SharedConfig.setProxyEnable(true)
+        }
+        AndroidUtilities.runOnUIThread {
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.proxySettingsChanged)
+        }
+    }
 
     @JvmStatic
     fun registerNetworkCallback() {
         if (networkCallbackRegistered) return
-        networkCallbackRegistered = true
-
         val connectivityManager = ApplicationLoader.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkCallback: ConnectivityManager.NetworkCallback =
-            object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) {
-                    val networkCapabilities =
-                        connectivityManager.getNetworkCapabilities(network) ?: return
-                    val vpn = networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-                    if (!vpn) {
-                        if (SharedConfig.currentProxy == null) {
-                            if (!SharedConfig.proxyList.isEmpty()) {
-                                SharedConfig.setCurrentProxy(SharedConfig.proxyList[0])
-                            } else {
-                                return
-                            }
-                        }
-                    }
-                    if ((SharedConfig.isProxyEnabled() && vpn) || (!SharedConfig.isProxyEnabled() && !vpn)) {
-                        SharedConfig.setProxyEnable(!vpn)
-                        AndroidUtilities.runOnUIThread {
-                            NotificationCenter.getGlobalInstance()
-                                .postNotificationName(NotificationCenter.proxySettingsChanged)
-                        }
-                    }
-                }
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return
+                applyProxyDisableConditions(shouldDisableProxyOn(capabilities))
             }
-
+        }
         try {
-            connectivityManager.registerDefaultNetworkCallback(networkCallback)
-        } catch (_: Exception) {}
+            connectivityManager.registerDefaultNetworkCallback(callback)
+            networkCallbackRegistered = true
+        } catch (e: Exception) { FileLog.e(e) }
     }
 
     @JvmStatic

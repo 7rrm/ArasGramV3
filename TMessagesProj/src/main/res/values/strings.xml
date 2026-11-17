@@ -11771,4 +11771,8 @@
     <string name="MeeroOnceSaveToSavedMessages">Save to Saved Messages</string>
     <string name="MeeroBurnDownloadVideo">Please download the video in Telegram first, then try again. It was not burned.</string>
     <string name="ReplyUsesEmojiPacks">This reply uses emoji from the %s pack for its background.</string>
+    <string name="ProxyDisableOn">Disable proxy on</string>
+    <string name="ProxyDisableOnVpn">VPN</string>
+    <string name="ProxyDisableOnMobileData">Mobile data</string>
+    <string name="ProxyDisableOnWiFi">Wi-Fi</string>
 </resources>
