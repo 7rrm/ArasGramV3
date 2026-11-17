@@ -36,6 +36,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.ApplicationLoader
 import org.telegram.messenger.FileLog
+import org.telegram.messenger.MessagesController
 import org.telegram.messenger.LocaleController.getString
 import org.telegram.messenger.NotificationCenter
 import org.telegram.messenger.R
