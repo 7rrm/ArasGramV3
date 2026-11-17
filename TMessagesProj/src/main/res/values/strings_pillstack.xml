@@ -47,4 +47,5 @@
     <string name="PillStackLastSeen">My Status</string>
     <string name="MeeroPillStackEnable">Enable Pill Stack</string>
     <string name="MeeroPillStackSettings">Pill Stack settings</string>
+    <string name="MeeroPillSearchChats">Search in Chats</string>
 </resources>

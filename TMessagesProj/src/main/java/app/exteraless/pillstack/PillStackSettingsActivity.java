@@ -71,17 +71,14 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
         return getString(R.string.PillStackTitle);
     }
 
-    @Override
     public int getSearchGuid() {
         return 25000;
     }
 
-    @Override
     public int getSearchIcon() {
         return R.drawable.msg_pin;
     }
 
-    @Override
     public String getSearchPrefix() {
         return "PillStack";
     }
@@ -402,14 +399,16 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
                 case TYPE_TEXT: {
                     TextCell cell = (TextCell) holder.itemView;
                     if (weatherRow != -1 && position == weatherRow) {
-                        cell.reset();
+                        cell.imageView.setBackground(null);
+                        cell.imageView.setColorFilter(null);
                         cell.setTextAndValueAndIcon(getString(R.string.PillStackWeather),
                                 getWeatherLocationValue(), R.drawable.weather_cloudy, false);
                         cell.setColors(Theme.key_windowBackgroundWhiteBlueIcon, Theme.key_windowBackgroundWhiteBlackText);
                         break;
                     }
                     if (addRateRow != -1 && position == addRateRow) {
-                        cell.reset();
+                        cell.imageView.setBackground(null);
+                        cell.imageView.setColorFilter(null);
                         cell.setTextAndValueAndIcon(getString(R.string.PillStackAddRate), null, R.drawable.msg_add, false);
                         cell.setColors(Theme.key_windowBackgroundWhiteBlueIcon, Theme.key_windowBackgroundWhiteBlueText);
                         break;

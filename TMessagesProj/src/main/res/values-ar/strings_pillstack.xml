@@ -47,4 +47,5 @@
     <string name="PillStackLastSeen">حالتي</string>
     <string name="MeeroPillStackEnable">تفعيل شريط الكبسولات</string>
     <string name="MeeroPillStackSettings">إعدادات شريط الكبسولات</string>
+    <string name="MeeroPillSearchChats">البحث في المحادثات</string>
 </resources>

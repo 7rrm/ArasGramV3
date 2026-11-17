@@ -15285,7 +15285,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         // being searched.
         final String hint = topics
                 ? getString(R.string.SearchTopics)
-                : (FragmentSearchField.meeroIosSearch() && !NekoConfig.meeroPillStack.Bool() ? MeeroStrings.s(224) : getString(R.string.SearchChats));
+                : (NekoConfig.meeroPillStack.Bool() ? getString(R.string.MeeroPillSearchChats) : (FragmentSearchField.meeroIosSearch() ? MeeroStrings.s(224) : getString(R.string.SearchChats)));
 
         fragmentSearchField.editText.setContentDescription(hint);
         fragmentSearchField.editText.setHint(hint);
