@@ -378,7 +378,14 @@ public class FragmentSearchField extends FrameLayout implements FactorAnimator.T
 
     private void checkUi_editTextPaddings() {
         final int filtersWidth = (int) animatorSearchFiltersWidth.getFactor() + dp(6); //searchFilterLayout.getWidth();
-        final int pStart = Math.max(filtersWidth, dp(48));
+        // Keep the idle hint closer to its magnifier only for the pill-stack
+        // search bar; typed text and filter layout retain the original inset.
+        final boolean pillIdleHint = pillStackController != null
+                && tw.nekomimi.nekogram.NekoConfig.meeroPillStack.Bool()
+                && editText != null && currentSearchFilters != null
+                && editText.length() == 0 && !editText.isFocused()
+                && currentSearchFilters.isEmpty();
+        final int pStart = Math.max(filtersWidth, dp(pillIdleHint ? 40 : 48));
         final int pEnd = dp(48) + additionalIconsLayout.getMeasuredWidth();
 
         int pLeft = LocaleController.isRTL ? pEnd : pStart;
@@ -432,8 +439,8 @@ public class FragmentSearchField extends FrameLayout implements FactorAnimator.T
             clipRight = editText.getMeasuredWidth()
                     - Math.min(pRight, LocaleController.isRTL ? pStart : pEnd);
         } else {
-            clipLeft = pLeft;
-            clipRight = editText.getMeasuredWidth() - pRight;
+            clipLeft = pillIdleHint ? Math.max(0, pLeft - dp(3)) : pLeft;
+            clipRight = editText.getMeasuredWidth() - pRight + (pillIdleHint ? dp(3) : 0);
         }
 
         AndroidUtilities.rectTmp2.set(
