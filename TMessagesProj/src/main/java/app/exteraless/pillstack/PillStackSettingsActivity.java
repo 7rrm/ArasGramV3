@@ -40,6 +40,7 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
     private final ArrayList<Integer> hiddenPills = new ArrayList<>();
 
     private int infiniteScrollingRow;
+    private int navigationModeRow;
     private int scrollingDividerRow;
 
     private int activeHeaderRow;
@@ -65,6 +66,9 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
         super();
         PillStackConfig.init();
     }
+
+    @Override
+    protected boolean meeroGlassScreen() { return true; }
 
     @Override
     protected String getActionBarTitle() {
@@ -99,6 +103,7 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
         hiddenPills.addAll(PillStackConfig.getHiddenPills());
 
         infiniteScrollingRow = addRow("infiniteScrolling");
+        navigationModeRow = addRow("navigationMode");
         scrollingDividerRow = addRow();
 
         activeHeaderRow = addRow("activePills");
@@ -161,6 +166,18 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
             boolean value = PillStackConfig.infiniteScrolling.toggleConfigBool();
             if (view instanceof TextCheckCell) {
                 ((TextCheckCell) view).setChecked(value);
+            }
+            return;
+        }
+        if (position == navigationModeRow) {
+            if (getParentActivity() != null) {
+                new AlertDialog.Builder(getParentActivity(), resourcesProvider)
+                    .setTitle(getString(R.string.PillStackNavigation))
+                    .setItems(new CharSequence[]{getString(R.string.PillStackGestures), getString(R.string.PillStackArrow), getString(R.string.PillStackBoth)}, (dialog, which) -> {
+                        PillStackConfig.navigationMode.setConfigInt(which);
+                        updateRowsAndNotify();
+                        PillStackEvents.notifyLayoutChanged();
+                    }).show();
             }
             return;
         }
@@ -331,6 +348,21 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
         }
 
         @Override
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            super.onBindViewHolder(holder, position);
+            if (!(holder.itemView instanceof TextCell)) return;
+            TextCell cell = (TextCell) holder.itemView;
+            int id = -1;
+            if (activeStartRow != -1 && position >= activeStartRow && position < activeEndRow) id = activePills.get(position - activeStartRow);
+            else if (hiddenStartRow != -1 && position >= hiddenStartRow && position < hiddenEndRow) id = hiddenPills.get(position - hiddenStartRow);
+            PillRegistry.PillInfo info = id == -1 ? null : PillRegistry.getPillInfo(id);
+            if (info != null) {
+                cell.setMeeroIconTile(-1);
+                cell.setColorfulIcon(info.iconColorTop, info.iconColorBottom, info.iconRes);
+            }
+        }
+
+        @Override
         public int getItemViewType(int position) {
             if (position == infiniteScrollingRow) {
                 return TYPE_CHECK;
@@ -345,7 +377,7 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
                     || position == weatherDividerRow || position == resetDividerRow) {
                 return TYPE_SHADOW;
             }
-            if (position == activeEmptyRow || position == hiddenEmptyRow || position == resetRow) {
+            if (position == activeEmptyRow || position == hiddenEmptyRow || position == resetRow || position == navigationModeRow) {
                 return TYPE_SETTINGS;
             }
             return TYPE_TEXT;
@@ -387,7 +419,12 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
                 }
                 case TYPE_SETTINGS: {
                     TextSettingsCell cell = (TextSettingsCell) holder.itemView;
-                    if (position == activeEmptyRow || position == hiddenEmptyRow) {
+                    if (position == navigationModeRow) {
+                        int mode = Math.max(0, Math.min(2, PillStackConfig.navigationMode.Int()));
+                        int[] names = { R.string.PillStackGestures, R.string.PillStackArrow, R.string.PillStackBoth };
+                        cell.setTextAndValue(getString(R.string.PillStackNavigation), getString(names[mode]), false);
+                        cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
+                    } else if (position == activeEmptyRow || position == hiddenEmptyRow) {
                         cell.setText(getString(R.string.PillStackListEmpty), false);
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
                     } else if (position == resetRow) {
