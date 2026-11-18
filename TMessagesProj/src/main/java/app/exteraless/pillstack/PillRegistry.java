@@ -193,6 +193,26 @@ public class PillRegistry {
         }
     }
 
+    /** Resolve built-in labels at bind time so a language switch cannot leave
+     * names cached in the language that was active at registry initialization. */
+    public static CharSequence getDisplayName(PillInfo info) {
+        if (info == null) return "";
+        int id = info.id;
+        if (id == PillType.WEATHER.id) return LocaleController.getString(R.string.PillStackWeather);
+        if (id == PillType.CACHE.id) return LocaleController.getString(R.string.StorageUsage);
+        if (id == PillType.PROXY.id) return LocaleController.getString(R.string.PillStackProxy);
+        if (id == PillType.GHOST.id) return LocaleController.getString(R.string.GhostMode);
+        if (id == PillType.LAST_SEEN.id) return LocaleController.getString(R.string.PillStackLastSeen);
+        if (id == PillType.RAM.id) return LocaleController.getString(R.string.PillStackRam);
+        if (id == PillType.NET_SPEED.id) return LocaleController.getString(R.string.PillStackNetSpeed);
+        if (id == PillType.DC_PING.id) return LocaleController.getString(R.string.PillStackDcPing);
+        if (RateInstances.isRateInstance(id)) {
+            RateInstances.Instance instance = RateInstances.get(id);
+            if (instance != null) return RateInstances.getLabel(instance);
+        }
+        return info.name;
+    }
+
     public static Collection<PillInfo> getRegisteredPills() {
         synchronized (registry) {
             return new ArrayList<>(registry.values());
