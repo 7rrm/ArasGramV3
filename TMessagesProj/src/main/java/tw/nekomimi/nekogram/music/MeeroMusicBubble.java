@@ -1085,7 +1085,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             artistView.setVisibility(PlayerStyle.miniArtist() ? VISIBLE : GONE);
             prev.setVisibility(PlayerStyle.miniPrevious() ? VISIBLE : GONE);
             next.setVisibility(PlayerStyle.miniNext() ? VISIBLE : GONE);
-            boolean queueAvailable = !app.exteraless.player.Md3Player.isMp3Voice(mo);
+            boolean queueAvailable = !app.exteraless.player.Md3Player.isSupportedVoice(mo);
             prev.setEnabled(queueAvailable);
             next.setEnabled(queueAvailable);
             prev.setAlpha(queueAvailable ? 1f : 0.4f);

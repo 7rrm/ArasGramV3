@@ -174,8 +174,8 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
             return;
         }
         current = mo;
-        nextButton.setEnabled(!Md3Player.isMp3Voice(mo));
-        nextButton.setAlpha(Md3Player.isMp3Voice(mo) ? 0.4f : 1f);
+        nextButton.setEnabled(!Md3Player.isSupportedVoice(mo));
+        nextButton.setAlpha(Md3Player.isSupportedVoice(mo) ? 0.4f : 1f);
         titleView.setText(mo.getMusicTitle());
         artistView.setText(mo.getMusicAuthor());
         cover.setMessage(mo);

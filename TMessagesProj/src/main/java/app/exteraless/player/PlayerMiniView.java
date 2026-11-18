@@ -820,7 +820,7 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     private void bind(MessageObject mo) {
         boolean changed = current != mo;
         current = mo;
-        boolean queueAvailable = !Md3Player.isMp3Voice(mo);
+        boolean queueAvailable = !Md3Player.isSupportedVoice(mo);
         prevButton.setEnabled(queueAvailable);
         nextButton.setEnabled(queueAvailable);
         prevButton.setAlpha(queueAvailable ? 1f : 0.4f);

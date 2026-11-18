@@ -1201,9 +1201,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         boolean changed = !TextUtils.equals(key, currentKey);
         current = mo;
         currentKey = key;
-        // Voice-flagged MP3 is not in the music playlist. Do not let the
+        // Voice-tagged audio is not in the music playlist. Do not let the
         // playlist controls act on a stale, unrelated music queue.
-        boolean hasMusicQueue = !Md3Player.isMp3Voice(mo);
+        boolean hasMusicQueue = !Md3Player.isSupportedVoice(mo);
         controls.prev.setEnabled(hasMusicQueue);
         controls.next.setEnabled(hasMusicQueue);
         controls.shuffle.setEnabled(hasMusicQueue);
@@ -1257,11 +1257,11 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         if (mo == null) {
             return;
         }
-        MessagesController.SavedMusicList saved = Md3Player.isMp3Voice(mo) ? null : MediaController.getInstance().currentSavedMusicList;
+        MessagesController.SavedMusicList saved = Md3Player.isSupportedVoice(mo) ? null : MediaController.getInstance().currentSavedMusicList;
         if (saved != null) {
             headerLabel.setText(getString(R.string.OEPlayerFromProfile));
             headerTitle.setText(DialogObject.getShortName(saved.currentAccount, saved.dialogId));
-        } else if (!Md3Player.isMp3Voice(mo) && MediaController.getInstance().currentPlaylistIsGlobalSearch()) {
+        } else if (!Md3Player.isSupportedVoice(mo) && MediaController.getInstance().currentPlaylistIsGlobalSearch()) {
             headerLabel.setText(getString(R.string.OEPlayerFromSearch));
             headerTitle.setText(getString(R.string.OEPlayerMusic));
         } else {
@@ -1277,7 +1277,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     private void updateLike(boolean animated) {
         MessageObject mo = current;
-        boolean visible = PlayerStyle.showLike() && mo != null && !Md3Player.isMp3Voice(mo) && mo.getDocument() != null && !PlayerActions.noForwards(mo);
+        boolean visible = PlayerStyle.showLike() && mo != null && !Md3Player.isSupportedVoice(mo) && mo.getDocument() != null && !PlayerActions.noForwards(mo);
         likeButton.setVisibility(visible ? View.VISIBLE : View.GONE);
         titleSpacer.setVisibility(visible && PlayerStyle.titleCentered() ? View.VISIBLE : View.GONE);
         if (!visible) {
@@ -1672,7 +1672,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private void openQueue() {
-        if (Md3Player.isMp3Voice(current)) return;
+        if (Md3Player.isSupportedVoice(current)) return;
         new PlayerQueueSheet(getContext(), colors, resourcesProvider).show();
     }
 
@@ -1770,7 +1770,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private boolean onCoverTouch(View v, MotionEvent e) {
-        if (coverAnimating || previewMode || editing || Md3Player.isMp3Voice(current) || !PlayerStyle.coverSwipe()
+        if (coverAnimating || previewMode || editing || Md3Player.isSupportedVoice(current) || !PlayerStyle.coverSwipe()
                 || coverStyle != PlayerStyle.COVER_CARD && coverStyle != PlayerStyle.COVER_DISC) {
             return false;
         }
