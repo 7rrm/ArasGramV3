@@ -25,8 +25,20 @@ public final class Md3Player {
         return AppearanceConfig.md3MiniPlayer();
     }
 
+    /** Opt-in for ordinary voice messages in OGG or MPEG; view-once stays native. */
+    public static boolean voiceBar(MessageObject messageObject) {
+        if (!tw.nekomimi.nekogram.NekoConfig.meeroVoiceBar.Bool() || messageObject == null
+                || !messageObject.isVoice() || messageObject.isVoiceOnce() || messageObject.isRoundVideo()) return false;
+        org.telegram.tgnet.TLRPC.Document d = messageObject.getDocument();
+        return d != null && ("audio/ogg".equalsIgnoreCase(d.mime_type) || "audio/mpeg".equalsIgnoreCase(d.mime_type));
+    }
+
+    public static boolean supports(MessageObject messageObject) {
+        return messageObject != null && (messageObject.isMusic() || voiceBar(messageObject));
+    }
+
     private static boolean handles(MessageObject messageObject) {
-        return enabled() && messageObject != null && messageObject.isMusic();
+        return (enabled() && messageObject != null && messageObject.isMusic()) || voiceBar(messageObject);
     }
 
     public static BottomSheet create(Context context, Theme.ResourcesProvider resourcesProvider) {

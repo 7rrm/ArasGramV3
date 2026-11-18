@@ -27,6 +27,7 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
 
     private int md3Row = -1;
     private int miniRow = -1;
+    private int voiceRow = -1;
     private int cardRow = -1;
     private int lrclibRow = -1;
     private int styleRow = -1;
@@ -38,6 +39,7 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
         AppearanceConfig.ensureLoaded();
         md3Row = addRow();
         miniRow = addRow();
+        voiceRow = addRow();
         cardRow = addRow();
         lrclibRow = addRow();
         // MeeroX v253: «تخصيص المشغّل» → редактор стиля плеера.
@@ -60,6 +62,8 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
             AppearanceConfig.md3Player.setConfigBool(!AppearanceConfig.md3Player.Bool());
         } else if (position == miniRow) {
             AppearanceConfig.md3MiniPlayer.setConfigBool(!AppearanceConfig.md3MiniPlayer.Bool());
+        } else if (position == voiceRow) {
+            tw.nekomimi.nekogram.NekoConfig.meeroVoiceBar.toggleConfigBool();
         } else if (position == cardRow) {
             AppearanceConfig.profileMusicCard.setConfigBool(!AppearanceConfig.profileMusicCard.Bool());
         } else if (position == lrclibRow) {
@@ -88,7 +92,7 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
 
         @Override
         public int getItemViewType(int position) {
-            if (position == md3Row || position == miniRow || position == cardRow || position == lrclibRow) {
+            if (position == md3Row || position == miniRow || position == voiceRow || position == cardRow || position == lrclibRow) {
                 return TYPE_CHECK;
             }
             if (position == styleRow) {
@@ -117,6 +121,8 @@ public class MeeroPlayerSettingsActivity extends BaseNekoSettingsActivity {
                 cell.setTextAndCheck(getString(R.string.MeeroPlayerMd3), AppearanceConfig.md3Player.Bool(), false);
             } else if (position == miniRow) {
                 cell.setTextAndCheck(getString(R.string.MeeroPlayerMini), AppearanceConfig.md3MiniPlayer.Bool(), false);
+            } else if (position == voiceRow) {
+                cell.setTextAndCheck(getString(R.string.MeeroVoiceBar), tw.nekomimi.nekogram.NekoConfig.meeroVoiceBar.Bool(), false);
             } else if (position == cardRow) {
                 cell.setTextAndCheck(getString(R.string.MeeroProfileMusicCard), AppearanceConfig.profileMusicCard.Bool(), false);
             } else if (position == lrclibRow) {

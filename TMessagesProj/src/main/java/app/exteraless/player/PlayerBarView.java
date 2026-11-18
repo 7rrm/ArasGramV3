@@ -4,6 +4,10 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.view.View;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -33,6 +37,8 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
     private final TextView artistView;
     private final RingPlayButton playButton;
     private final ImageView nextButton;
+    private final TextView speedButton;
+    private final View voiceIcon;
     private final ImageView closeButton;
     private final PlayerIcon nextIcon = PlayerIcon.fill(PlayerIcon.NEXT, 22);
     private final PlayerIcon closeIcon = PlayerIcon.stroke(PlayerIcon.CLOSE, 20);
@@ -49,6 +55,26 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         cover = new CoverImage(context, 18);
         cover.setRadius(dp(10));
         addView(cover, LayoutHelper.createFrame(36, 36, Gravity.LEFT | Gravity.CENTER_VERTICAL, 12, 0, 0, 0));
+        voiceIcon = new View(context) {
+            final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            @Override protected void onDraw(Canvas canvas) {
+                float d = AndroidUtilities.density, x = getWidth() / 2f, y = getHeight() / 2f;
+                paint.setColor(theme.onPrimaryContainer);
+                paint.setStyle(Paint.Style.FILL);
+                canvas.save(); canvas.rotate(-18, x - 6*d, y + 7*d);
+                canvas.drawOval(x - 10*d, y + 4*d, x - 3*d, y + 9*d, paint);
+                canvas.restore();
+                canvas.drawRoundRect(x - 4*d, y - 10*d, x - 2*d, y + 7*d, d, d, paint);
+                float[] lengths = {7, 6, 9, 6, 7};
+                for (int i = 0; i < lengths.length; i++) {
+                    float top = y - 9*d + i*4*d;
+                    canvas.drawRoundRect(x + d, top, x + (1 + lengths[i])*d, top + 2.2f*d, d, d, paint);
+                }
+            }
+        };
+        voiceIcon.setBackground(Theme.createRoundRectDrawable(dp(10), theme.primaryContainer));
+        voiceIcon.setVisibility(GONE);
+        addView(voiceIcon, LayoutHelper.createFrame(36, 36, Gravity.LEFT | Gravity.CENTER_VERTICAL, 12, 0, 0, 0));
 
         LinearLayout texts = new LinearLayout(context);
         texts.setOrientation(LinearLayout.VERTICAL);
@@ -88,6 +114,21 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         nextButton.setContentDescription(getString(R.string.Next));
         nextButton.setOnClickListener(v -> MediaController.getInstance().playNextMessage());
         buttons.addView(nextButton, LayoutHelper.createLinear(40, 40));
+        speedButton = new TextView(context);
+        speedButton.setGravity(Gravity.CENTER);
+        speedButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        speedButton.setTypeface(AndroidUtilities.bold());
+        speedButton.setContentDescription(getString(R.string.AccDescrPlayerSpeed));
+        speedButton.setVisibility(GONE);
+        speedButton.setOnClickListener(v -> {
+            float old = MediaController.getInstance().getPlaybackSpeed(false);
+            float[] speeds = {1f, 1.5f, 2f, 0.5f};
+            int index = -1;
+            for (int i = 0; i < speeds.length; i++) if (Math.abs(old - speeds[i]) < 0.05f) { index = i; break; }
+            MediaController.getInstance().setPlaybackSpeed(false, speeds[(index + 1) % speeds.length]);
+            updateSpeed();
+        });
+        buttons.addView(speedButton, LayoutHelper.createLinear(40, 40));
         closeButton = new ImageView(context);
         closeButton.setScaleType(ImageView.ScaleType.CENTER);
         closeButton.setImageDrawable(closeIcon);
@@ -102,6 +143,7 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         titleView.setTextColor(text);
         artistView.setTextColor(ColorUtils.setAlphaComponent(secondary, 0xbf));
         nextIcon.setColor(icons);
+        speedButton.setTextColor(icons);
         closeIcon.setColor(icons);
         int ripple = icons & 0x19ffffff;
         nextButton.setBackground(Theme.createSelectorDrawable(ripple, Theme.RIPPLE_MASK_CIRCLE_20DP));
@@ -124,6 +166,7 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         tw.nekomimi.nekogram.MeeroTopBar.addListener(meeroTopBarListener);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.messagePlayingSpeedChanged);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             NotificationCenter nc = NotificationCenter.getInstance(a);
             nc.addObserver(this, NotificationCenter.messagePlayingDidStart);
@@ -139,6 +182,7 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         tw.nekomimi.nekogram.MeeroTopBar.removeListener(meeroTopBarListener);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.messagePlayingSpeedChanged);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             NotificationCenter nc = NotificationCenter.getInstance(a);
             nc.removeObserver(this, NotificationCenter.messagePlayingDidStart);
@@ -151,7 +195,9 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.messagePlayingProgressDidChanged) {
+        if (id == NotificationCenter.messagePlayingSpeedChanged) {
+            updateSpeed();
+        } else if (id == NotificationCenter.messagePlayingProgressDidChanged) {
             playButton.progressChanged();
         } else if (id == NotificationCenter.audioInfoLoaded) {
             MessageObject mo = current;
@@ -168,12 +214,23 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         }
     }
 
+    private void updateSpeed() {
+        float speed = MediaController.getInstance().getPlaybackSpeed(false);
+        speedButton.setText(String.format(java.util.Locale.US, "%s×", speed == (int) speed ? Integer.toString((int) speed) : Float.toString(speed)));
+    }
+
     public void update() {
         MessageObject mo = MediaController.getInstance().getPlayingMessageObject();
-        if (mo == null || !mo.isMusic()) {
+        if (!Md3Player.supports(mo)) {
             return;
         }
         current = mo;
+        boolean voice = Md3Player.voiceBar(mo);
+        voiceIcon.setVisibility(voice ? VISIBLE : GONE);
+        cover.setVisibility(voice ? GONE : VISIBLE);
+        nextButton.setVisibility(voice ? GONE : VISIBLE);
+        speedButton.setVisibility(voice ? VISIBLE : GONE);
+        if (voice) updateSpeed();
         titleView.setText(mo.getMusicTitle());
         artistView.setText(mo.getMusicAuthor());
         cover.setMessage(mo);

@@ -53,4 +53,5 @@
     <string name="PillStackArrow">Arrow</string>
     <string name="PillStackBoth">Gestures and arrow</string>
     <string name="PillStackNext">Next pill</string>
+    <string name="MeeroVoiceBar">Voice message player design</string>
 </resources>

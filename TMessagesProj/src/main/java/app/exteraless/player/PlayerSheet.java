@@ -227,7 +227,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         setApplyBottomPadding(false);
 
         MessageObject playing = MediaController.getInstance().getPlayingMessageObject();
-        previewMode = playing == null || !playing.isMusic();
+        previewMode = !Md3Player.supports(playing);
         if (previewMode) {
             playing = null;
         }
@@ -1146,14 +1146,14 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     public void didReceivedNotification(int id, int account, Object... args) {
         if (id == NotificationCenter.messagePlayingDidStart) {
             MessageObject mo = MediaController.getInstance().getPlayingMessageObject();
-            if (mo == null || !mo.isMusic()) {
+            if (!Md3Player.supports(mo)) {
                 dismissImmediately();
                 return;
             }
             bind(mo, true);
         } else if (id == NotificationCenter.messagePlayingDidReset) {
             MessageObject mo = MediaController.getInstance().getPlayingMessageObject();
-            if (mo == null || !mo.isMusic()) {
+            if (!Md3Player.supports(mo)) {
                 dismissImmediately();
             } else {
                 bind(mo, true);
@@ -1201,6 +1201,17 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         boolean changed = !TextUtils.equals(key, currentKey);
         current = mo;
         currentKey = key;
+        boolean musicQueue = !Md3Player.voiceBar(mo);
+        controls.prev.setEnabled(musicQueue);
+        controls.next.setEnabled(musicQueue);
+        controls.shuffle.setEnabled(musicQueue);
+        controls.repeat.setEnabled(musicQueue);
+        queueButton.setEnabled(musicQueue);
+        controls.prev.setAlpha(musicQueue ? 1f : 0.4f);
+        controls.next.setAlpha(musicQueue ? 1f : 0.4f);
+        controls.shuffle.setAlpha(musicQueue ? 1f : 0.4f);
+        controls.repeat.setAlpha(musicQueue ? 1f : 0.4f);
+        queueButton.setAlpha(musicQueue ? 1f : 0.4f);
         titleView.setText(mo.getMusicTitle());
         artistView.setText(mo.getMusicAuthor());
         smallTitle.setText(mo.getMusicTitle());
@@ -1244,11 +1255,11 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         if (mo == null) {
             return;
         }
-        MessagesController.SavedMusicList saved = MediaController.getInstance().currentSavedMusicList;
+        MessagesController.SavedMusicList saved = Md3Player.voiceBar(mo) ? null : MediaController.getInstance().currentSavedMusicList;
         if (saved != null) {
             headerLabel.setText(getString(R.string.OEPlayerFromProfile));
             headerTitle.setText(DialogObject.getShortName(saved.currentAccount, saved.dialogId));
-        } else if (MediaController.getInstance().currentPlaylistIsGlobalSearch()) {
+        } else if (!Md3Player.voiceBar(mo) && MediaController.getInstance().currentPlaylistIsGlobalSearch()) {
             headerLabel.setText(getString(R.string.OEPlayerFromSearch));
             headerTitle.setText(getString(R.string.OEPlayerMusic));
         } else {
@@ -1264,7 +1275,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     private void updateLike(boolean animated) {
         MessageObject mo = current;
-        boolean visible = PlayerStyle.showLike() && mo != null && mo.getDocument() != null && !PlayerActions.noForwards(mo);
+        boolean visible = PlayerStyle.showLike() && mo != null && !Md3Player.voiceBar(mo) && mo.getDocument() != null && !PlayerActions.noForwards(mo);
         likeButton.setVisibility(visible ? View.VISIBLE : View.GONE);
         titleSpacer.setVisibility(visible && PlayerStyle.titleCentered() ? View.VISIBLE : View.GONE);
         if (!visible) {
@@ -1352,7 +1363,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private void updateSpeed() {
-        float speed = MediaController.getInstance().getPlaybackSpeed(true);
+        float speed = MediaController.getInstance().getPlaybackSpeed(!Md3Player.voiceBar(current));
         DecimalFormat format = new DecimalFormat("0.##", DecimalFormatSymbols.getInstance(currentLocale()));
         String label = format.format(speed) + "×";
         speedButton.setText(islandActions ? null : label);
@@ -1366,7 +1377,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private void cycleSpeed() {
-        float speed = MediaController.getInstance().getPlaybackSpeed(true);
+        float speed = MediaController.getInstance().getPlaybackSpeed(!Md3Player.voiceBar(current));
         int index = -1;
         for (int i = 0; i < SPEEDS.length; i++) {
             if (Math.abs(SPEEDS[i] - speed) < 0.01f) {
@@ -1375,7 +1386,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             }
         }
         float next = index < 0 ? 1f : SPEEDS[(index + 1) % SPEEDS.length];
-        MediaController.getInstance().setPlaybackSpeed(true, next);
+        MediaController.getInstance().setPlaybackSpeed(!Md3Player.voiceBar(current), next);
         updateSpeed();
     }
 
@@ -1659,6 +1670,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private void openQueue() {
+        if (Md3Player.voiceBar(current)) return;
         new PlayerQueueSheet(getContext(), colors, resourcesProvider).show();
     }
 
@@ -1756,7 +1768,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private boolean onCoverTouch(View v, MotionEvent e) {
-        if (coverAnimating || previewMode || editing || !PlayerStyle.coverSwipe()
+        if (coverAnimating || previewMode || editing || Md3Player.voiceBar(current) || !PlayerStyle.coverSwipe()
                 || coverStyle != PlayerStyle.COVER_CARD && coverStyle != PlayerStyle.COVER_DISC) {
             return false;
         }

@@ -122,6 +122,7 @@ public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackB
     // v207 (owner order: "زيله منحتاجه اصلا"): the v205 meeroChatHeaderAvatar
     // switch is REMOVED - key, settings row and ChatAvatarContainer hook.
     public static ConfigItem meeroIosSearch = addConfig("meeroIosSearch", configTypeBool, true);
+    public static ConfigItem meeroVoiceBar = addConfig("meeroVoiceBar", configTypeBool, false);
     public static ConfigItem meeroPillStack = addConfig("meeroPillStack", configTypeBool, false);
     public static ConfigItem meeroIosFastScroll = addConfig("meeroIosFastScroll", configTypeBool, true);
     public static ConfigItem meeroIosShadows = addConfig("meeroIosShadows", configTypeBool, true);
