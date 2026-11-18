@@ -4880,9 +4880,87 @@ public class LocaleController {
     }
 
     @Nullable
+    // The bundled localization binary can fall back to English before Android
+    // resources are consulted. These fork-specific strings are shipped as
+    // Android resources, so use their Arabic resource when the app language is Arabic.
+    private static final java.util.Set<Integer> MEERO_AR_RESOURCE_IDS = new java.util.HashSet<>(java.util.Arrays.asList(
+            R.string.PillStackTitle,
+            R.string.PillStackPillsSettingsInfo,
+            R.string.PillStackActivePills,
+            R.string.PillStackHiddenPills,
+            R.string.PillStackInfiniteScrolling,
+            R.string.PillStackListEmpty,
+            R.string.PillStackReset,
+            R.string.PillStackResetDone,
+            R.string.PillStackWeather,
+            R.string.PillStackWeatherCurrentLocation,
+            R.string.PillStackWeatherLocationNotSet,
+            R.string.PillStackProxy,
+            R.string.PillStackProxyPing,
+            R.string.PillStackRam,
+            R.string.PillStackNetSpeed,
+            R.string.PillStackDcPing,
+            R.string.PillStackDcPingValue,
+            R.string.PillStackGold,
+            R.string.CryptoCurrencyAuto,
+            R.string.CryptoCurrencyAed,
+            R.string.CryptoCurrencyByn,
+            R.string.CryptoCurrencyCny,
+            R.string.CryptoCurrencyCzk,
+            R.string.CryptoCurrencyEur,
+            R.string.CryptoCurrencyGbp,
+            R.string.CryptoCurrencyIls,
+            R.string.CryptoCurrencyInr,
+            R.string.CryptoCurrencyJpy,
+            R.string.CryptoCurrencyKzt,
+            R.string.CryptoCurrencyPln,
+            R.string.CryptoCurrencyRub,
+            R.string.CryptoCurrencyTry,
+            R.string.CryptoCurrencyUah,
+            R.string.CryptoCurrencyUsd,
+            R.string.PillStackWeatherLocationHeader,
+            R.string.PillStackWeatherSelectLocation,
+            R.string.PillStackWeatherSettingsInfo,
+            R.string.PillStackWeatherPermissionGrant,
+            R.string.PillStackWeatherPermissionInfo,
+            R.string.PillStackWeatherServicesEnable,
+            R.string.PillStackRateFrom,
+            R.string.PillStackRateTo,
+            R.string.PillStackAddRate,
+            R.string.PillStackRemoveRate,
+            R.string.PillStackLastSeen,
+            R.string.MeeroPillStackEnable,
+            R.string.MeeroPillStackSettings,
+            R.string.MeeroPillSearchChats,
+            R.string.PillStackNavigation,
+            R.string.PillStackGestures,
+            R.string.PillStackArrow,
+            R.string.PillStackBoth,
+            R.string.PillStackNext,
+            R.string.MeeroFastAnimTitle
+    ));
+
+    private boolean meeroArabicLanguage() {
+        if (currentLocale != null && "ar".equalsIgnoreCase(currentLocale.getLanguage())) return true;
+        if (currentLocaleInfo == null) return false;
+        String code = currentLocaleInfo.baseLangCode;
+        if (code == null || code.isEmpty()) code = currentLocaleInfo.shortName;
+        return code != null && (code.equalsIgnoreCase("ar") || code.toLowerCase(java.util.Locale.ROOT).startsWith("ar_"));
+    }
+
     private String getStringV2(String key, @StringRes int stringRes, String fallback) {
         final Context context = ApplicationLoader.applicationContext;
         String value;
+
+        if (stringRes != 0 && MEERO_AR_RESOURCE_IDS.contains(stringRes) && meeroArabicLanguage()) {
+            try {
+                android.content.res.Configuration config = new android.content.res.Configuration(context.getResources().getConfiguration());
+                config.setLocale(new java.util.Locale("ar"));
+                return context.createConfigurationContext(config).getString(stringRes);
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
 
         if (BuildVars.USE_CLOUD_STRINGS) {
             value = localizationExternal.getByResNameOrResId(context, key, stringRes);

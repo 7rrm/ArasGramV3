@@ -190,7 +190,7 @@ public class MeeroSettingsActivity extends BaseNekoXSettingsActivity {
     // MeeroX v231 (owner pick «خيار 1»): the global 0.75x animation pace.
     // Default ON; OFF returns the stock 1.0x instantly via the callback in
     // the constructor (same pattern NekoChatSettingsActivity uses).
-    private final AbstractConfigCell fastAnimationsRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.meeroFastAnimations, getString(R.string.MeeroFastAnimTitle)));
+    private final AbstractConfigCell fastAnimationsRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.meeroFastAnimations, null, getString(R.string.MeeroFastAnimTitle)));
     private final AbstractConfigCell dividerMotion = cellGroup.appendCell(new ConfigCellDivider());
 
     // Storage - the auto cache janitor (MeeroX v159, approved feature). The
