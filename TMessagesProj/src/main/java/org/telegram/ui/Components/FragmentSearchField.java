@@ -554,11 +554,13 @@ public class FragmentSearchField extends FrameLayout implements FactorAnimator.T
             }
         }
 
+        if (pillStackController != null) pillStackController.updateColors();
         invalidate();
     }
     public void addColorKeys(HashSet<Integer> colors) {
         colors.add(Theme.key_windowBackgroundWhite);
         colors.add(Theme.key_windowBackgroundWhiteBlackText);
+        colors.add(Theme.key_windowBackgroundWhiteGreenText);
         colors.add(Theme.key_listSelector);
         colors.add(Theme.key_groupcreate_cursor);
     }

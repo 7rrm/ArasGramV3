@@ -28,7 +28,7 @@ import app.exteraless.pillstack.pills.BasePill;
  * Наружу торчит один метод — {@link #attach(FrameLayout, EditText)}: контроллер сам создаёт,
  * пересобирает и убирает полосу пилюль, поэтому в экране-хосте правок почти нет.
  */
-public class PillStackController implements PillStackEvents.Listener {
+public class PillStackController implements PillStackEvents.Listener, org.telegram.messenger.NotificationCenter.NotificationCenterDelegate {
 
     private final FrameLayout container;
     private final EditText editText;
@@ -59,6 +59,7 @@ public class PillStackController implements PillStackEvents.Listener {
             public void onViewAttachedToWindow(@NonNull View v) {
                 attached = true;
                 PillStackEvents.addListener(PillStackController.this);
+                org.telegram.messenger.NotificationCenter.getGlobalInstance().addObserver(PillStackController.this, org.telegram.messenger.NotificationCenter.didSetNewTheme);
                 if (stackView != null && stackView.getParent() == container
                         && builtLayoutVersion == PillStackEvents.getLayoutVersion()) {
                     stackView.updateColors();
@@ -72,6 +73,7 @@ public class PillStackController implements PillStackEvents.Listener {
             public void onViewDetachedFromWindow(@NonNull View v) {
                 attached = false;
                 PillStackEvents.removeListener(PillStackController.this);
+                org.telegram.messenger.NotificationCenter.getGlobalInstance().removeObserver(PillStackController.this, org.telegram.messenger.NotificationCenter.didSetNewTheme);
             }
         });
 
@@ -93,8 +95,14 @@ public class PillStackController implements PillStackEvents.Listener {
         if (container.isAttachedToWindow()) {
             attached = true;
             PillStackEvents.addListener(this);
+            org.telegram.messenger.NotificationCenter.getGlobalInstance().addObserver(this, org.telegram.messenger.NotificationCenter.didSetNewTheme);
             rebuild();
         }
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == org.telegram.messenger.NotificationCenter.didSetNewTheme) updateColors();
     }
 
     @Override
