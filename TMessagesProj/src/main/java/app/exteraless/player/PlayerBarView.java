@@ -35,6 +35,8 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
     private final CoverImage cover;
     private final TextView titleView;
     private final TextView artistView;
+    private final int originalTitleGravity;
+    private final int originalArtistGravity;
     private final RingPlayButton playButton;
     private final ImageView nextButton;
     private final TextView speedButton;
@@ -79,11 +81,13 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         LinearLayout texts = new LinearLayout(context);
         texts.setOrientation(LinearLayout.VERTICAL);
         titleView = new TextView(context);
+        originalTitleGravity = titleView.getGravity();
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setSingleLine(true);
         titleView.setEllipsize(TextUtils.TruncateAt.END);
         texts.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         artistView = new TextView(context);
+        originalArtistGravity = artistView.getGravity();
         artistView.setSingleLine(true);
         artistView.setEllipsize(TextUtils.TruncateAt.END);
         texts.addView(artistView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 1, 0, 0));
@@ -226,6 +230,8 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         }
         current = mo;
         boolean voice = Md3Player.voiceBar(mo);
+        titleView.setGravity(voice ? Gravity.CENTER : originalTitleGravity);
+        artistView.setGravity(voice ? Gravity.CENTER : originalArtistGravity);
         voiceIcon.setVisibility(voice ? VISIBLE : GONE);
         cover.setVisibility(voice ? GONE : VISIBLE);
         nextButton.setVisibility(voice ? GONE : VISIBLE);
