@@ -170,12 +170,10 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
 
     public void update() {
         MessageObject mo = MediaController.getInstance().getPlayingMessageObject();
-        if (mo == null || !Md3Player.supports(mo)) {
+        if (mo == null || !mo.isMusic()) {
             return;
         }
         current = mo;
-        nextButton.setEnabled(!Md3Player.isSupportedVoice(mo));
-        nextButton.setAlpha(Md3Player.isSupportedVoice(mo) ? 0.4f : 1f);
         titleView.setText(mo.getMusicTitle());
         artistView.setText(mo.getMusicAuthor());
         cover.setMessage(mo);
