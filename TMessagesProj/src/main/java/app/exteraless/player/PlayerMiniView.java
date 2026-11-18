@@ -789,7 +789,7 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
 
     public void bindPreview() {
         MessageObject mo = MediaController.getInstance().getPlayingMessageObject();
-        if (mo != null && mo.isMusic() && mo.getId() != 0) {
+        if (mo != null && Md3Player.supports(mo) && mo.getId() != 0) {
             bind(mo);
         } else {
             current = null;
@@ -809,7 +809,7 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     public void update(boolean animated) {
         checkThemeColors();
         MessageObject mo = MediaController.getInstance().getPlayingMessageObject();
-        boolean want = Md3Player.miniEnabled() && mo != null && mo.isMusic() && mo.getId() != 0;
+        boolean want = Md3Player.miniEnabled() && mo != null && Md3Player.supports(mo) && mo.getId() != 0;
         if (want) {
             bind(mo);
         }
@@ -820,6 +820,11 @@ public class PlayerMiniView extends FrameLayout implements NotificationCenter.No
     private void bind(MessageObject mo) {
         boolean changed = current != mo;
         current = mo;
+        boolean queueAvailable = !Md3Player.isMp3Voice(mo);
+        prevButton.setEnabled(queueAvailable);
+        nextButton.setEnabled(queueAvailable);
+        prevButton.setAlpha(queueAvailable ? 1f : 0.4f);
+        nextButton.setAlpha(queueAvailable ? 1f : 0.4f);
         titleText = mo.getMusicTitle();
         artistText = mo.getMusicAuthor();
         bindTexts();

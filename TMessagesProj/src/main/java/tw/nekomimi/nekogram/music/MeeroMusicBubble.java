@@ -298,7 +298,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
     private void refresh(boolean animated) {
         MessageObject mo = MediaController.getInstance().getPlayingMessageObject();
-        if (mo == null || !mo.isMusic() || mo.getId() == 0) {
+        if (mo == null || !app.exteraless.player.Md3Player.supports(mo) || mo.getId() == 0) {
             mo = null;
         }
         current = mo;
@@ -1085,6 +1085,11 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             artistView.setVisibility(PlayerStyle.miniArtist() ? VISIBLE : GONE);
             prev.setVisibility(PlayerStyle.miniPrevious() ? VISIBLE : GONE);
             next.setVisibility(PlayerStyle.miniNext() ? VISIBLE : GONE);
+            boolean queueAvailable = !app.exteraless.player.Md3Player.isMp3Voice(mo);
+            prev.setEnabled(queueAvailable);
+            next.setEnabled(queueAvailable);
+            prev.setAlpha(queueAvailable ? 1f : 0.4f);
+            next.setAlpha(queueAvailable ? 1f : 0.4f);
             seekBack.setVisibility(PlayerStyle.miniSeekFive() ? VISIBLE : GONE);
             seekForward.setVisibility(PlayerStyle.miniSeekFive() ? VISIBLE : GONE);
             progressLine.setVisibility(PlayerStyle.miniProgress() == PlayerStyle.MINI_PROGRESS_LINE ? VISIBLE : GONE);
@@ -1129,7 +1134,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
     public void refreshPanelPreview() {
         if (!previewMode) return;
         MessageObject playing = MediaController.getInstance().getPlayingMessageObject();
-        current = playing != null && playing.isMusic() ? playing : null;
+        current = playing != null && app.exteraless.player.Md3Player.supports(playing) ? playing : null;
         dark = PlayerColors.isDark(null);
         colors = current == null ? PlayerColors.fromSeed(PlayerColors.fallbackSeed(null), dark) : resolveColors(current, false);
         panel.bind(current, colors);

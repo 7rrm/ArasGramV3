@@ -25,8 +25,20 @@ public final class Md3Player {
         return AppearanceConfig.md3MiniPlayer();
     }
 
+    /** MP3 sent with Telegram's voice flag, without changing native voice handling. */
+    public static boolean isMp3Voice(MessageObject messageObject) {
+        if (messageObject == null || !messageObject.isVoice() || messageObject.isVoiceOnce()
+                || messageObject.isRoundVideo() || messageObject.isVideo()) return false;
+        org.telegram.tgnet.TLRPC.Document document = messageObject.getDocument();
+        return document != null && "audio/mpeg".equalsIgnoreCase(document.mime_type);
+    }
+
+    public static boolean supports(MessageObject messageObject) {
+        return messageObject != null && (messageObject.isMusic() || isMp3Voice(messageObject));
+    }
+
     private static boolean handles(MessageObject messageObject) {
-        return enabled() && messageObject != null && messageObject.isMusic();
+        return enabled() && supports(messageObject);
     }
 
     public static BottomSheet create(Context context, Theme.ResourcesProvider resourcesProvider) {
@@ -55,7 +67,7 @@ public final class Md3Player {
     }
 
     public static boolean hidesContextPlayer(BaseFragment fragment, MessageObject messageObject) {
-        if (!miniEnabled() || fragment == null || messageObject == null || !messageObject.isMusic()) {
+        if (!miniEnabled() || fragment == null || !supports(messageObject)) {
             return false;
         }
         Bundle args = fragment.getArguments();
