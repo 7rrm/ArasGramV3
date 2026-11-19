@@ -4,9 +4,7 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Path;
+import android.graphics.PorterDuff;
 import android.view.View;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -57,23 +55,11 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         cover = new CoverImage(context, 18);
         cover.setRadius(dp(10));
         addView(cover, LayoutHelper.createFrame(36, 36, Gravity.LEFT | Gravity.CENTER_VERTICAL, 12, 0, 0, 0));
-        voiceIcon = new View(context) {
-            final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            @Override protected void onDraw(Canvas canvas) {
-                float d = AndroidUtilities.density, x = getWidth() / 2f, y = getHeight() / 2f;
-                paint.setColor(theme.onPrimaryContainer);
-                paint.setStyle(Paint.Style.FILL);
-                canvas.save(); canvas.rotate(-18, x - 6*d, y + 7*d);
-                canvas.drawOval(x - 10*d, y + 4*d, x - 3*d, y + 9*d, paint);
-                canvas.restore();
-                canvas.drawRoundRect(x - 4*d, y - 10*d, x - 2*d, y + 7*d, d, d, paint);
-                float[] lengths = {7, 6, 9, 6, 7};
-                for (int i = 0; i < lengths.length; i++) {
-                    float top = y - 9*d + i*4*d;
-                    canvas.drawRoundRect(x + d, top, x + (1 + lengths[i])*d, top + 2.2f*d, d, d, paint);
-                }
-            }
-        };
+        ImageView voiceGlyph = new ImageView(context);
+        voiceGlyph.setImageResource(R.drawable.meero_voice_music_icon);
+        voiceGlyph.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        voiceGlyph.setColorFilter(theme.onPrimaryContainer, PorterDuff.Mode.SRC_IN);
+        voiceIcon = voiceGlyph;
         voiceIcon.setBackground(Theme.createRoundRectDrawable(dp(10), theme.primaryContainer));
         voiceIcon.setVisibility(GONE);
         addView(voiceIcon, LayoutHelper.createFrame(36, 36, Gravity.LEFT | Gravity.CENTER_VERTICAL, 12, 0, 0, 0));
