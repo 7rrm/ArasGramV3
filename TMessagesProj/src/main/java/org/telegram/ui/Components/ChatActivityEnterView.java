@@ -4016,7 +4016,8 @@ public class ChatActivityEnterView extends FrameLayout implements
                 // (a state refresh runs at the end of meeroSyncIosAttach).
                 if (state == State.VOICE && meeroIosComposer()) {
                     super.setState(state, false);
-                    setImageResource(R.drawable.meerox_ios_mic);
+                    setImageResource(NaConfig.INSTANCE.getIconReplacements().Int() == tw.nekomimi.nekogram.ui.icons.IconsResources.ICON_REPLACE_SOLAR
+                            ? R.drawable.input_mic_solar : R.drawable.meerox_ios_mic);
                     return;
                 }
                 super.setState(state, animate);
@@ -8446,6 +8447,10 @@ public class ChatActivityEnterView extends FrameLayout implements
                 delegate.didPressAttachButton();
             });
             attachButton.setContentDescription(LocaleController.getString("AccDescrAttachButton", R.string.AccDescrAttachButton));
+        }
+        if (meeroIosComposer() && NaConfig.INSTANCE.getIconReplacements().Int() == tw.nekomimi.nekogram.ui.icons.IconsResources.ICON_REPLACE_SOLAR) {
+            if (fromRes == R.drawable.input_attach) fromRes = R.drawable.ayu_input_attach;
+            if (targetRes == R.drawable.input_attach) targetRes = R.drawable.ayu_input_attach;
         }
         if (duration == 0) {
             attachButton.setImageResource(targetRes);
@@ -17609,7 +17614,8 @@ public class ChatActivityEnterView extends FrameLayout implements
                 // (Chat/Input/Text imagesets) so they match the iPhone
                 // 1:1. iOS PNGs are BLACK glyphs -> they need SRC_IN, not
                 // the MULTIPLY the light-coloured stock drawables used.
-                attachButton.setImageResource(R.drawable.meerox_ios_attach);
+                attachButton.setImageResource(NaConfig.INSTANCE.getIconReplacements().Int() == tw.nekomimi.nekogram.ui.icons.IconsResources.ICON_REPLACE_SOLAR
+                        ? R.drawable.ayu_input_attach : R.drawable.meerox_ios_attach);
                 attachButton.setColorFilter(new PorterDuffColorFilter(meeroIosGlyphColor(), PorterDuff.Mode.SRC_IN));
                 attachButton.setTranslationX(0);
                 // MeeroX v234 (owner: «ايقونه الارسال ... بنفس الكبر»): pin
