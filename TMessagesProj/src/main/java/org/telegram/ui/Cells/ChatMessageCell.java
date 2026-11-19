@@ -279,6 +279,19 @@ import org.telegram.messenger.AppGlobalConfig;
 public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate, ImageReceiver.ImageReceiverDelegate,
         DownloadController.FileDownloadProgressListener, TextSelectionHelper.SelectableView,
         NotificationCenter.NotificationCenterDelegate, FactorAnimator.Target, IMessageCell {
+
+    private static int meeroReplyIcon(int original) {
+        return xyz.nextalone.nagram.NaConfig.INSTANCE.getIconReplacements().Int() == tw.nekomimi.nekogram.ui.icons.IconsResources.ICON_REPLACE_SOLAR
+                ? tw.nekomimi.nekogram.ui.icons.SolarIcons.Companion.getConversion(original) : original;
+    }
+
+    private static class MeeroReplyMediaColorSpan extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance {
+        @Override public void updateDrawState(android.text.TextPaint paint) {
+            int color = Theme.chat_replyNamePaint.getColor();
+            paint.setColor(ColorUtils.setAlphaComponent(color, paint.getAlpha()));
+        }
+    }
+
     public final static int TIME_APPEAR_MS = 200;
     public final static int UPLOADING_ALLOWABLE_ERROR = 1024 * 1024;
     private final static int STICKER_STATUS_OFFSET = 6;
@@ -19691,13 +19704,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     } else if (messageObject.replyMessageObject == null && messageObject.messageOwner.reply_to != null && messageObject.messageOwner.reply_to.reply_from != null) {
                         name = messageObject.getReplyQuoteNameWithIcon();
                     } else if (messageObject.replyMessageObject != null) {
-                        if (drawForwardedName) {
-                            String fwdName = AndroidUtilities.removeDiacritics(messageObject.replyMessageObject.getForwardedName());
-                            if (fwdName != null && messageObject.getForwardedName() != null)
-                                name = fwdName;
-                            // show fwdname from replied message when this message and the replied message is all forwarded message
-                        }
-
                         if (name == null) {
                             long fromId = messageObject.replyMessageObject.getFromChatId();
                             if (fromId > 0) {
@@ -19722,6 +19728,23 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
                     if (name == null) {
                         name = getString("Loading", R.string.Loading);
+                    }
+                    // Keep the sender of the reply target and add its original forward source.
+                    if (!hasReplyQuote && messageObject.replyMessageObject != null
+                            && messageObject.replyMessageObject.messageOwner != null
+                            && messageObject.replyMessageObject.messageOwner.fwd_from != null) {
+                        String sourceName = AndroidUtilities.removeDiacritics(messageObject.replyMessageObject.getForwardedName());
+                        if (!TextUtils.isEmpty(sourceName) && !TextUtils.equals(sourceName, name)) {
+                            SpannableStringBuilder forwarded = new SpannableStringBuilder(sourceName.replace('\n', ' '));
+                            forwarded.append(" ");
+                            int iconStart = forwarded.length();
+                            forwarded.append("\ufffc");
+                            ColoredImageSpan arrow = new ColoredImageSpan(meeroReplyIcon(R.drawable.input_forward), ColoredImageSpan.ALIGN_CENTER);
+                            arrow.setSize(dp(14));
+                            forwarded.setSpan(arrow, iconStart, iconStart + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            forwarded.append(" ").append(name);
+                            name = forwarded;
+                        }
                     }
                     if (messageObject.messageOwner.reply_to != null && (messageObject.messageOwner.reply_to.flags & 2048) != 0 && messageObject.replyMessageObject != null && MessageObject.getMedia(messageObject.replyMessageObject) instanceof TLRPC.TL_messageMediaToDo) {
                         TLRPC.TodoItem task = MessageObject.findTodoItem(messageObject.replyMessageObject, messageObject.messageOwner.reply_to.todo_item_id);
@@ -19827,6 +19850,46 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         if (stringFinalText instanceof Spannable) {
                             MediaDataController.addTextStyleRuns(messageObject.replyMessageObject, (Spannable) stringFinalText);
                             stringFinalText = TextUtils.ellipsize(stringFinalText, textPaint, maxWidth, TextUtils.TruncateAt.END);
+                        }
+                    }
+                    // Explicit text quotes and special reply headers keep Telegram's original rendering.
+                    if (!hasReplyQuote && messageObject.messageOwner.reply_to != null
+                            && messageObject.messageOwner.reply_to.quote_text == null
+                            && messageObject.messageOwner.reply_to.reply_from == null
+                            && messageObject.replyMessageObject != null
+                            && !messageObject.replyMessageObject.isSecretMedia()
+                            && !messageObject.replyMessageObject.isVoiceOnce()
+                            && !messageObject.replyMessageObject.isRoundOnce()) {
+                        MessageObject target = messageObject.replyMessageObject;
+                        int icon = 0;
+                        int label = 0;
+                        if (target.isVoice()) {
+                            icon = R.drawable.msg_filled_data_voice; label = R.string.AttachAudio;
+                        } else if (target.isRoundVideo()) {
+                            icon = R.drawable.input_video; label = R.string.AttachRound;
+                        } else if (target.isVideo()) {
+                            icon = R.drawable.msg_filled_data_videos; label = R.string.AttachVideo;
+                        } else if (target.isPhoto()) {
+                            icon = R.drawable.msg_filled_data_photos; label = R.string.AttachPhoto;
+                        } else if (target.isMusic()) {
+                            icon = R.drawable.msg_filled_data_music; label = R.string.AttachMusic;
+                        } else if (target.isDocument() && !target.isAnyKindOfSticker() && !target.isGif()) {
+                            icon = R.drawable.msg_filled_data_files; label = R.string.AttachDocument;
+                        }
+                        if (icon != 0 && label != 0) {
+                            SpannableStringBuilder mediaText = new SpannableStringBuilder("\ufffc ");
+                            ColoredImageSpan mediaIcon = new ColoredImageSpan(meeroReplyIcon(icon), ColoredImageSpan.ALIGN_CENTER);
+                            mediaIcon.setSize(dp(14));
+                            mediaText.setSpan(mediaIcon, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            mediaText.append(getString(label));
+                            mediaText.setSpan(new MeeroReplyMediaColorSpan(), 0, mediaText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            if (!TextUtils.isEmpty(target.caption) && !TextUtils.isEmpty(stringFinalText)) {
+                                mediaText.append(", ").append(stringFinalText);
+                            } else if (target.isDocument() && target.getDocument() != null) {
+                                String fileName = FileLoader.getDocumentFileName(target.getDocument());
+                                if (!TextUtils.isEmpty(fileName)) mediaText.append(", ").append(fileName.replace('\n', ' '));
+                            }
+                            stringFinalText = mediaText;
                         }
                     }
                 } else {
