@@ -285,10 +285,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 ? tw.nekomimi.nekogram.ui.icons.SolarIcons.Companion.getConversion(original) : original;
     }
 
+    private static int meeroReplyMediaColor() {
+        return ColorUtils.blendARGB(Theme.chat_replyNamePaint.getColor(), Color.BLACK, 0.35f);
+    }
+
     private static class MeeroReplyMediaColorSpan extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance {
         @Override public void updateDrawState(android.text.TextPaint paint) {
-            int color = Theme.chat_replyNamePaint.getColor();
-            paint.setColor(ColorUtils.setAlphaComponent(color, paint.getAlpha()));
+            paint.setColor(ColorUtils.setAlphaComponent(meeroReplyMediaColor(), paint.getAlpha()));
         }
     }
 
@@ -19882,9 +19885,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             SpannableStringBuilder mediaText = new SpannableStringBuilder("\ufffc ");
                             ColoredImageSpan mediaIcon = new ColoredImageSpan(meeroReplyIcon(icon), ColoredImageSpan.ALIGN_CENTER);
                             mediaIcon.setSize(dp(16));
-                            mediaIcon.setAlpha(0.55f);
                             mediaIcon.setCheckColorDelegate(() -> mediaIcon.drawable.setColorFilter(
-                                    new android.graphics.PorterDuffColorFilter(Theme.chat_replyNamePaint.getColor(), android.graphics.PorterDuff.Mode.SRC_IN)));
+                                    new android.graphics.PorterDuffColorFilter(meeroReplyMediaColor(), android.graphics.PorterDuff.Mode.SRC_IN)));
                             mediaText.setSpan(mediaIcon, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                             mediaText.append(getString(label));
                             mediaText.setSpan(new MeeroReplyMediaColorSpan(), 2, mediaText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
