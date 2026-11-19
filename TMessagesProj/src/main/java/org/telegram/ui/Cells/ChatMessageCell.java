@@ -288,7 +288,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private static class MeeroReplyMediaColorSpan extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance {
         @Override public void updateDrawState(android.text.TextPaint paint) {
             int color = Theme.chat_replyNamePaint.getColor();
-            paint.setColor(ColorUtils.setAlphaComponent(color, paint.getAlpha()));
+            paint.setColor(ColorUtils.setAlphaComponent(color, Math.round(paint.getAlpha() * 0.55f)));
         }
     }
 
@@ -19735,14 +19735,16 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             && messageObject.replyMessageObject.messageOwner.fwd_from != null) {
                         String sourceName = AndroidUtilities.removeDiacritics(messageObject.replyMessageObject.getForwardedName());
                         if (!TextUtils.isEmpty(sourceName) && !TextUtils.equals(sourceName, name)) {
-                            SpannableStringBuilder forwarded = new SpannableStringBuilder(sourceName.replace('\n', ' '));
-                            forwarded.append(" ");
+                            // Keep the visible order stable with mixed Arabic and Latin names.
+                            android.text.BidiFormatter bidi = android.text.BidiFormatter.getInstance(false);
+                            SpannableStringBuilder forwarded = new SpannableStringBuilder("\u202a");
+                            forwarded.append(bidi.unicodeWrap(name)).append(" ");
                             int iconStart = forwarded.length();
                             forwarded.append("\ufffc");
-                            ColoredImageSpan arrow = new ColoredImageSpan(meeroReplyIcon(R.drawable.input_forward), ColoredImageSpan.ALIGN_CENTER);
-                            arrow.setSize(dp(14));
+                            ColoredImageSpan arrow = new ColoredImageSpan(meeroReplyIcon(R.drawable.share_arrow), ColoredImageSpan.ALIGN_CENTER);
+                            arrow.setSize(dp(16));
                             forwarded.setSpan(arrow, iconStart, iconStart + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            forwarded.append(" ").append(name);
+                            forwarded.append(" ").append(bidi.unicodeWrap(sourceName.replace('\n', ' '))).append("\u202c");
                             name = forwarded;
                         }
                     }
@@ -19879,10 +19881,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         if (icon != 0 && label != 0) {
                             SpannableStringBuilder mediaText = new SpannableStringBuilder("\ufffc ");
                             ColoredImageSpan mediaIcon = new ColoredImageSpan(meeroReplyIcon(icon), ColoredImageSpan.ALIGN_CENTER);
-                            mediaIcon.setSize(dp(14));
+                            mediaIcon.setSize(dp(16));
+                            mediaIcon.setAlpha(0.55f);
+                            mediaIcon.setCheckColorDelegate(() -> mediaIcon.drawable.setColorFilter(
+                                    new android.graphics.PorterDuffColorFilter(Theme.chat_replyNamePaint.getColor(), android.graphics.PorterDuff.Mode.SRC_IN)));
                             mediaText.setSpan(mediaIcon, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                             mediaText.append(getString(label));
-                            mediaText.setSpan(new MeeroReplyMediaColorSpan(), 0, mediaText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            mediaText.setSpan(new MeeroReplyMediaColorSpan(), 2, mediaText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                             if (!TextUtils.isEmpty(target.caption) && !TextUtils.isEmpty(stringFinalText)) {
                                 mediaText.append(", ").append(stringFinalText);
                             } else if (target.isDocument() && target.getDocument() != null) {
