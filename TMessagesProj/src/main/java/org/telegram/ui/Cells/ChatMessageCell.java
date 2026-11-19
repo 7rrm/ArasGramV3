@@ -288,7 +288,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private static class MeeroReplyMediaColorSpan extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance {
         @Override public void updateDrawState(android.text.TextPaint paint) {
             int color = Theme.chat_replyNamePaint.getColor();
-            paint.setColor(ColorUtils.setAlphaComponent(color, Math.round(paint.getAlpha() * 0.55f)));
+            paint.setColor(ColorUtils.setAlphaComponent(color, paint.getAlpha()));
         }
     }
 
