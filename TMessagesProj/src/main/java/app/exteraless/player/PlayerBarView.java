@@ -216,8 +216,8 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         }
         current = mo;
         boolean voice = Md3Player.voiceBar(mo);
-        titleView.setGravity(voice ? Gravity.CENTER : originalTitleGravity);
-        artistView.setGravity(voice ? Gravity.CENTER : originalArtistGravity);
+        titleView.setGravity(voice ? Gravity.LEFT | Gravity.CENTER_VERTICAL : originalTitleGravity);
+        artistView.setGravity(voice ? Gravity.LEFT | Gravity.CENTER_VERTICAL : originalArtistGravity);
         voiceIcon.setVisibility(voice ? VISIBLE : GONE);
         cover.setVisibility(voice ? GONE : VISIBLE);
         nextButton.setVisibility(voice ? GONE : VISIBLE);
