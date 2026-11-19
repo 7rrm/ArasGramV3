@@ -286,7 +286,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private static int meeroReplyMediaColor() {
-        return ColorUtils.blendARGB(Theme.chat_replyNamePaint.getColor(), Color.BLACK, 0.35f);
+        return ColorUtils.blendARGB(Theme.chat_replyNamePaint.getColor(), Color.BLACK, Theme.isCurrentThemeDark() ? 0.55f : 0.35f);
     }
 
     private static class MeeroReplyMediaColorSpan extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance {
