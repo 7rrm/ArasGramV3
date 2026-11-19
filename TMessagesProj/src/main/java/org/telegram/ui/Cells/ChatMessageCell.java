@@ -19742,7 +19742,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             int iconStart = forwarded.length();
                             forwarded.append("\ufffc");
                             ColoredImageSpan arrow = new ColoredImageSpan(meeroReplyIcon(R.drawable.share_arrow), ColoredImageSpan.ALIGN_CENTER);
-                            arrow.setSize(dp(16));
+                            arrow.setSize(dp(12));
                             forwarded.setSpan(arrow, iconStart, iconStart + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                             forwarded.append(" ").append(bidi.unicodeWrap(sourceName.replace('\n', ' '))).append("\u202c");
                             name = forwarded;
