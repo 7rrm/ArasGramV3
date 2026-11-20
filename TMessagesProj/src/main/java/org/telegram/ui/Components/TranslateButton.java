@@ -149,7 +149,7 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
         textView.setTextColor(Theme.getColor(Theme.key_chat_addContact, resourcesProvider));
         textView.setBackground(Theme.createInsetRoundRectDrawable(Theme.getColor(Theme.key_chat_addContact, resourcesProvider) & 0x19ffffff, dp(15), dp(3)));
         menuView.setBackground(Theme.createCircleSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), 0, 0));
-        menuView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_topPanelClose, resourcesProvider), PorterDuff.Mode.MULTIPLY));
+        menuView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_topPanelClose, resourcesProvider), PorterDuff.Mode.SRC_IN));
         translateDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_addContact, resourcesProvider), PorterDuff.Mode.MULTIPLY));
     }
     public void addColorKeys(HashSet<Integer> colors) {
