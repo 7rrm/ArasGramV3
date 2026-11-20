@@ -23882,6 +23882,9 @@ public class ChatActivity extends BaseFragment implements
                     invalidatePaidMessagesPriceOnIncoming(arr);
                 }
                 processNewMessages(arr);
+                if (!scheduled && searchItem != null && actionBar.isSearchFieldVisible()) {
+                    getMediaDataController().addIncomingGroupTags(did, classGuid, arr);
+                }
             } else if (ChatObject.isChannel(currentChat) && !currentChat.megagroup && chatInfo != null && did == -chatInfo.linked_chat_id) {
                 for (int a = 0, N = arr.size(); a < N; a++) {
                     MessageObject messageObject = arr.get(a);

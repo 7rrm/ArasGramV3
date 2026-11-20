@@ -3726,6 +3726,85 @@ public class MediaDataController extends BaseController {
     private boolean loadingMoreSearchMessages;
     private boolean loadingSearchLocal;
     private boolean loadedPredirectedSearchLocal;
+    private int groupTagsGeneration;
+
+    private boolean isGroupTagsSearch() {
+        return lastSearchFilter instanceof TLRPC.TL_inputMessagesFilterMyMentions
+                && TextUtils.isEmpty(lastSearchQuery) && lastDialogId < 0;
+    }
+
+    private final GroupTagsMerge.Entry<MessageObject> groupTagsEntry = new GroupTagsMerge.Entry<MessageObject>() {
+        public long dialogId(MessageObject message) { return message.getDialogId(); }
+        public int messageId(MessageObject message) { return message.getId(); }
+        public int date(MessageObject message) { return message.messageOwner.date; }
+        public boolean isOwn(MessageObject message) {
+            return message.isOut() || message.getFromChatId() == getUserConfig().getClientUserId();
+        }
+    };
+
+    private void notifyGroupTagsResults(boolean jump) {
+        if (searchResultMessages.isEmpty()) {
+            lastReturnedNum = 0;
+            getNotificationCenter().postNotificationName(NotificationCenter.chatSearchResultsAvailable,
+                    lastGuid, 0, getMask(), lastDialogId, 0, getSearchCount(), false);
+        } else {
+            lastReturnedNum = Math.max(0, Math.min(lastReturnedNum, searchResultMessages.size() - 1));
+            MessageObject message = searchResultMessages.get(lastReturnedNum);
+            getNotificationCenter().postNotificationName(NotificationCenter.chatSearchResultsAvailable,
+                    lastGuid, message.getId(), getMask(), message.getDialogId(), lastReturnedNum, getSearchCount(), jump);
+        }
+    }
+
+    private void loadLocalGroupTags(long dialogId, long topicId, int generation) {
+        getMessagesStorage().loadLocalGroupTags(dialogId, topicId, messages -> {
+            if (generation != groupTagsGeneration || !isGroupTagsSearch()) return;
+            MessageObject selected = lastReturnedNum >= 0 && lastReturnedNum < searchResultMessages.size()
+                    ? searchResultMessages.get(lastReturnedNum) : null;
+            searchLocalResultMessages.removeIf(m -> m.getDialogId() == dialogId);
+            searchLocalResultMessages.addAll(messages);
+            updateSearchResults();
+            if (selected != null) {
+                for (int i = 0; i < searchResultMessages.size(); i++) {
+                    MessageObject m = searchResultMessages.get(i);
+                    if (m.getDialogId() == selected.getDialogId() && m.getId() == selected.getId()) {
+                        lastReturnedNum = i;
+                        break;
+                    }
+                }
+            }
+            notifyGroupTagsResults(selected == null);
+        });
+    }
+
+    public void addIncomingGroupTags(long dialogId, int guid, ArrayList<MessageObject> messages) {
+        if (!isGroupTagsSearch() || lastGuid != guid || lastDialogId != dialogId) return;
+        MessageObject selected = lastReturnedNum >= 0 && lastReturnedNum < searchResultMessages.size()
+                ? searchResultMessages.get(lastReturnedNum) : null;
+        long self = getUserConfig().getClientUserId();
+        boolean changed = false;
+        for (MessageObject message : messages) {
+            if (message == null || message.messageOwner == null || message.getId() <= 0 || groupTagsEntry.isOwn(message)) continue;
+            if (lastReplyMessageId != 0 && message.getTopicId() != lastReplyMessageId) continue;
+            MessageObject replied = message.replyMessageObject;
+            boolean repliesToSelf = replied != null && (replied.isOut() || replied.getFromChatId() == self);
+            if (!message.messageOwner.mentioned && !repliesToSelf) continue;
+            searchLocalResultMessages.removeIf(m -> m.getDialogId() == message.getDialogId() && m.getId() == message.getId());
+            searchLocalResultMessages.add(message);
+            changed = true;
+        }
+        if (!changed) return;
+        updateSearchResults();
+        if (selected != null) {
+            for (int i = 0; i < searchResultMessages.size(); i++) {
+                MessageObject m = searchResultMessages.get(i);
+                if (m.getDialogId() == selected.getDialogId() && m.getId() == selected.getId()) {
+                    lastReturnedNum = i;
+                    break;
+                }
+            }
+        }
+        notifyGroupTagsResults(false);
+    }
 
     public void removeMessageFromResults(int id) {
         for (int i = 0; i < searchResultMessages.size(); ++i) {
@@ -3769,6 +3848,10 @@ public class MediaDataController extends BaseController {
     }
 
     private void updateSearchResults() {
+        if (isGroupTagsSearch()) {
+            searchResultMessages = GroupTagsMerge.merge(searchServerResultMessages, searchLocalResultMessages, groupTagsEntry);
+            return;
+        }
         ArrayList<MessageObject> previousSearchResultMessages = new ArrayList<>(searchResultMessages);
         searchResultMessages.clear();
         HashSet<Integer> messageIds = new HashSet<>();
@@ -3857,6 +3940,9 @@ public class MediaDataController extends BaseController {
     }
 
     public int getSearchCount() {
+        if (isGroupTagsSearch()) {
+            return Math.max(searchResultMessages.size(), messagesSearchCount[0] + messagesSearchCount[1]);
+        }
         if (searchServerResultMessages.isEmpty()) {
             return Math.max(Math.max(messagesSearchCount[0] + messagesSearchCount[1], messagesLocalSearchCount), searchServerResultMessages.size());
         }
@@ -3952,6 +4038,17 @@ public class MediaDataController extends BaseController {
                 return;
             }
         } else if (firstQuery) {
+            groupTagsGeneration++;
+            lastSearchFilter = filter;
+            lastSearchQuery = query;
+            lastDialogId = dialogId;
+            lastGuid = guid;
+            lastReturnedNum = 0;
+            searchServerResultMessages.clear();
+            if (isGroupTagsSearch()) {
+                loadLocalGroupTags(dialogId, replyMessageId, groupTagsGeneration);
+                if (mergeDialogId != 0) loadLocalGroupTags(mergeDialogId, 0, groupTagsGeneration);
+            }
             messagesSearchEndReached[0] = messagesSearchEndReached[1] = false;
             messagesSearchCount[0] = messagesSearchCount[1] = 0;
             searchResultMessages.clear();
@@ -4139,7 +4236,9 @@ public class MediaDataController extends BaseController {
                             updateSearchResults();
                             messagesSearchEndReached[queryWithDialogFinal == dialogId ? 0 : 1] = res.messages.size() < req.limit;
                             messagesSearchCount[queryWithDialogFinal == dialogId ? 0 : 1] = res instanceof TLRPC.TL_messages_messagesSlice || res instanceof TLRPC.TL_messages_channelMessages ? res.count : res.messages.size();
-                            if (searchServerResultMessages.isEmpty()) {
+                            if (isGroupTagsSearch()) {
+                                notifyGroupTagsResults(jumpToMessage);
+                            } else if (searchServerResultMessages.isEmpty()) {
                                 getNotificationCenter().postNotificationName(NotificationCenter.chatSearchResultsAvailable, guid, 0, getMask(), (long) 0, 0, 0, jumpToMessage);
                             } else {
                                 if (added) {

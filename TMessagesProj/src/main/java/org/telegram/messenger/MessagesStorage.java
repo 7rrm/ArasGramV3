@@ -257,6 +257,49 @@ public class MessagesStorage extends BaseController {
         return storageQueue;
     }
 
+    /** Load cached mentions and replies to locally available outgoing messages off the UI thread. */
+    public void loadLocalGroupTags(long dialogId, long topicId, Consumer<ArrayList<MessageObject>> callback) {
+        storageQueue.postRunnable(() -> {
+            ArrayList<TLRPC.Message> rawMessages = new ArrayList<>();
+            SQLiteCursor cursor = null;
+            try {
+                cursor = database.queryFinalized(String.format(Locale.US,
+                        "SELECT m.data, m.mid, m.date FROM messages_v2 m " +
+                        "LEFT JOIN messages_v2 r ON r.uid = m.uid AND r.mid = m.reply_to_message_id " +
+                        "WHERE m.uid = %d AND m.mid > 0 AND m.out = 0 AND (m.mention = 1 OR r.out = 1) " +
+                        "ORDER BY m.date DESC, m.mid DESC", dialogId));
+                while (cursor.next()) {
+                    NativeByteBuffer data = cursor.byteBufferValue(0);
+                    if (data == null) continue;
+                    TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                    if (message != null) {
+                        message.readAttachPath(data, getUserConfig().clientUserId);
+                        message.id = cursor.intValue(1);
+                        message.date = cursor.intValue(2);
+                        message.dialog_id = dialogId;
+                        rawMessages.add(message);
+                    }
+                    data.reuse();
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            } finally {
+                if (cursor != null) cursor.dispose();
+            }
+            AndroidUtilities.runOnUIThread(() -> {
+                ArrayList<MessageObject> result = new ArrayList<>();
+                long self = getUserConfig().getClientUserId();
+                for (TLRPC.Message message : rawMessages) {
+                    MessageObject object = new MessageObject(currentAccount, message, null, null, null, null, null, true, true, 0, false, false, false);
+                    if (!object.isOut() && object.getFromChatId() != self && (topicId == 0 || object.getTopicId() == topicId)) {
+                        result.add(object);
+                    }
+                }
+                callback.accept(result);
+            });
+        });
+    }
+
     @UiThread
     public void bindTaskToGuid(Runnable task, int guid) {
         ArrayList<Runnable> arrayList = tasks.get(guid);
