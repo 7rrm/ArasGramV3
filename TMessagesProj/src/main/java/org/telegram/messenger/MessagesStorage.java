@@ -257,23 +257,108 @@ public class MessagesStorage extends BaseController {
         return storageQueue;
     }
 
-    /** Load cached mentions and replies to locally available outgoing messages off the UI thread. */
+    // This table is independent of messages_v2: confirmation only removes the temporary copy.
+    private void ensurePendingGroupTagsTable() throws Exception {
+        database.executeFast("CREATE TABLE IF NOT EXISTS pending_group_tags_v1 (uid INTEGER NOT NULL, mid INTEGER NOT NULL, date INTEGER NOT NULL, data BLOB NOT NULL, PRIMARY KEY(uid, mid))").stepThis().dispose();
+    }
+
+    public void savePendingGroupTags(long dialogId, ArrayList<MessageObject> incoming) {
+        final ArrayList<MessageObject> messages = new ArrayList<>(incoming);
+        storageQueue.postRunnable(() -> {
+            SQLitePreparedStatement state = null;
+            boolean changed = false;
+            try {
+                ensurePendingGroupTagsTable();
+                state = database.executeFast("INSERT OR REPLACE INTO pending_group_tags_v1 VALUES(?, ?, ?, ?)");
+                final long self = getUserConfig().getClientUserId();
+                for (MessageObject object : messages) {
+                    if (object == null || object.messageOwner == null || object.getId() <= 0 || object.isOut() || object.getFromChatId() == self) continue;
+                    TLRPC.Message message = object.messageOwner;
+                    boolean eligible = message.mentioned;
+                    if (!eligible && MessageObject.getReplyToDialogId(message) == dialogId && object.replyMessageObject != null) {
+                        MessageObject replied = object.replyMessageObject;
+                        eligible = replied.isOut() || replied.getFromChatId() == self;
+                    }
+                    int replyId = object.getReplyMsgId();
+                    if (!eligible && replyId > 0 && MessageObject.getReplyToDialogId(message) == dialogId) {
+                        SQLiteCursor cursor = null;
+                        try {
+                            cursor = database.queryFinalized(String.format(Locale.US,
+                                    "SELECT out, data FROM messages_v2 WHERE uid = %d AND mid = %d", dialogId, replyId));
+                            if (cursor.next()) {
+                                eligible = cursor.intValue(0) != 0;
+                                if (!eligible) {
+                                    NativeByteBuffer replyData = cursor.byteBufferValue(1);
+                                    if (replyData != null) {
+                                        TLRPC.Message replied = TLRPC.Message.TLdeserialize(replyData, replyData.readInt32(false), false);
+                                        if (replied != null) eligible = MessageObject.getFromChatId(replied) == self;
+                                        replyData.reuse();
+                                    }
+                                }
+                            }
+                        } finally {
+                            if (cursor != null) cursor.dispose();
+                        }
+                    }
+                    if (!eligible) continue;
+                    NativeByteBuffer data = new NativeByteBuffer(message.getObjectSize());
+                    try {
+                        message.serializeToStream(data);
+                        state.requery();
+                        state.bindLong(1, dialogId);
+                        state.bindInteger(2, object.getId());
+                        state.bindInteger(3, message.date);
+                        state.bindByteBuffer(4, data);
+                        state.step();
+                        changed = true;
+                    } finally {
+                        data.reuse();
+                    }
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            } finally {
+                if (state != null) state.dispose();
+            }
+            if (changed) AndroidUtilities.runOnUIThread(() -> getMediaDataController().onPendingGroupTagsStored(dialogId));
+        });
+    }
+
+    public void confirmPendingGroupTags(long dialogId, ArrayList<Integer> ids) {
+        if (ids.isEmpty()) return;
+        final ArrayList<Integer> copy = new ArrayList<>(ids);
+        storageQueue.postRunnable(() -> {
+            SQLitePreparedStatement state = null;
+            try {
+                ensurePendingGroupTagsTable();
+                state = database.executeFast("DELETE FROM pending_group_tags_v1 WHERE uid = ? AND mid = ?");
+                for (Integer id : copy) {
+                    state.requery();
+                    state.bindLong(1, dialogId);
+                    state.bindInteger(2, id);
+                    state.step();
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            } finally {
+                if (state != null) state.dispose();
+            }
+        });
+    }
+
     public void loadLocalGroupTags(long dialogId, long topicId, Consumer<ArrayList<MessageObject>> callback) {
         storageQueue.postRunnable(() -> {
             ArrayList<TLRPC.Message> rawMessages = new ArrayList<>();
             SQLiteCursor cursor = null;
             try {
+                ensurePendingGroupTagsTable();
                 cursor = database.queryFinalized(String.format(Locale.US,
-                        "SELECT m.data, m.mid, m.date FROM messages_v2 m " +
-                        "LEFT JOIN messages_v2 r ON r.uid = m.uid AND r.mid = m.reply_to_message_id " +
-                        "WHERE m.uid = %d AND m.mid > 0 AND m.out = 0 AND (m.mention = 1 OR r.out = 1) " +
-                        "ORDER BY m.date DESC, m.mid DESC", dialogId));
+                        "SELECT data, mid, date FROM pending_group_tags_v1 WHERE uid = %d ORDER BY date DESC, mid DESC", dialogId));
                 while (cursor.next()) {
                     NativeByteBuffer data = cursor.byteBufferValue(0);
                     if (data == null) continue;
                     TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                     if (message != null) {
-                        message.readAttachPath(data, getUserConfig().clientUserId);
                         message.id = cursor.intValue(1);
                         message.date = cursor.intValue(2);
                         message.dialog_id = dialogId;
@@ -291,9 +376,7 @@ public class MessagesStorage extends BaseController {
                 long self = getUserConfig().getClientUserId();
                 for (TLRPC.Message message : rawMessages) {
                     MessageObject object = new MessageObject(currentAccount, message, null, null, null, null, null, true, true, 0, false, false, false);
-                    if (!object.isOut() && object.getFromChatId() != self && (topicId == 0 || object.getTopicId() == topicId)) {
-                        result.add(object);
-                    }
+                    if (!object.isOut() && object.getFromChatId() != self && (topicId == 0 || object.getTopicId() == topicId)) result.add(object);
                 }
                 callback.accept(result);
             });
@@ -14838,6 +14921,14 @@ public class MessagesStorage extends BaseController {
         SQLiteCursor cursor = null;
         SQLitePreparedStatement state = null;
         try {
+            if (dialogId < 0 && mode == ChatActivity.MODE_DEFAULT && !messages.isEmpty()) {
+                try {
+                    ensurePendingGroupTagsTable();
+                    database.executeFast(String.format(Locale.US, "DELETE FROM pending_group_tags_v1 WHERE uid = %d AND mid IN(%s)", dialogId, TextUtils.join(",", messages))).stepThis().dispose();
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
             if (getUserConfig().getClientUserId() == dialogId) {
                 database.executeFast(String.format(Locale.US, "DELETE FROM tag_message_id WHERE mid IN(%s)", TextUtils.join(",", messages))).stepThis().dispose();
             }

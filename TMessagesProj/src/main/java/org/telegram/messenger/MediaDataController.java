@@ -3776,6 +3776,12 @@ public class MediaDataController extends BaseController {
         });
     }
 
+    public void onPendingGroupTagsStored(long dialogId) {
+        if (isGroupTagsSearch() && (lastDialogId == dialogId || lastMergeDialogId == dialogId)) {
+            loadLocalGroupTags(dialogId, lastDialogId == dialogId ? lastReplyMessageId : 0, groupTagsGeneration);
+        }
+    }
+
     public void addIncomingGroupTags(long dialogId, int guid, ArrayList<MessageObject> messages) {
         if (!isGroupTagsSearch() || lastGuid != guid || lastDialogId != dialogId) return;
         MessageObject selected = lastReturnedNum >= 0 && lastReturnedNum < searchResultMessages.size()
@@ -4232,6 +4238,12 @@ public class MediaDataController extends BaseController {
                                 MessageObject messageObject = messageObjects.get(a);
                                 searchServerResultMessages.add(messageObject);
                                 searchServerResultMessagesMap[queryWithDialogFinal == dialogId ? 0 : 1].put(messageObject.getId(), messageObject);
+                            }
+                            if (isGroupTagsSearch() && !messageObjects.isEmpty()) {
+                                ArrayList<Integer> confirmedIds = new ArrayList<>();
+                                for (MessageObject object : messageObjects) confirmedIds.add(object.getId());
+                                getMessagesStorage().confirmPendingGroupTags(queryWithDialogFinal, confirmedIds);
+                                searchLocalResultMessages.removeIf(m -> m.getDialogId() == queryWithDialogFinal && confirmedIds.contains(m.getId()));
                             }
                             updateSearchResults();
                             messagesSearchEndReached[queryWithDialogFinal == dialogId ? 0 : 1] = res.messages.size() < req.limit;

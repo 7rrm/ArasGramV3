@@ -22300,6 +22300,12 @@ public class MessagesController extends BaseController implements NotificationCe
         final boolean scheduled = mode == ChatActivity.MODE_SCHEDULED;
         final boolean quickReplies = mode == ChatActivity.MODE_QUICK_REPLIES;
         final boolean welcomeMessages = mode == ChatActivity.MODE_WELCOME_MESSAGES;
+        if (mode == ChatActivity.MODE_DEFAULT && dialogId < 0) {
+            TLRPC.Chat groupTagsChat = getChat(-dialogId);
+            if (groupTagsChat != null && (!ChatObject.isChannel(groupTagsChat) || groupTagsChat.megagroup)) {
+                getMessagesStorage().savePendingGroupTags(dialogId, messages);
+            }
+        }
 
         boolean isEncryptedChat = DialogObject.isEncryptedDialog(dialogId);
         MessageObject lastMessage = null;
