@@ -993,6 +993,12 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
+    val chatMenuItemTags =
+        addConfig(
+            "ChatMenuItemTags",
+            ConfigItem.configTypeBool,
+            true
+        )
     val chatMenuItemHideTitle =
         addConfig(
             "ChatMenuItemHideTitle",

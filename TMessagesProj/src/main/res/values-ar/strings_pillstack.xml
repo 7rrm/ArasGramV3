@@ -54,4 +54,5 @@
     <string name="PillStackBoth">الإيماءات والسهم</string>
     <string name="PillStackNext">الكبسولة التالية</string>
     <string name="MeeroVoiceBar">تصميم مشغّل الرسائل الصوتية</string>
+    <string name="MeeroGroupTags">التاكات</string>
 </resources>

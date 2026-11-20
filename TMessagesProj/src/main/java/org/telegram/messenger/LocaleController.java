@@ -4938,7 +4938,8 @@ public class LocaleController {
             R.string.PillStackBoth,
             R.string.PillStackNext,
             R.string.MeeroFastAnimTitle,
-            R.string.MeeroVoiceBar
+            R.string.MeeroVoiceBar,
+            R.string.MeeroGroupTags
     ));
 
     private boolean meeroArabicLanguage() {

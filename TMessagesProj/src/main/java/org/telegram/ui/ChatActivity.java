@@ -1893,6 +1893,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int id_chat_compose_panel = 1000;
     private final static int to_the_beginning = 200;
     private final static int to_the_message = 201;
+    private final static int meero_group_tags = 205;
     private final static int shortcuts_administrators = 300;
     private final static int shortcuts_recent_actions = 301;
     private final static int shortcuts_statistics = 302;
@@ -4401,6 +4402,8 @@ public class ChatActivity extends BaseFragment implements
                     scrollToMessageId(1, 0, false, 0, true, 0);
                 } else if (id == to_the_message){
                     setScrollToMessage();
+                } else if (id == meero_group_tags) {
+                    openGroupTagsSearch();
                 } else if (id == boost_group) {
                     if (ChatObject.hasAdminRights(currentChat)) {
                         BoostsActivity boostsActivity = new BoostsActivity(dialog_id);
@@ -5061,6 +5064,10 @@ public class ChatActivity extends BaseFragment implements
             boolean addedSettings = false;
             if (NaConfig.INSTANCE.getChatMenuItemToBeginning().Bool()) headerItem.lazilyAddSubItem(to_the_beginning, R.drawable.ic_upward, getString(R.string.ToTheBeginning));
             if (NaConfig.INSTANCE.getChatMenuItemGoToMessage().Bool()) headerItem.lazilyAddSubItem(to_the_message, R.drawable.msg_go_up, getString(R.string.ToTheMessage));
+            if (currentChat != null && (ChatObject.isMegagroup(currentChat) || !ChatObject.isChannel(currentChat))
+                    && NaConfig.INSTANCE.getChatMenuItemTags().Bool()) {
+                headerItem.lazilyAddSubItem(meero_group_tags, R.drawable.msg_mention, getString(R.string.MeeroGroupTags));
+            }
             if (NaConfig.INSTANCE.getShowAddToBookmark().Bool()) {
                 bookmarksItem = headerItem.lazilyAddSubItem(nkbtn_bookmarks_manager, R.drawable.msg_fave, getString(R.string.BookmarksManager));
                 headerItem.setSubItemShown(nkbtn_bookmarks_manager, BookmarksHelper.getBookmarkedMessageIds(currentAccount, dialog_id).length > 0);
@@ -38091,6 +38098,27 @@ public class ChatActivity extends BaseFragment implements
                 }
             });
         }).start();
+    }
+
+    private void openGroupTagsSearch() {
+        // Use the same server-backed mention search and navigation as chat search.
+        // Passing an empty (not null) query starts a new filtered search.
+        openSearchWithText("");
+        if (searchItem == null || !actionBar.isSearchFieldVisible()) return;
+        searchingUserMessages = null;
+        searchingChatMessages = null;
+        searchingReaction = null;
+        searchingType = searchFilters.get(searchFilters.size() - 1).second;
+        searchingQuery = "";
+        searchWas = true;
+        searching = true;
+        searchItemVisible = true;
+        searchItem.setSearchFieldHint(getString(R.string.MeeroGroupTags));
+        AndroidUtilities.hideKeyboard(searchItem.getSearchField());
+        getMediaDataController().searchMessagesInChat("", dialog_id, mergeDialogId, classGuid, 0,
+                threadMessageId, false, null, null, true, null, searchingType);
+        updateBottomOverlay();
+        updateSearchUpDownButtonVisibility(true);
     }
 
     public void openSearchWithText(String text) {

@@ -117,7 +117,7 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
 
         menuView = new ImageView(context);
         menuView.setScaleType(ImageView.ScaleType.CENTER);
-        menuView.setImageResource(R.drawable.msg_mini_customize);
+        menuView.setImageResource(R.drawable.ios_chat_more);
         menuView.setOnClickListener(e -> {
             final TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
             if (true || UserConfig.getInstance(currentAccount).isPremium() || chat != null && chat.autotranslation) {
@@ -464,7 +464,7 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
             }
             textView.setText(TextUtils.concat(translateIcon, " ", text));
         }
-        menuView.setImageResource(true || UserConfig.getInstance(currentAccount).isPremium() || chat != null && chat.autotranslation ? R.drawable.msg_mini_customize : R.drawable.msg_close);
+        menuView.setImageResource(true || UserConfig.getInstance(currentAccount).isPremium() || chat != null && chat.autotranslation ? R.drawable.ios_chat_more : R.drawable.msg_close);
     }
 
     public static void showCocoonAlert(Context context, Theme.ResourcesProvider resourcesProvider) {
