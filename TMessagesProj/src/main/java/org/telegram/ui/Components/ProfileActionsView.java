@@ -384,7 +384,9 @@ public class ProfileActionsView extends View {
 
         // Match the profile's accent colour; keep white when the expanded photo sits behind the buttons.
         final float overPhoto = MathUtils.clamp((parentExpanded - 0.75f) / 0.25f, 0, 1);
-        final int textColor = ColorUtils.blendARGB(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText), Color.WHITE, overPhoto);
+        final int textColor = mode == MODE_MY_PROFILE
+                ? ColorUtils.blendARGB(Color.BLACK, Color.WHITE, useFilledWhiteIcon)
+                : ColorUtils.blendARGB(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText), Color.WHITE, overPhoto);
         if (lastColorFilter == null || lastColorFilterColor != textColor) {
             lastColorFilterColor = textColor;
             lastColorFilter = new PorterDuffColorFilter(textColor, PorterDuff.Mode.SRC_IN);
@@ -410,8 +412,13 @@ public class ProfileActionsView extends View {
             canvas.translate(0, action.iconTranslationY);
         }
 
-        if (action.iconScale != 1f) {
-            canvas.scale(action.iconScale, action.iconScale, action.bounds.centerX(), action.bounds.centerY());
+        float iconScale = action.iconScale;
+        if (NaConfig.INSTANCE.getIconReplacements().Int() == IconsResources.ICON_REPLACE_SOLAR
+                && (action.key == KEY_NOTIFICATION || action.key == KEY_VIDEO)) {
+            iconScale *= 0.9f;
+        }
+        if (iconScale != 1f) {
+            canvas.scale(iconScale, iconScale, action.bounds.centerX(), action.bounds.centerY());
         }
         if (!isAnimatingCallAction || action.key != KEY_CALL) {
             final float outlineAlpha = (1f - useFilledWhiteIcon) * alpha;
@@ -1196,9 +1203,11 @@ public class ProfileActionsView extends View {
                     // The requested round message bubble from the reference profile.
                     solarRes = R.drawable.filled_profile_message_24;
                 } else if (filledRes == R.drawable.filled_profile_mute_24) {
-                    solarRes = R.drawable.msg_notifications_solar;
+                    solarRes = R.drawable.mute_solar;
                 } else if (filledRes == R.drawable.filled_profile_unmute_24) {
-                    solarRes = R.drawable.msg_bell_mute_solar;
+                    solarRes = R.drawable.unmute_solar;
+                } else if (filledRes == R.drawable.filled_profile_video_24) {
+                    solarRes = R.drawable.profile_video_solar;
                 } else if (filledRes == R.drawable.filled_profile_call_24) {
                     solarRes = R.drawable.profile_phone_solar;
                 } else if (filledRes == R.drawable.gift && outlineRes == R.drawable.input_gift_s) {
