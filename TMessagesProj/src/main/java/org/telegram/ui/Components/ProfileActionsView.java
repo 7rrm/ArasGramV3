@@ -125,6 +125,7 @@ public class ProfileActionsView extends View {
 
     private int color = 0;
     private boolean hasColorById;
+    private boolean hasProfileBackground;
     private RadialGradient radialGradient;
     private final Matrix matrix = new Matrix();
 
@@ -194,6 +195,13 @@ public class ProfileActionsView extends View {
             this.hasColorById = hasColorById;
             createColorShader();
             checkPaints();
+        }
+    }
+
+    public void setHasProfileBackground(boolean hasBackground) {
+        if (hasProfileBackground != hasBackground) {
+            hasProfileBackground = hasBackground;
+            invalidate();
         }
     }
 
@@ -382,11 +390,11 @@ public class ProfileActionsView extends View {
         // over the photo the buttons are the dimmed photo on every Android (see ProfileButtonsGlass): white icons there
         final float useFilledWhiteIcon = !isButtonColorLight ? 1 : MathUtils.clamp((parentExpanded - 0.75f) / 0.25f, 0, 1);
 
-        // Match the profile's accent colour; keep white when the expanded photo sits behind the buttons.
+        // Custom profile backgrounds use white; otherwise follow the theme accent.
+        // Keep white during the transition to the expanded photo too.
         final float overPhoto = MathUtils.clamp((parentExpanded - 0.75f) / 0.25f, 0, 1);
-        final int textColor = mode == MODE_MY_PROFILE
-                ? ColorUtils.blendARGB(Color.BLACK, Color.WHITE, useFilledWhiteIcon)
-                : ColorUtils.blendARGB(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText), Color.WHITE, overPhoto);
+        final int textColor = ColorUtils.blendARGB(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText),
+                Color.WHITE, hasProfileBackground ? 1f : overPhoto);
         if (lastColorFilter == null || lastColorFilterColor != textColor) {
             lastColorFilterColor = textColor;
             lastColorFilter = new PorterDuffColorFilter(textColor, PorterDuff.Mode.SRC_IN);

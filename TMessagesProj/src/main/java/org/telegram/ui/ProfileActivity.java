@@ -1394,6 +1394,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         public final AnimatedFloat emojiFullT = new AnimatedFloat(this, 0, 440, CubicBezierInterpolator.EASE_OUT_QUINT);
 
         public boolean hasEmoji;
+        private boolean hasCurrentBackgroundEmoji;
         private boolean emojiIsCollectible;
 
         public void setBackgroundEmojiId(long emojiId, boolean isCollectible, boolean animated) {
@@ -1403,7 +1404,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (!animated) {
                 emojiFullT.force(isCollectible);
             }
-            hasEmoji = hasEmoji || emojiId != 0 && emojiId != -1;
+            hasCurrentBackgroundEmoji = emojiId != 0 && emojiId != -1;
+            hasEmoji = hasEmoji || hasCurrentBackgroundEmoji;
             invalidate();
         }
 
@@ -1427,6 +1429,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             final int color2 = color2Animated.set(this.color2);
             if (actionsView != null) {
                 actionsView.setActionsColor(btnColor, hasColorById);
+                actionsView.setHasProfileBackground(hasColorById || hasCurrentBackgroundEmoji);
             }
             if (musicView != null) {
                 musicView.setButtonColor(btnColor, hasColorById);
