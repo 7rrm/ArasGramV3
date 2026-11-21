@@ -422,7 +422,7 @@ public class ProfileActionsView extends View {
 
         float iconScale = action.iconScale;
         if (NaConfig.INSTANCE.getIconReplacements().Int() == IconsResources.ICON_REPLACE_SOLAR
-                && (action.key == KEY_NOTIFICATION || action.key == KEY_VIDEO)) {
+                && (action.key == KEY_GIFT || action.key == KEY_VIDEO)) {
             iconScale *= 0.9f;
         }
         if (iconScale != 1f) {
@@ -881,13 +881,17 @@ public class ProfileActionsView extends View {
             case KEY_VOICE_CHAT:
                 newAction = new Action(ActionButton.VOICE_CHAT);
                 newAction.supportsLoading = true;
-                newAction.supportsAnimate = R.raw.profile_voicechat;
+                if (NaConfig.INSTANCE.getIconReplacements().Int() != IconsResources.ICON_REPLACE_SOLAR) {
+                    newAction.supportsAnimate = R.raw.profile_voicechat;
+                }
                 newAction.stopDelay = 500;
                 break;
             case KEY_STREAM:
                 newAction = new Action(ActionButton.STREAM);
                 newAction.supportsLoading = true;
-                newAction.supportsAnimate = R.raw.profile_voicechat;
+                if (NaConfig.INSTANCE.getIconReplacements().Int() != IconsResources.ICON_REPLACE_SOLAR) {
+                    newAction.supportsAnimate = R.raw.profile_voicechat;
+                }
                 newAction.stopDelay = 500;
                 break;
             case KEY_STORY:
@@ -1219,7 +1223,17 @@ public class ProfileActionsView extends View {
                 } else if (filledRes == R.drawable.filled_profile_call_24) {
                     solarRes = R.drawable.profile_phone_solar;
                 } else if (filledRes == R.drawable.gift && outlineRes == R.drawable.input_gift_s) {
-                    solarRes = R.drawable.msg_gift_premium_solar;
+                    solarRes = R.drawable.gift_solar;
+                } else if (filledRes == R.drawable.live_stream) {
+                    solarRes = R.drawable.live_stream_solar;
+                } else if (filledRes == R.drawable.filled_profile_story) {
+                    solarRes = R.drawable.story_solar;
+                } else if (filledRes == R.drawable.filled_profile_photo) {
+                    solarRes = R.drawable.camera_solar;
+                } else if (filledRes == R.drawable.filled_profile_edit_24) {
+                    solarRes = R.drawable.group_edit_profile_solar;
+                } else if (filledRes == R.drawable.filled_profile_settings) {
+                    solarRes = R.drawable.filled_profile_settings_solar;
                 } else if (filledRes == R.drawable.leave && outlineRes == R.drawable.leave) {
                     solarRes = R.drawable.leave_solar;
                 }

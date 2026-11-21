@@ -14477,14 +14477,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                     } else if (containsQr) {
                         Drawable drawable = ContextCompat.getDrawable(detailCell.getContext(), R.drawable.header_qr_24);
-                        drawable.setColorFilter(new PorterDuffColorFilter(dontApplyPeerColor(getThemedColor(Theme.key_actionBarDefaultIcon), false), PorterDuff.Mode.MULTIPLY));
+                        drawable = drawable.mutate();
+                        drawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteBlueText), PorterDuff.Mode.SRC_IN));
                         qrRowIconDrawable = drawable;
                         detailCell.setImage(drawable, LocaleController.getString(R.string.GetQRCode));
                         detailCell.setImageClickListener(ProfileActivity.this::onTextDetailCellImageClicked);
                     } else if (position == idDcRow && userId != 0) {
                         // FIX: Add calendar icon for account creation date
-                        Drawable calendarDrawable = ContextCompat.getDrawable(detailCell.getContext(), R.drawable.msg_calendar);
-                        calendarDrawable.setColorFilter(new PorterDuffColorFilter(dontApplyPeerColor(getThemedColor(Theme.key_actionBarDefaultIcon), false), PorterDuff.Mode.MULTIPLY));
+                        Drawable calendarDrawable = ContextCompat.getDrawable(detailCell.getContext(), R.drawable.msg_calendar).mutate();
+                        calendarDrawable.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteBlueText), PorterDuff.Mode.SRC_IN));
+                        calendarRowIconDrawable = calendarDrawable;
                         detailCell.setImage(calendarDrawable, LocaleController.getString(R.string.AccDescrSchedule));
                         detailCell.setImageClickListener(v -> showAccountCreationDate(v));
                     } else {
@@ -17983,7 +17985,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
-    private Drawable giftRowIconDrawable, qrRowIconDrawable, editColorLockedIcon;
+    private Drawable giftRowIconDrawable, qrRowIconDrawable, calendarRowIconDrawable, editColorLockedIcon;
     private ColoredImageSpan unofficialRiskSpan;
     private final int[] lastExtraColors = new int[7];
 
@@ -18007,7 +18009,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 lastExtraColors[3] = setFilterIfChanged(giftRowIconDrawable, dontApplyPeerColor(getThemedColor(Theme.key_switch2TrackChecked), false), lastExtraColors[3], PorterDuff.Mode.MULTIPLY);
             }
             if (qrRowIconDrawable != null) {
-                lastExtraColors[4] = setFilterIfChanged(qrRowIconDrawable, dontApplyPeerColor(getThemedColor(Theme.key_actionBarDefaultIcon), false), lastExtraColors[4], PorterDuff.Mode.MULTIPLY);
+                lastExtraColors[4] = setFilterIfChanged(qrRowIconDrawable, getThemedColor(Theme.key_windowBackgroundWhiteBlueText), lastExtraColors[4], PorterDuff.Mode.SRC_IN);
+            }
+            if (calendarRowIconDrawable != null) {
+                lastExtraColors[2] = setFilterIfChanged(calendarRowIconDrawable, getThemedColor(Theme.key_windowBackgroundWhiteBlueText), lastExtraColors[2], PorterDuff.Mode.SRC_IN);
             }
             if (editColorLockedIcon != null) {
                 lastExtraColors[5] = setFilterIfChanged(editColorLockedIcon, getThemedColor(Theme.key_actionBarDefaultSubmenuItemIcon), lastExtraColors[5], PorterDuff.Mode.SRC_IN);
