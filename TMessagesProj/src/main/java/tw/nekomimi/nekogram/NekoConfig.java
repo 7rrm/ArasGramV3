@@ -184,6 +184,7 @@ public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackB
     public static ConfigItem meeroCherryTitle = addConfig("meeroCherryTitle", configTypeBool, true);
     public static ConfigItem meeroCherryAdaptive = addConfig("meeroCherryAdaptive", configTypeBool, true);
     public static ConfigItem meeroGlare = addConfig("meeroGlare", configTypeBool, true);
+    public static ConfigItem meeroProfileGlare = addConfig("meeroProfileGlare", configTypeBool, true);
 
     // MeeroX v233: top bar sizes & fonts (chat header, pinned strip, music bar).
     // Master off = the conversation-start originals; on = tuned baseline x scale%.
@@ -512,6 +513,13 @@ public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackB
                     o.value = o.defaultValue;
                     getPreferences().edit().remove(o.key).apply();
                 }
+            }
+            // Split the old combined glare switch without changing the existing appearance.
+            // Once copied, the two preferences are stored and controlled independently.
+            if (!getPreferences().contains(meeroProfileGlare.key)) {
+                boolean previousGlare = meeroGlare.Bool();
+                getPreferences().edit().putBoolean(meeroProfileGlare.key, previousGlare).apply();
+                meeroProfileGlare.value = previousGlare;
             }
             // MeeroX v122 one-time migration: the old meeroIosBubbles switch
             // became the meeroBubbleStyle picker (0=stock, 1=official iOS,

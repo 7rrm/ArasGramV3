@@ -117,8 +117,10 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
             MeeroStrings.s("MeeroHdrCenterDesc"), MeeroStrings.s("MeeroHdrCenterTitle"));
     private final ConfigCellTextCheck hdrAdaptiveRow = new ConfigCellTextCheck(NekoConfig.meeroCherryAdaptive,
             MeeroStrings.s("MeeroHdrAdaptiveDesc"), MeeroStrings.s("MeeroHdrAdaptiveTitle"));
+    private final ConfigCellTextCheck hdrProfileGlareRow = new ConfigCellTextCheck(NekoConfig.meeroProfileGlare,
+            getString(R.string.MeeroProfileGlareDesc), getString(R.string.MeeroProfileGlareTitle));
     private final ConfigCellTextCheck hdrGlareRow = new ConfigCellTextCheck(NekoConfig.meeroGlare,
-            MeeroStrings.s("MeeroHdrGlareDesc"), MeeroStrings.s("MeeroHdrGlareTitle"));
+            getString(R.string.MeeroHdrGlareDesc), getString(R.string.MeeroHdrGlareTitle));
     private final ConfigCellTextCheck hdrBadgeRow = new ConfigCellTextCheck(NekoConfig.unreadBadgeOnBackButton,
             MeeroStrings.s("MeeroHdrBadgeDesc"), MeeroStrings.s("MeeroHdrBadgeTitle"));
     // MeeroX v260 (his final verdict: feature-with-a-switch, not a silent
@@ -147,6 +149,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
         meeroHdrSubRows.add(hdrStockRow);
         meeroHdrSubRows.add(hdrCenterRow);
         meeroHdrSubRows.add(hdrAdaptiveRow);
+        meeroHdrSubRows.add(hdrProfileGlareRow);
         meeroHdrSubRows.add(hdrGlareRow);
         meeroHdrSubRows.add(hdrBadgeRow);
         meeroHdrSubRows.add(hdrCommunityRow);

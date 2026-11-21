@@ -2771,7 +2771,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
         // One sweep in ActionBar coordinates, clipped to the three existing
         // header shapes. This also prevents a rectangular shine outside them.
-        if (NekoConfig.meeroGlare.Bool() && chatAvatarContainer2 != null
+        if (NekoConfig.meeroProfileGlare.Bool() && chatAvatarContainer2 != null
                 && chatAvatarContainer2.isCentered() && chatAvatarContainer2.getVisibility() == View.VISIBLE
                 && searchFactor == 0f && actionModeFactor == 0f && !glassOnlyBack) {
             meeroHeaderGlarePath.reset();

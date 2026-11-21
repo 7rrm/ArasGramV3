@@ -1277,8 +1277,10 @@
     <string name="MeeroHdrCenterDesc">كبسولة زجاجية بالوسط، تشتغل بدون إعادة تشغيل</string>
     <string name="MeeroHdrAdaptiveTitle">عرض الكبسولة متكيّف</string>
     <string name="MeeroHdrAdaptiveDesc">الكبسولة تتسع وتضيق بعرض الاسم والحالة بدل العرض الثابت</string>
-    <string name="MeeroHdrGlareTitle">تأثيرات البريق</string>
-    <string name="MeeroHdrGlareDesc">لمعة زجاجية متحركة تعبر كبسولة العنوان وفقاعات الرسائل</string>
+    <string name="MeeroProfileGlareTitle">تأثير البريق للملف الشخصي</string>
+    <string name="MeeroProfileGlareDesc">لمعة متحركة على زر الرجوع والاسم والصورة في شريط المحادثة</string>
+    <string name="MeeroHdrGlareTitle">تأثير البريق للرسائل</string>
+    <string name="MeeroHdrGlareDesc">لمعة متحركة على فقاعات الرسائل فقط</string>
     <string name="MeeroHdrBadgeTitle">عداد غير المقروء على زر الرجوع</string>
     <string name="MeeroHdrBadgeDesc">عداد أحمر يعد محادثاتك غير المقروءة الثانية وأنت داخل دردشة</string>
     <string name="MeeroHdrCommunityTitle">شارة المجتمع المرتبط </string>

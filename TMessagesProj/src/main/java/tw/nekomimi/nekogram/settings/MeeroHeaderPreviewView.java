@@ -273,8 +273,9 @@ public class MeeroHeaderPreviewView extends FrameLayout {
             } else {
                 meeroRefreshCapsule();
                 try {
-                    if (centered && NekoConfig.meeroGlare.Bool()) {
-                        avatarContainer.invalidate();
+                    if (centered) {
+                        // Refresh once even when the effect is switched off.
+                        actionBar.invalidate();
                     }
                 } catch (Throwable ignore) {
                 }

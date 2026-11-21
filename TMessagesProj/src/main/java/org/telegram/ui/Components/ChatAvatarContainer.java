@@ -614,7 +614,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
     /** MeeroX v254: gate for the Cherrygram glare switch (slow devices keep it silent). */
     protected boolean meeroGlareOn() {
         try {
-            return tw.nekomimi.nekogram.NekoConfig.meeroGlare.Bool();
+            return tw.nekomimi.nekogram.NekoConfig.meeroProfileGlare.Bool();
         } catch (Throwable ignore) {
             return false;
         }

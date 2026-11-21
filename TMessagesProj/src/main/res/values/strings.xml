@@ -11340,8 +11340,10 @@
     <string name="MeeroHdrCenterDesc">Glass capsule in the center, works without restart</string>
     <string name="MeeroHdrAdaptiveTitle">Adaptive capsule width </string>
     <string name="MeeroHdrAdaptiveDesc">The capsule expands and shrinks with the name and status width instead of fixed width</string>
-    <string name="MeeroHdrGlareTitle">Glare effects</string>
-    <string name="MeeroHdrGlareDesc">Moving glass shine across the title capsule and message bubbles</string>
+    <string name="MeeroProfileGlareTitle">Profile glare effect</string>
+    <string name="MeeroProfileGlareDesc">Moving shine across the back button, chat title and photo</string>
+    <string name="MeeroHdrGlareTitle">Message glare effect</string>
+    <string name="MeeroHdrGlareDesc">Moving shine across message bubbles</string>
     <string name="MeeroHdrBadgeTitle">Unread counter on back button</string>
     <string name="MeeroHdrBadgeDesc">Red counter showing your unread conversations while inside a chat</string>
     <string name="MeeroHdrCommunityTitle">Linked community badge </string>
