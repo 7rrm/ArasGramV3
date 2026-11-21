@@ -382,7 +382,9 @@ public class ProfileActionsView extends View {
         // over the photo the buttons are the dimmed photo on every Android (see ProfileButtonsGlass): white icons there
         final float useFilledWhiteIcon = !isButtonColorLight ? 1 : MathUtils.clamp((parentExpanded - 0.75f) / 0.25f, 0, 1);
 
-        final int textColor = ColorUtils.blendARGB(Color.BLACK, Color.WHITE, useFilledWhiteIcon);
+        // Match the profile's accent colour; keep white when the expanded photo sits behind the buttons.
+        final float overPhoto = MathUtils.clamp((parentExpanded - 0.75f) / 0.25f, 0, 1);
+        final int textColor = ColorUtils.blendARGB(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText), Color.WHITE, overPhoto);
         if (lastColorFilter == null || lastColorFilterColor != textColor) {
             lastColorFilterColor = textColor;
             lastColorFilter = new PorterDuffColorFilter(textColor, PorterDuff.Mode.SRC_IN);
@@ -856,7 +858,9 @@ public class ProfileActionsView extends View {
             case KEY_LEAVE:
                 newAction = new Action(ActionButton.LEAVE);
                 newAction.supportsLoading = true;
-                newAction.supportsAnimate = R.raw.profile_leave;
+                if (NaConfig.INSTANCE.getIconReplacements().Int() != IconsResources.ICON_REPLACE_SOLAR) {
+                    newAction.supportsAnimate = R.raw.profile_leave;
+                }
                 newAction.stopDelay = 300;
                 break;
             case KEY_VOICE_CHAT:
@@ -1189,7 +1193,8 @@ public class ProfileActionsView extends View {
             if (NaConfig.INSTANCE.getIconReplacements().Int() == IconsResources.ICON_REPLACE_SOLAR) {
                 int solarRes = 0;
                 if (filledRes == R.drawable.filled_profile_message_24) {
-                    solarRes = R.drawable.profile_newmsg_filled_solar;
+                    // The requested round message bubble from the reference profile.
+                    solarRes = R.drawable.filled_profile_message_24;
                 } else if (filledRes == R.drawable.filled_profile_mute_24) {
                     solarRes = R.drawable.msg_notifications_solar;
                 } else if (filledRes == R.drawable.filled_profile_unmute_24) {
@@ -1198,6 +1203,8 @@ public class ProfileActionsView extends View {
                     solarRes = R.drawable.profile_phone_solar;
                 } else if (filledRes == R.drawable.gift && outlineRes == R.drawable.input_gift_s) {
                     solarRes = R.drawable.msg_gift_premium_solar;
+                } else if (filledRes == R.drawable.leave && outlineRes == R.drawable.leave) {
+                    solarRes = R.drawable.leave_solar;
                 }
                 if (solarRes != 0) {
                     // The original notification Lottie is not a Solar asset.
