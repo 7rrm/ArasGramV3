@@ -25,6 +25,7 @@ import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
@@ -232,6 +233,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
     // MeeroX v254 (cherry-parity): centered-title owns a dedicated container slot,
     // the glass pill hugs it with an animated adaptive width
     private ChatAvatarContainer chatAvatarContainer2;
+    private final Path meeroHeaderGlarePath = new Path();
+    private final RectF meeroHeaderGlareRect = new RectF();
 
     public void setChatAvatarContainer2(ChatAvatarContainer chatAvatarContainer) {
         this.chatAvatarContainer2 = chatAvatarContainer;
@@ -2765,6 +2768,54 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         }
 
         super.dispatchDraw(canvas);
+
+        // One sweep in ActionBar coordinates, clipped to the three existing
+        // header shapes. This also prevents a rectangular shine outside them.
+        if (NekoConfig.meeroGlare.Bool() && chatAvatarContainer2 != null
+                && chatAvatarContainer2.isCentered() && chatAvatarContainer2.getVisibility() == View.VISIBLE
+                && searchFactor == 0f && actionModeFactor == 0f && !glassOnlyBack) {
+            meeroHeaderGlarePath.reset();
+            boolean hasShape = false;
+            if (glassDrawableBack != null && hasBackButton) {
+                Rect bounds = glassDrawableBack.getBounds();
+                meeroHeaderGlareRect.set(bounds.left + p, bounds.top + p, bounds.right - p, bounds.bottom - p);
+                if (!meeroHeaderGlareRect.isEmpty()) {
+                    meeroHeaderGlarePath.addRoundRect(meeroHeaderGlareRect, sBack / 2f, sBack / 2f, Path.Direction.CW);
+                    hasShape = true;
+                }
+            }
+            if (glassDrawable != null && drawGlassTitle && !doNotDrawCenterGlass) {
+                Rect bounds = glassDrawable.getBounds();
+                meeroHeaderGlareRect.set(bounds.left + p, bounds.top + p, bounds.right - p, bounds.bottom - p);
+                if (!meeroHeaderGlareRect.isEmpty()) {
+                    if (glassModeIsForum) {
+                        float corner = dp(18.33f) * s / dp(46);
+                        float round = s / 2f;
+                        meeroHeaderGlarePath.addRoundRect(meeroHeaderGlareRect,
+                                new float[]{corner, corner, round, round, round, round, corner, corner}, Path.Direction.CW);
+                    } else {
+                        meeroHeaderGlarePath.addRoundRect(meeroHeaderGlareRect, s / 2f, s / 2f, Path.Direction.CW);
+                    }
+                    hasShape = true;
+                }
+            }
+            View avatar = chatAvatarContainer2.getAvatarImageView();
+            if (avatar != null && avatar.getVisibility() == View.VISIBLE && avatar.getWidth() > 0 && avatar.getHeight() > 0) {
+                float left = chatAvatarContainer2.getX() + avatar.getX();
+                float top = chatAvatarContainer2.getY() + avatar.getY();
+                meeroHeaderGlareRect.set(left, top, left + avatar.getWidth(), top + avatar.getHeight());
+                meeroHeaderGlarePath.addOval(meeroHeaderGlareRect, Path.Direction.CW);
+                hasShape = true;
+            }
+            if (hasShape) {
+                canvas.save();
+                canvas.clipPath(meeroHeaderGlarePath);
+                org.telegram.ui.Components.MeeroGlareLayer.draw(canvas, 0, Math.min(t, tBack) + p,
+                        getWidth(), Math.max(b, bBack) - p, 0, System.currentTimeMillis());
+                canvas.restore();
+                postInvalidateOnAnimation();
+            }
+        }
     }
 
     public void setForceSkipTouches(boolean forceSkipTouches) {

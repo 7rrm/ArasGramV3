@@ -607,11 +607,8 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
             super.dispatchDraw(canvas);
             canvas.restore();
         }
-        // MeeroX v254: Cherrygram "Glare effects" - animated liquid-glass shine over the centered header pill
-        if (isCentered() && meeroGlareOn()) {
-            org.telegram.ui.Components.MeeroGlareLayer.draw(canvas, 0, dp(3), getWidth(), getHeight() - dp(5), dp(15), System.currentTimeMillis());
-            postInvalidateOnAnimation();
-        }
+        // The chat ActionBar draws one shared glare across its back button,
+        // title and avatar. Avoid drawing a second independent sweep here.
     }
 
     /** MeeroX v254: gate for the Cherrygram glare switch (slow devices keep it silent). */
