@@ -20551,12 +20551,21 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        if (meeroGlareOn() && !mediaBackground) {
+        if (meeroGlareOn() && !mediaBackground && currentBackgroundDrawable != null
+                && (drawBackground || transitionParams.animateDrawBackground)) {
+            // Match the actual bubble path, including its configured corners and tail.
+            // drawInternal uses these same translations before drawing the background.
+            canvas.save();
+            int topPadding = getStarsPriceTopPadding() + suggestionOfferTopPadding + getTopicSeparatorTopPadding();
+            if (topPadding > 0) canvas.translate(0, topPadding);
+            if (isWidthAdaptive()) canvas.translate(-getBoundsLeft(), 0);
+            canvas.clipPath(currentBackgroundDrawable.makePath());
+            Rect bounds = currentBackgroundDrawable.getBounds();
             org.telegram.ui.Components.MeeroGlareLayer.draw(canvas,
-                    getBackgroundDrawableLeft(), getBackgroundDrawableTop(),
-                    getBackgroundDrawableRight(), getBackgroundDrawableBottom(),
+                    bounds.left, bounds.top, bounds.right, bounds.bottom,
                     android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics()),
                     System.currentTimeMillis());
+            canvas.restore();
             postInvalidateOnAnimation();
         }
     }

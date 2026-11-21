@@ -1229,7 +1229,7 @@ public class ProfileActionsView extends View {
                 } else if (filledRes == R.drawable.filled_profile_story) {
                     solarRes = R.drawable.story_solar;
                 } else if (filledRes == R.drawable.filled_profile_photo) {
-                    solarRes = R.drawable.camera_solar;
+                    solarRes = R.drawable.instant_camera_solar;
                 } else if (filledRes == R.drawable.filled_profile_edit_24) {
                     solarRes = R.drawable.group_edit_profile_solar;
                 } else if (filledRes == R.drawable.filled_profile_settings) {
