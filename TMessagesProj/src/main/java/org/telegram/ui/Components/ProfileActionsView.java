@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Set;
 
 import tw.nekomimi.nekogram.NekoConfig;
+import tw.nekomimi.nekogram.ui.icons.IconsResources;
+import xyz.nextalone.nagram.NaConfig;
 
 @SuppressLint("ViewConstructor")
 public class ProfileActionsView extends View {
@@ -1184,6 +1186,25 @@ public class ProfileActionsView extends View {
 
         @SuppressLint("UseCompatLoadingForDrawables")
         public void updateDrawable(@RawRes int animatedRes, @DrawableRes int filledRes, @DrawableRes int outlineRes) {
+            if (NaConfig.INSTANCE.getIconReplacements().Int() == IconsResources.ICON_REPLACE_SOLAR) {
+                int solarRes = 0;
+                if (filledRes == R.drawable.filled_profile_message_24) {
+                    solarRes = R.drawable.profile_newmsg_filled_solar;
+                } else if (filledRes == R.drawable.filled_profile_mute_24) {
+                    solarRes = R.drawable.msg_notifications_solar;
+                } else if (filledRes == R.drawable.filled_profile_unmute_24) {
+                    solarRes = R.drawable.msg_bell_mute_solar;
+                } else if (filledRes == R.drawable.filled_profile_call_24) {
+                    solarRes = R.drawable.profile_phone_solar;
+                } else if (filledRes == R.drawable.gift && outlineRes == R.drawable.input_gift_s) {
+                    solarRes = R.drawable.msg_gift_premium_solar;
+                }
+                if (solarRes != 0) {
+                    // The original notification Lottie is not a Solar asset.
+                    animatedRes = 0;
+                    filledRes = outlineRes = solarRes;
+                }
+            }
             if (animatedRes != 0) {
                 RLottieDrawable drawable = new RLottieDrawable(animatedRes, dp(56), dp(56), false, null);
                 drawable.setMasterParent(ProfileActionsView.this);
