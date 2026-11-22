@@ -9366,6 +9366,9 @@ public class ChatActivityEnterView extends FrameLayout implements
         }
         boolean supportsNewEntities = supportsSendingNewEntities();
         int maxLength = accountInstance.getMessagesController().getMaxMessageLength();
+        // Separation can almost double the text; split before it is transformed.
+        boolean separateText = tw.nekomimi.nekogram.MeeroMessageStyler.style(currentAccount, dialog_id) == 9;
+        if (separateText) maxLength = Math.max(1, maxLength / 2);
         if (text.length() != 0) {
             if (delegate != null && parentFragment != null && (scheduleDate != 0) == parentFragment.isInScheduleMode()) {
                 delegate.prepareMessageSending();
@@ -9408,6 +9411,14 @@ public class ChatActivityEnterView extends FrameLayout implements
                     end = whitespaceIndex;
                 }
 
+                if (separateText && end < text.length()) {
+                    android.icu.text.BreakIterator clusterBreaks = android.icu.text.BreakIterator.getCharacterInstance(java.util.Locale.ROOT);
+                    clusterBreaks.setText(text.toString());
+                    if (!clusterBreaks.isBoundary(end)) {
+                        int safeEnd = clusterBreaks.preceding(end);
+                        if (safeEnd > start) end = safeEnd;
+                    }
+                }
                 CharSequence part = text.subSequence(start, end);
                 if (!hasOnlyEmoji) {
                     part = AndroidUtilities.getTrimmedString(part);
@@ -9433,7 +9444,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     sendAnimationData.fromPreview = System.currentTimeMillis() - sentFromPreview < 200;
                 }
                 if (!withMarkdown) {
-                    message[0] = text.toString();
+                    message[0] = separateText ? part.toString() : text.toString();
                     entities = new ArrayList<>();
                 }
 
@@ -9477,7 +9488,9 @@ public class ChatActivityEnterView extends FrameLayout implements
                     parentFragment.fallbackFieldPanel();
                 }
                 SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
-                start = end + 1;
+                // The original splitter skips a delimiter. A forced split within a word
+                // must retain the next character when separation is enabled.
+                start = separateText && end < text.length() && !Character.isWhitespace(text.charAt(end)) ? end : end + 1;
             } while (end != text.length());
             return true;
         }

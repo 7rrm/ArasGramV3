@@ -11318,6 +11318,9 @@
     <string name="MeeroTopBarPreviewSongTitle">Song Title</string>
     <string name="MeeroTopBarPreviewArtist">Artist</string>
     <!-- MeeroX v230: send text style picker (Fonts page) -->
+    <string name="MeeroChatTextStyle">Text style</string>
+    <string name="MeeroChatStyleGlobal">Use global send style</string>
+    <string name="MeeroStyleSeparated">Separated</string>
     <string name="MeeroSendStyleTitle">Send style</string>
     <string name="MeeroStyleDefault">Default</string>
     <string name="MeeroStyleBold">Bold</string>

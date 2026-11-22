@@ -1894,6 +1894,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int to_the_beginning = 200;
     private final static int to_the_message = 201;
     private final static int meero_group_tags = 205;
+    private final static int meero_chat_text_style = 206;
     private final static int shortcuts_administrators = 300;
     private final static int shortcuts_recent_actions = 301;
     private final static int shortcuts_statistics = 302;
@@ -4402,6 +4403,8 @@ public class ChatActivity extends BaseFragment implements
                     scrollToMessageId(1, 0, false, 0, true, 0);
                 } else if (id == to_the_message){
                     setScrollToMessage();
+                } else if (id == meero_chat_text_style) {
+                    showMeeroChatTextStyle();
                 } else if (id == meero_group_tags) {
                     openGroupTagsSearch();
                 } else if (id == boost_group) {
@@ -5062,6 +5065,9 @@ public class ChatActivity extends BaseFragment implements
                     LocaleController.getString(UserObject.isBotForum(currentUser) ? R.string.ClearAllHistory : R.string.ClearHistory));
             }
             boolean addedSettings = false;
+            if (chatMode == MODE_DEFAULT && (currentUser != null || currentChat != null || currentEncryptedChat != null)) {
+                headerItem.lazilyAddSubItem(meero_chat_text_style, R.drawable.msg_edit, getString(R.string.MeeroChatTextStyle));
+            }
             if (NaConfig.INSTANCE.getChatMenuItemToBeginning().Bool()) headerItem.lazilyAddSubItem(to_the_beginning, R.drawable.ic_upward, getString(R.string.ToTheBeginning));
             if (NaConfig.INSTANCE.getChatMenuItemGoToMessage().Bool()) headerItem.lazilyAddSubItem(to_the_message, R.drawable.msg_go_up, getString(R.string.ToTheMessage));
             if (currentChat != null && (ChatObject.isMegagroup(currentChat) || !ChatObject.isChannel(currentChat))
@@ -38101,6 +38107,24 @@ public class ChatActivity extends BaseFragment implements
                 }
             });
         }).start();
+    }
+
+    private void showMeeroChatTextStyle() {
+        if (getParentActivity() == null) return;
+        final int[] labels = {R.string.MeeroChatStyleGlobal, R.string.MeeroStyleDefault,
+                R.string.MeeroStyleBold, R.string.MeeroStyleItalic, R.string.MeeroStyleUnderline,
+                R.string.MeeroStyleStrike, R.string.MeeroStyleSpoiler, R.string.MeeroStyleQuote,
+                R.string.MeeroStyleMono, R.string.MeeroStyleCode, R.string.MeeroStyleSeparated};
+        final int current = tw.nekomimi.nekogram.MeeroMessageStyler.chatStyle(currentAccount, dialog_id);
+        String[] names = new String[labels.length];
+        for (int i = 0; i < labels.length; i++) {
+            names[i] = (current == i - 1 ? "✓ " : "") + getString(labels[i]);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+        builder.setTitle(getString(R.string.MeeroChatTextStyle));
+        builder.setItems(names, (dialog, which) ->
+                tw.nekomimi.nekogram.MeeroMessageStyler.setChatStyle(currentAccount, dialog_id, which - 1));
+        showDialog(builder.create());
     }
 
     private void openGroupTagsSearch() {

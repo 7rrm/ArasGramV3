@@ -1255,6 +1255,9 @@
     <string name="meeroTrashColorBlue">أزرق</string>
     <string name="meeroTrashColorHint">يُطبَّق فور اختياره على أيقونة السلّة بجانب الرسائل المحذوفة. اختر «افتراضي» ليبقى مثل قبل (الأيقونة بلون نص الوقت).</string>
     <!-- MeeroX v230: send text style picker (Fonts page) -->
+    <string name="MeeroChatTextStyle">نمط النص</string>
+    <string name="MeeroChatStyleGlobal">استخدام تنسيق الإرسال العام</string>
+    <string name="MeeroStyleSeparated">مفكك</string>
     <string name="MeeroSendStyleTitle">تنسيق الإرسال</string>
     <string name="MeeroStyleDefault">الافتراضي</string>
     <string name="MeeroStyleBold">غامق</string>
