@@ -20564,7 +20564,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             org.telegram.ui.Components.MeeroGlareLayer.draw(canvas,
                     bounds.left, bounds.top, bounds.right, bounds.bottom,
                     android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics()),
-                    System.currentTimeMillis());
+                    System.currentTimeMillis(), resourcesProvider);
             canvas.restore();
             postInvalidateOnAnimation();
         }

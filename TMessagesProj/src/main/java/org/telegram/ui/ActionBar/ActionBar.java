@@ -2811,7 +2811,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                 canvas.save();
                 canvas.clipPath(meeroHeaderGlarePath);
                 org.telegram.ui.Components.MeeroGlareLayer.draw(canvas, 0, Math.min(t, tBack) + p,
-                        getWidth(), Math.max(b, bBack) - p, 0, System.currentTimeMillis());
+                        getWidth(), Math.max(b, bBack) - p, 0, System.currentTimeMillis(), resourcesProvider);
                 canvas.restore();
                 postInvalidateOnAnimation();
             }
