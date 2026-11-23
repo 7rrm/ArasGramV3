@@ -22,7 +22,7 @@ public class MeeroGlareLayer {
     private static final long IDLE = 1800L;   // rest between sweeps, ms
     private static final int NIGHT_SHINE = 0x2EFFFFFF;
     // A subtle translucent grey remains visible on white daytime surfaces.
-    private static final int DAY_SHINE = 0x66636B75;
+    private static final int DAY_SHINE = 0x4D636B75;
 
     private static final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final RectF band = new RectF();
