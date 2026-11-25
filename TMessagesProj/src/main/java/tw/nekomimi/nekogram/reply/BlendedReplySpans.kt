@@ -39,6 +39,8 @@ import org.telegram.ui.Components.ColoredImageSpan
 import java.io.File
 import java.util.EnumMap
 import java.util.Locale
+import tw.nekomimi.nekogram.ui.icons.IconsResources
+import xyz.nextalone.nagram.NaConfig
 
 private val baseHsv = FloatArray(3)
 private val nameHsv = FloatArray(3)
@@ -100,6 +102,7 @@ class BlendedReplyFileText {
     }
 
     private val icons = EnumMap<AttachType, BlendedReplyColorIconSpan>(AttachType::class.java)
+    private var cachedSolar: Boolean? = null
 
     companion object {
         // Equivalent path resolution for the Telegram file loader available in this fork.
@@ -188,7 +191,12 @@ class BlendedReplyFileText {
     }
 
     fun build(context: Context, reply: MessageObject, type: AttachType, fontMetrics: Paint.FontMetricsInt): CharSequence {
-        val icon = icons.getOrPut(type) { createIcon(context, type.iconRes) }
+        val solar = NaConfig.iconReplacements.Int() == IconsResources.ICON_REPLACE_SOLAR
+        if (cachedSolar != solar) {
+            icons.clear()
+            cachedSolar = solar
+        }
+        val icon = icons.getOrPut(type) { createIcon(context, iconFor(type.iconRes, solar)) }
 
         val title = entitiesTitle(reply, type)?.let { formatEntities(it.text, it.entities, fontMetrics) } ?: Emoji.replaceEmoji(
             when {
@@ -225,6 +233,25 @@ class BlendedReplyFileText {
         AttachType.POLL -> (MessageObject.getMedia(reply) as? TLRPC.TL_messageMediaPoll)?.poll?.question
         AttachType.TODO -> (MessageObject.getMedia(reply) as? TLRPC.TL_messageMediaToDo)?.todo?.title
         else -> null
+    }
+
+    // The same Solar mappings used by exteraGram's BaseIconPacks. Icons without
+    // a Solar mapping in that pack (such as music) keep the original resource.
+    private fun iconFor(res: Int, solar: Boolean): Int {
+        if (!solar) return res
+        return when (res) {
+            R.drawable.msg_filled_reply_files -> R.drawable.extera_reply_msg_filled_reply_files_solar
+            R.drawable.msg_filled_reply_image -> R.drawable.extera_reply_msg_filled_reply_image_solar
+            R.drawable.msg_filled_reply_voice -> R.drawable.extera_reply_msg_filled_reply_voice_solar
+            R.drawable.msg_filled_reply_gift -> R.drawable.extera_reply_msg_filled_reply_gift_solar
+            R.drawable.msg_filled_reply_todo -> R.drawable.extera_reply_msg_filled_reply_todo_solar
+            R.drawable.filled_chatlist_poll -> R.drawable.extera_reply_filled_chatlist_poll_solar
+            R.drawable.plugins_filled -> R.drawable.extera_reply_plugins_filled_solar
+            R.drawable.stickers_filled -> R.drawable.extera_reply_stickers_filled_solar
+            R.drawable.filled_profile_video_24 -> R.drawable.extera_reply_video_solar
+            R.drawable.filled_profile_settings -> R.drawable.extera_reply_filled_profile_settings_solar
+            else -> res
+        }
     }
 
     private fun createIcon(context: Context, res: Int) =
