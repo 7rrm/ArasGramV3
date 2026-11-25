@@ -280,21 +280,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         DownloadController.FileDownloadProgressListener, TextSelectionHelper.SelectableView,
         NotificationCenter.NotificationCenterDelegate, FactorAnimator.Target, IMessageCell {
 
-    private static int meeroReplyIcon(int original) {
-        return xyz.nextalone.nagram.NaConfig.INSTANCE.getIconReplacements().Int() == tw.nekomimi.nekogram.ui.icons.IconsResources.ICON_REPLACE_SOLAR
-                ? tw.nekomimi.nekogram.ui.icons.SolarIcons.Companion.getConversion(original) : original;
-    }
-
-    private static int meeroReplyMediaColor() {
-        return ColorUtils.blendARGB(Theme.chat_replyNamePaint.getColor(), Color.BLACK, Theme.isCurrentThemeDark() ? 0f : 0.35f);
-    }
-
-    private static class MeeroReplyMediaColorSpan extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance {
-        @Override public void updateDrawState(android.text.TextPaint paint) {
-            paint.setColor(ColorUtils.setAlphaComponent(meeroReplyMediaColor(), paint.getAlpha()));
-        }
-    }
-
     public final static int TIME_APPEAR_MS = 200;
     public final static int UPLOADING_ALLOWABLE_ERROR = 1024 * 1024;
     private final static int STICKER_STATUS_OFFSET = 6;
@@ -1317,6 +1302,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private boolean nameStatusPressed;
 
     private RoundVideoPlayingDrawable roundVideoPlayingDrawable;
+
+    // exteraGram reply preview; attribution and license terms are in the source tree.
+    private final tw.nekomimi.nekogram.reply.BlendedReplyFileText replyFileText = new tw.nekomimi.nekogram.reply.BlendedReplyFileText();
+    private tw.nekomimi.nekogram.reply.BlendedReplyFileText.AttachType replyAttachType = tw.nekomimi.nekogram.reply.BlendedReplyFileText.AttachType.UNKNOWN;
 
     public StaticLayout docTitleLayout;
     public int docTitleWidth;
@@ -19067,6 +19056,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public void setMessageObjectInternal(MessageObject messageObject) {
+        replyAttachType = tw.nekomimi.nekogram.reply.BlendedReplyFileText.AttachType.UNKNOWN;
         if (((messageObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_HAS_VIEWS) != 0 || messageObject.messageOwner.replies != null) && !currentMessageObject.scheduled && !currentMessageObject.isSponsored()) {
             if (!currentMessageObject.viewsReloaded) {
                 MessagesController.getInstance(currentAccount).addToViewsQueue(currentMessageObject);
@@ -19550,6 +19540,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 }
 
                 CharSequence stringFinalText = null;
+                boolean replyNameHasForwardIcon = false;
 
                 CharSequence name = null;
                 hasReplyQuote = messageObject.messageOwner.reply_to != null && (messageObject.messageOwner.reply_to.flags & 64) != 0 && messageObject.messageOwner.reply_to.quote_text != null;
@@ -19639,6 +19630,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         if (thumbPhotoSize == photoSize) {
                             thumbPhotoSize = null;
                         }
+                        if (photoImageLocation == null && !messageObject.replyMessageObject.isAnimatedEmoji() && !messageObject.replyMessageObject.isDice() && (messageObject.replyMessageObject.isSticker() || messageObject.replyMessageObject.isAnimatedSticker())) {
+                            final TLRPC.Document document = messageObject.replyMessageObject.getDocument();
+                            if (document != null) {
+                                photoImageLocation = ImageLocation.getForDocument(document);
+                                photoImageThumb = DocumentObject.getSvgThumb(document, Theme.key_chat_serviceBackground, 1.0f);
+                                photoSize = null;
+                                thumbPhotoSize = null;
+                            }
+                        }
                     }
                     if (messageObject.messageOwner != null && messageObject.messageOwner.reply_to != null && messageObject.messageOwner.reply_to.reply_media != null) {
                         if (messageObject.messageOwner.reply_to.reply_media.document != null) {
@@ -19658,20 +19658,23 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             needReplyImage = true;
                             maxWidth -= dp(isReplyQuote ? 3 : 7) + Theme.chat_replyNamePaint.getTextSize() + Theme.chat_replyTextPaint.getTextSize();
                         }
-                    } else if (photoSize == null && photoImageLocation == null || messageObject.replyMessageObject == null || messageObject.replyMessageObject.isAnyKindOfSticker() || messageObject.isAnyKindOfSticker() && !AndroidUtilities.isTablet() || messageObject.replyMessageObject.isSecretMedia() || messageObject.replyMessageObject.isWebpageDocument()) {
+                    } else if (photoSize == null && photoImageLocation == null || messageObject.replyMessageObject == null || messageObject.replyMessageObject.isAnimatedEmojiStickers() || messageObject.replyMessageObject.isAnimatedEmoji() || messageObject.isAnyKindOfSticker() && !AndroidUtilities.isTablet() || messageObject.replyMessageObject.isSecretMedia() || messageObject.replyMessageObject.isWebpageDocument()) {
                         replyImageReceiver.setImageBitmap((Drawable) null);
                         needReplyImage = false;
                     } else {
                         if (messageObject.replyMessageObject.isRoundVideo()) {
                             replyImageReceiver.setRoundRadius(dp(32));
                         } else {
-                            replyImageReceiver.setRoundRadius(dp(4));
+                            replyImageReceiver.setRoundRadius(dp(6));
                         }
                         currentReplyPhoto = photoSize;
                         if (photoImageLocation != null) {
-                            replyImageReceiver.setImage(photoImageLocation, "50_50", photoImageThumb, 0, null, messageObject.replyMessageObject, cacheType);
+                            replyImageReceiver.setImage(photoImageLocation, loopStickers() ? "50_50" : "50_50_firstframe", photoImageThumb, 0, null, messageObject.replyMessageObject, cacheType);
                         } else {
                             replyImageReceiver.setImage(ImageLocation.getForObject(photoSize, photoObject), hasReplySpoiler ? "5_5_b" : "50_50", ImageLocation.getForObject(thumbPhotoSize, photoObject), hasReplySpoiler ? "50_50_b4" : "50_50_b", size, null, messageObject.replyMessageObject, cacheType);
+                        }
+                        if (messageObject.replyMessageObject.useCustomPhoto) {
+                            replyImageReceiver.setImageBitmap(getResources().getDrawable(messageObject.replyMessageObject.isAnyKindOfSticker() ? R.drawable.sticker : R.drawable.theme_preview_image));
                         }
                         needReplyImage = true;
                         maxWidth -= dp(isReplyQuote ? 3 : 7) + Theme.chat_replyNamePaint.getTextSize() + Theme.chat_replyTextPaint.getTextSize();
@@ -19707,6 +19710,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     } else if (messageObject.replyMessageObject == null && messageObject.messageOwner.reply_to != null && messageObject.messageOwner.reply_to.reply_from != null) {
                         name = messageObject.getReplyQuoteNameWithIcon();
                     } else if (messageObject.replyMessageObject != null) {
+                        name = getReplyForwardedName(messageObject.replyMessageObject);
+                        replyNameHasForwardIcon = name != null;
                         if (name == null) {
                             long fromId = messageObject.replyMessageObject.getFromChatId();
                             if (fromId > 0) {
@@ -19732,25 +19737,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     if (name == null) {
                         name = getString("Loading", R.string.Loading);
                     }
-                    // Keep the sender of the reply target and add its original forward source.
-                    if (!hasReplyQuote && messageObject.replyMessageObject != null
-                            && messageObject.replyMessageObject.messageOwner != null
-                            && messageObject.replyMessageObject.messageOwner.fwd_from != null) {
-                        String sourceName = AndroidUtilities.removeDiacritics(messageObject.replyMessageObject.getForwardedName());
-                        if (!TextUtils.isEmpty(sourceName) && !TextUtils.equals(sourceName, name)) {
-                            // Keep the visible order stable with mixed Arabic and Latin names.
-                            android.text.BidiFormatter bidi = android.text.BidiFormatter.getInstance(false);
-                            SpannableStringBuilder forwarded = new SpannableStringBuilder("\u202a");
-                            forwarded.append(bidi.unicodeWrap(name)).append(" ");
-                            int iconStart = forwarded.length();
-                            forwarded.append("\ufffc");
-                            ColoredImageSpan arrow = new ColoredImageSpan(meeroReplyIcon(R.drawable.share_arrow), ColoredImageSpan.ALIGN_CENTER);
-                            arrow.setSize(dp(12));
-                            forwarded.setSpan(arrow, iconStart, iconStart + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            forwarded.append(" ").append(bidi.unicodeWrap(sourceName.replace('\n', ' '))).append("\u202c");
-                            name = forwarded;
-                        }
-                    }
+                    replyAttachType = tw.nekomimi.nekogram.reply.BlendedReplyFileText.getType(messageObject);
                     if (messageObject.messageOwner.reply_to != null && (messageObject.messageOwner.reply_to.flags & 2048) != 0 && messageObject.replyMessageObject != null && MessageObject.getMedia(messageObject.replyMessageObject) instanceof TLRPC.TL_messageMediaToDo) {
                         TLRPC.TodoItem task = MessageObject.findTodoItem(messageObject.replyMessageObject, messageObject.messageOwner.reply_to.todo_item_id);
                         if (task != null) {
@@ -19801,9 +19788,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         stringFinalText = new SpannableStringBuilder(mess);
                         stringFinalText = Emoji.replaceEmoji(stringFinalText, textPaint.getFontMetricsInt(), false);
                         if (messageObject.messageOwner.reply_to.quote_entities != null) {
-                            stringFinalText = MessageObject.replaceAnimatedEmoji(stringFinalText, messageObject.messageOwner.reply_to.quote_entities, textPaint.getFontMetricsInt(), true);
-                            MessageObject.addEntitiesToText(stringFinalText, messageObject.messageOwner.reply_to.quote_entities, currentMessageObject.isOutOwner(), false, false, false);
+                            ArrayList<TLRPC.MessageEntity> quoteEntities = new ArrayList<>(messageObject.messageOwner.reply_to.quote_entities);
+                            tw.nekomimi.nekogram.reply.BlendedReplyFileText.parseCustomEmojis(stringFinalText, quoteEntities);
+                            stringFinalText = MessageObject.replaceAnimatedEmoji(stringFinalText, quoteEntities, textPaint.getFontMetricsInt(), true);
+                            MessageObject.addEntitiesToText(stringFinalText, quoteEntities, currentMessageObject.isOutOwner(), false, false, false);
                         }
+                    } else if (replyAttachType != tw.nekomimi.nekogram.reply.BlendedReplyFileText.AttachType.UNKNOWN) {
+                        stringFinalText = replyFileText.build(getContext(), messageObject.replyMessageObject, replyAttachType, textPaint.getFontMetricsInt());
+                        stringFinalText = TextUtils.ellipsize(stringFinalText, textPaint, maxWidth, TextUtils.TruncateAt.END);
                     } else if (messageObject.messageOwner.reply_to != null && messageObject.replyMessageObject != null && MessageObject.getMedia(messageObject.replyMessageObject) instanceof TLRPC.TL_messageMediaPoll) {
                         TLRPC.TL_messageMediaPoll poll = (TLRPC.TL_messageMediaPoll) MessageObject.getMedia(messageObject.replyMessageObject);
                         SpannableStringBuilder ssb = new SpannableStringBuilder();
@@ -19828,8 +19820,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         }
                         mess = mess.replace('\n', ' ');
                         stringFinalText = Emoji.replaceEmoji(mess, textPaint.getFontMetricsInt(), true);
-                        if (messageObject.replyMessageObject.messageOwner != null) {
-                            stringFinalText = MessageObject.replaceAnimatedEmoji(stringFinalText, messageObject.replyMessageObject.messageOwner.entities, textPaint.getFontMetricsInt(), true);
+                        if (messageObject.replyMessageObject.messageOwner != null && messageObject.replyMessageObject.messageOwner.entities != null) {
+                            ArrayList<TLRPC.MessageEntity> replyEntities = new ArrayList<>(messageObject.replyMessageObject.messageOwner.entities);
+                            tw.nekomimi.nekogram.reply.BlendedReplyFileText.parseCustomEmojis(stringFinalText, replyEntities);
+                            stringFinalText = MessageObject.replaceAnimatedEmoji(stringFinalText, replyEntities, textPaint.getFontMetricsInt(), true);
                         }
                         stringFinalText = TextUtils.ellipsize(stringFinalText, textPaint, maxWidth, TextUtils.TruncateAt.END);
                         if (stringFinalText instanceof Spannable && messageObject.replyMessageObject.messageOwner != null) {
@@ -19848,55 +19842,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         mess = AndroidUtilities.removeSpans(mess, QuoteSpan.QuoteStyleSpan.class);
                         mess = AndroidUtilities.replaceNewLines(mess);
                         stringFinalText = Emoji.replaceEmoji(mess, textPaint.getFontMetricsInt(), true);
-                        if (messageObject.replyMessageObject.messageOwner != null) {
-                            stringFinalText = MessageObject.replaceAnimatedEmoji(stringFinalText, messageObject.replyMessageObject.messageOwner.entities, textPaint.getFontMetricsInt(), true);
+                        if (messageObject.replyMessageObject.messageOwner != null && messageObject.replyMessageObject.messageOwner.entities != null) {
+                            ArrayList<TLRPC.MessageEntity> replyEntities = new ArrayList<>(messageObject.replyMessageObject.messageOwner.entities);
+                            tw.nekomimi.nekogram.reply.BlendedReplyFileText.parseCustomEmojis(stringFinalText, replyEntities);
+                            stringFinalText = MessageObject.replaceAnimatedEmoji(stringFinalText, replyEntities, textPaint.getFontMetricsInt(), true);
                         }
                         stringFinalText = TextUtils.ellipsize(stringFinalText, textPaint, maxWidth, TextUtils.TruncateAt.END);
                         if (stringFinalText instanceof Spannable) {
                             MediaDataController.addTextStyleRuns(messageObject.replyMessageObject, (Spannable) stringFinalText);
                             stringFinalText = TextUtils.ellipsize(stringFinalText, textPaint, maxWidth, TextUtils.TruncateAt.END);
-                        }
-                    }
-                    // Explicit text quotes and special reply headers keep Telegram's original rendering.
-                    if (!hasReplyQuote && messageObject.messageOwner.reply_to != null
-                            && messageObject.messageOwner.reply_to.quote_text == null
-                            && messageObject.messageOwner.reply_to.reply_from == null
-                            && messageObject.replyMessageObject != null
-                            && !messageObject.replyMessageObject.isSecretMedia()
-                            && !messageObject.replyMessageObject.isVoiceOnce()
-                            && !messageObject.replyMessageObject.isRoundOnce()) {
-                        MessageObject target = messageObject.replyMessageObject;
-                        int icon = 0;
-                        int label = 0;
-                        if (target.isVoice()) {
-                            icon = R.drawable.msg_filled_data_voice; label = R.string.AttachAudio;
-                        } else if (target.isRoundVideo()) {
-                            icon = R.drawable.input_video; label = R.string.AttachRound;
-                        } else if (target.isVideo()) {
-                            icon = R.drawable.msg_filled_data_videos; label = R.string.AttachVideo;
-                        } else if (target.isPhoto()) {
-                            icon = R.drawable.msg_filled_data_photos; label = R.string.AttachPhoto;
-                        } else if (target.isMusic()) {
-                            icon = R.drawable.msg_filled_data_music; label = R.string.AttachMusic;
-                        } else if (target.isDocument() && !target.isAnyKindOfSticker() && !target.isGif()) {
-                            icon = R.drawable.msg_filled_data_files; label = R.string.AttachDocument;
-                        }
-                        if (icon != 0 && label != 0) {
-                            SpannableStringBuilder mediaText = new SpannableStringBuilder("\ufffc ");
-                            ColoredImageSpan mediaIcon = new ColoredImageSpan(meeroReplyIcon(icon), ColoredImageSpan.ALIGN_CENTER);
-                            mediaIcon.setSize(dp(16));
-                            mediaIcon.setCheckColorDelegate(() -> mediaIcon.drawable.setColorFilter(
-                                    new android.graphics.PorterDuffColorFilter(meeroReplyMediaColor(), android.graphics.PorterDuff.Mode.SRC_IN)));
-                            mediaText.setSpan(mediaIcon, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            mediaText.append(getString(label));
-                            mediaText.setSpan(new MeeroReplyMediaColorSpan(), 2, mediaText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            if (!TextUtils.isEmpty(target.caption) && !TextUtils.isEmpty(stringFinalText)) {
-                                mediaText.append(", ").append(stringFinalText);
-                            } else if (target.isDocument() && target.getDocument() != null) {
-                                String fileName = FileLoader.getDocumentFileName(target.getDocument());
-                                if (!TextUtils.isEmpty(fileName)) mediaText.append(", ").append(fileName.replace('\n', ' '));
-                            }
-                            stringFinalText = mediaText;
                         }
                     }
                 } else {
@@ -19985,6 +19939,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
                     if (replyLine.hasSticker()) {
                         replyNameWidth += dp(38);
+                    }
+                    if (replyNameHasForwardIcon && !needReplyImage) {
+                        replyNameWidth += dp(8);
                     }
                 } catch (Exception e) {
                     FileLog.e(e);
@@ -20258,6 +20215,115 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } else {
             return getString(R.string.ForwardedFrom);
         }
+    }
+
+    private CharSequence getReplyForwardedName(MessageObject replyMessageObject) {
+        if (replyMessageObject == null || replyMessageObject.messageOwner == null || replyMessageObject.messageOwner.fwd_from == null) {
+            return null;
+        }
+
+        CharSequence senderName = getReplyForwardedCurrentName(replyMessageObject);
+        CharSequence originName = getReplyForwardedOriginName(replyMessageObject);
+
+        if (TextUtils.isEmpty(originName)) {
+            return null;
+        }
+        TLRPC.MessageFwdHeader fwdFrom = replyMessageObject.messageOwner.fwd_from;
+        boolean isLinkedChannelPost = fwdFrom.from_id instanceof TLRPC.TL_peerChannel && fwdFrom.from_id.channel_id == linkedChatId && fwdFrom.channel_post != 0;
+        if (replyMessageObject.isSaved || TextUtils.isEmpty(senderName) || TextUtils.equals(senderName, originName) || isLinkedChannelPost) {
+            return originName;
+        }
+
+        SpannableStringBuilder builder = new SpannableStringBuilder();
+        builder.append(senderName).append(" d ").append(originName);
+        ColoredImageSpan span = new ColoredImageSpan(ContextCompat.getDrawable(getContext(), R.drawable.mini_forwarded).mutate());
+        span.setAlpha(0.9f);
+        int iconIndex = senderName.length() + 1;
+        builder.setSpan(span, iconIndex, iconIndex + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return builder;
+    }
+
+    private CharSequence getReplyForwardedCurrentName(MessageObject replyMessageObject) {
+        TLRPC.MessageFwdHeader fwdFrom = replyMessageObject.messageOwner.fwd_from;
+        long selfId = UserConfig.getInstance(currentAccount).getClientUserId();
+
+        if (replyMessageObject.isSaved) {
+            return getReplyForwardedOriginName(replyMessageObject);
+        }
+        if (fwdFrom.from_id instanceof TLRPC.TL_peerChannel && (replyMessageObject.getDialogId() == selfId || replyMessageObject.getDialogId() == UserObject.REPLY_BOT)) {
+            return getReplyForwardedPeerName(fwdFrom.from_id);
+        } else if (replyMessageObject.getDialogId() == UserObject.VERIFY) {
+            return getReplyForwardedPeerName(fwdFrom.from_id);
+        } else if (fwdFrom.saved_from_peer != null) {
+            if (fwdFrom.saved_from_peer.user_id != 0) {
+                if (!isSavedChat && fwdFrom.from_id instanceof TLRPC.TL_peerUser) {
+                    return getReplyForwardedPeerName(fwdFrom.from_id);
+                }
+                return getReplyForwardedPeerName(fwdFrom.saved_from_peer);
+            } else if (fwdFrom.saved_from_peer.channel_id != 0) {
+                if (replyMessageObject.isSavedFromMegagroup() && fwdFrom.from_id instanceof TLRPC.TL_peerUser) {
+                    return getReplyForwardedPeerName(fwdFrom.from_id);
+                }
+                return getReplyForwardedPeerName(fwdFrom.saved_from_peer);
+            } else if (fwdFrom.saved_from_peer.chat_id != 0) {
+                if (fwdFrom.from_id instanceof TLRPC.TL_peerUser || fwdFrom.from_id instanceof TLRPC.TL_peerChat || fwdFrom.from_id instanceof TLRPC.TL_peerChannel) {
+                    return getReplyForwardedPeerName(fwdFrom.from_id);
+                }
+                return getReplyForwardedPeerName(fwdFrom.saved_from_peer);
+            }
+        } else if (fwdFrom.from_id instanceof TLRPC.TL_peerUser && (fwdFrom.imported || replyMessageObject.getDialogId() == selfId)) {
+            return getReplyForwardedPeerName(fwdFrom.from_id);
+        } else if (!TextUtils.isEmpty(fwdFrom.saved_from_name) && (fwdFrom.imported || replyMessageObject.getDialogId() == selfId)) {
+            return AndroidUtilities.removeDiacritics(fwdFrom.saved_from_name);
+        } else if (!TextUtils.isEmpty(fwdFrom.from_name) && (fwdFrom.imported || replyMessageObject.getDialogId() == selfId)) {
+            return AndroidUtilities.removeDiacritics(fwdFrom.from_name);
+        }
+
+        if (replyMessageObject.messageOwner.from_id != null) {
+            return getReplyForwardedPeerName(replyMessageObject.messageOwner.from_id);
+        } else if (replyMessageObject.messageOwner.post && replyMessageObject.messageOwner.peer_id != null) {
+            return getReplyForwardedPeerName(replyMessageObject.messageOwner.peer_id);
+        }
+        return null;
+    }
+
+    private CharSequence getReplyForwardedOriginName(MessageObject replyMessageObject) {
+        TLRPC.MessageFwdHeader fwdFrom = replyMessageObject.messageOwner.fwd_from;
+        if (fwdFrom.from_id instanceof TLRPC.TL_peerChannel) {
+            CharSequence name = getReplyForwardedPeerName(fwdFrom.from_id);
+            if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(fwdFrom.post_author)) {
+                return new SpannableStringBuilder(name).append(" (").append(fwdFrom.post_author).append(")");
+            }
+            return name;
+        } else if (fwdFrom.from_id != null) {
+            return getReplyForwardedPeerName(fwdFrom.from_id);
+        } else if (!TextUtils.isEmpty(fwdFrom.from_name)) {
+            return AndroidUtilities.removeDiacritics(fwdFrom.from_name);
+        } else if (!TextUtils.isEmpty(fwdFrom.saved_from_name)) {
+            return AndroidUtilities.removeDiacritics(fwdFrom.saved_from_name);
+        }
+        String forwardedName = replyMessageObject.getForwardedName();
+        return forwardedName == null ? null : AndroidUtilities.removeDiacritics(forwardedName);
+    }
+
+    private CharSequence getReplyForwardedPeerName(TLRPC.Peer peer) {
+        if (peer instanceof TLRPC.TL_peerUser) {
+            TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(peer.user_id);
+            if (user != null) {
+                return AndroidUtilities.removeDiacritics(UserObject.getUserName(user));
+            }
+        } else if (peer instanceof TLRPC.TL_peerChannel) {
+            TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(peer.channel_id);
+            if (chat != null) {
+                return AndroidUtilities.removeDiacritics(chat.title);
+            }
+        } else if (peer instanceof TLRPC.TL_peerChat) {
+            TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(peer.chat_id);
+            if (chat != null) {
+                return AndroidUtilities.removeDiacritics(chat.title);
+            }
+        }
+        return null;
     }
 
     public int getExtraInsetHeight() {
@@ -23215,6 +23281,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             color = getThemedColor(isDrawSelectionBackground() ? Theme.key_chat_outReplyMediaMessageSelectedText : Theme.key_chat_outReplyMediaMessageText);
                             blendPressed = .6f + (blendPressed * .4f);
                         }
+                        if (replyAttachType != tw.nekomimi.nekogram.reply.BlendedReplyFileText.AttachType.UNKNOWN) {
+                            color = getThemedColor(Theme.key_chat_outReplyMessageText);
+                        }
                         Theme.chat_replyTextPaint.setColor(ColorUtils.blendARGB(color, Theme.adaptHue(color, Theme.chat_replyNamePaint.getColor()), blendPressed));
                         Theme.chat_replyTextPaint.linkColor = ColorUtils.blendARGB(color, Theme.adaptHue(color, Theme.chat_replyNamePaint.getColor()), Utilities.clamp(blendPressed * 2, 1f, 0f));
                     }
@@ -23228,6 +23297,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         if (!currentMessageObject.forceAvatar && !(currentMessageObject.hasValidReplyMessageObject() && (currentMessageObject.replyMessageObject.contentType != 1 && currentMessageObject.replyMessageObject.type == MessageObject.TYPE_TEXT || !TextUtils.isEmpty(currentMessageObject.replyMessageObject.caption)) && !(MessageObject.getMedia(currentMessageObject.replyMessageObject.messageOwner) instanceof TLRPC.TL_messageMediaGame || MessageObject.getMedia(currentMessageObject.replyMessageObject.messageOwner) instanceof TLRPC.TL_messageMediaInvoice) || hasReplyQuote)) {
                             color = getThemedColor(isDrawSelectionBackground() ? Theme.key_chat_inReplyMediaMessageSelectedText : Theme.key_chat_inReplyMediaMessageText);
                             blendPressed = .6f + (blendPressed * .4f);
+                        }
+                        if (replyAttachType != tw.nekomimi.nekogram.reply.BlendedReplyFileText.AttachType.UNKNOWN) {
+                            color = getThemedColor(Theme.key_chat_inReplyMessageText);
                         }
                         Theme.chat_replyTextPaint.setColor(ColorUtils.blendARGB(color, Theme.adaptHue(color, Theme.chat_replyNamePaint.getColor()), blendPressed));
                         Theme.chat_replyTextPaint.linkColor = ColorUtils.blendARGB(color, Theme.adaptHue(color, Theme.chat_replyNamePaint.getColor()), Utilities.clamp(blendPressed * 2, 1f, 0f));

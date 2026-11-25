@@ -42,6 +42,7 @@ public class NekoAboutActivity extends BaseNekoSettingsActivity {
     private int mainChannelRow;
     private int channel1Row;
     private int privacyRow;
+    private int exteraAttributionRow;
 
     @Override
     protected void updateRows() {
@@ -52,6 +53,7 @@ public class NekoAboutActivity extends BaseNekoSettingsActivity {
         developerRow = addRow();
         mainChannelRow = addRow();
         channel1Row = addRow();
+        exteraAttributionRow = addRow();
         privacyRow = addRow();
     }
 
@@ -114,6 +116,8 @@ public class NekoAboutActivity extends BaseNekoSettingsActivity {
         } else if (position == channel1Row) {
             MessagesController.getInstance(currentAccount)
                     .openByUserName("aRRaS_iD", NekoAboutActivity.this, 1);
+        } else if (position == exteraAttributionRow) {
+            Browser.openUrl(getParentActivity(), "https://github.com/exteraSquad/exteraGram");
         } else if (position == privacyRow) {
             showPrivacyDialog();
         }
@@ -144,6 +148,8 @@ public class NekoAboutActivity extends BaseNekoSettingsActivity {
                     textCell.setTextAndValue(MeeroStrings.s(463), "@InaRaS5", true);
                 } else if (position == channel1Row) {
                     textCell.setTextAndValue(MeeroStrings.s(37), "@aRRaS_iD", true);
+                } else if (position == exteraAttributionRow) {
+                    textCell.setText(getString(R.string.ExteraReplyAttribution), true);
                 } else if (position == privacyRow) {
                     textCell.setText(MeeroStrings.s(204), false);
                 }

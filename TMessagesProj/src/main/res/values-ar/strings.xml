@@ -1426,4 +1426,5 @@
     <string name="ProxyDisableOnVpn">VPN</string>
     <string name="ProxyDisableOnMobileData">بيانات الجوال</string>
     <string name="ProxyDisableOnWiFi">Wi-Fi</string>
+    <string name="ExteraReplyAttribution">معاينة الرد مبنية على exteraGram</string>
 </resources>

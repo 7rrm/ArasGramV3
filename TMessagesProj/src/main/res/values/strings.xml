@@ -11780,4 +11780,5 @@
     <string name="ProxyDisableOnVpn">VPN</string>
     <string name="ProxyDisableOnMobileData">Mobile data</string>
     <string name="ProxyDisableOnWiFi">Wi-Fi</string>
+    <string name="ExteraReplyAttribution">Reply preview based on exteraGram</string>
 </resources>
