@@ -14137,12 +14137,26 @@ public class ChatActivityEnterView extends FrameLayout implements
             }
 
             public void onGifSelected(View view, Object gif, String query, Object parent, boolean notify, int scheduleDate, int scheduleRepeatPeriod, MediaController.PhotoEntry entry, boolean invertMedia) {
+                if (NekoConfig.confirmGifSend.Bool()) {
+                    if (parentActivity == null || parentFragment == null) return;
+                    AlertDialog.Builder builder = new AlertDialog.Builder(parentActivity, resourcesProvider);
+                    builder.setTitle(getString(R.string.ConfirmGifSend));
+                    builder.setMessage(getString(R.string.ConfirmGifSendMessage));
+                    builder.setPositiveButton(getString(R.string.Send), (dialog, which) -> sendConfirmedGif(view, gif, query, parent, notify, scheduleDate, scheduleRepeatPeriod, entry, invertMedia));
+                    builder.setNegativeButton(getString(R.string.Cancel), null);
+                    parentFragment.showDialog(builder.create());
+                } else {
+                    sendConfirmedGif(view, gif, query, parent, notify, scheduleDate, scheduleRepeatPeriod, entry, invertMedia);
+                }
+            }
+
+            private void sendConfirmedGif(View view, Object gif, String query, Object parent, boolean notify, int scheduleDate, int scheduleRepeatPeriod, MediaController.PhotoEntry entry, boolean invertMedia) {
                 if (replyingQuote != null && parentFragment != null && replyingQuote.outdated) {
                     parentFragment.showQuoteMessageUpdate();
                     return;
                 }
                 if (isInScheduleMode() && scheduleDate == 0) {
-                    AlertsCreator.createScheduleDatePickerDialog(parentActivity, parentFragment.getDialogId(), (n, s, r) -> onGifSelected(view, gif, query, parent, n, s, r, entry, invertMedia), resourcesProvider);
+                    AlertsCreator.createScheduleDatePickerDialog(parentActivity, parentFragment.getDialogId(), (n, s, r) -> sendConfirmedGif(view, gif, query, parent, n, s, r, entry, invertMedia), resourcesProvider);
                 } else {
                     if (slowModeTimer > 0 && !isInScheduleMode()) {
                         if (delegate != null) {
