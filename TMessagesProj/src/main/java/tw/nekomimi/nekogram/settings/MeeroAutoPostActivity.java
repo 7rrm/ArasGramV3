@@ -8,7 +8,6 @@ import android.text.InputType;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.view.View;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
@@ -26,6 +25,9 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.DialogsActivity;
+import org.telegram.ui.ChatActivity;
+import android.view.ActionMode;
+import android.view.Menu;
 import tw.nekomimi.nekogram.autopost.AutoPost;
 import java.util.ArrayList;
 
@@ -85,7 +87,13 @@ public class MeeroAutoPostActivity extends BaseNekoSettingsActivity {
     private void editText(int index){
         Context context=getParentActivity();
         if(context==null)return;
-        EditTextCaption editor=new EditTextCaption(context,resourcesProvider);
+        EditTextCaption editor=new EditTextCaption(context,resourcesProvider) {
+            @Override protected void extendActionMode(ActionMode mode, Menu menu) {
+                if (getSelectionStart() != getSelectionEnd() && menu.findItem(android.R.id.copy) != null) {
+                    ChatActivity.fillActionModeMenu(menu, null, true, true);
+                }
+            }
+        };
         editor.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
         editor.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         editor.setMinLines(3); editor.setMaxLines(8);
@@ -102,27 +110,10 @@ public class MeeroAutoPostActivity extends BaseNekoSettingsActivity {
         LinearLayout layout=new LinearLayout(context); layout.setOrientation(LinearLayout.VERTICAL);
         int inset=AndroidUtilities.dp(16); layout.setPadding(inset,0,inset,0);
         layout.addView(editor,new LinearLayout.LayoutParams(-1,-2));
-        TextView format=new TextView(context);
-        format.setText(s(R.string.AutoPostFormat));
-        format.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueText));
-        format.setPadding(0,AndroidUtilities.dp(12),0,AndroidUtilities.dp(12));
-        layout.addView(format,new LinearLayout.LayoutParams(-1,-2));
-        format.setOnClickListener(v->{
-            int start=editor.getSelectionStart(), end=editor.getSelectionEnd();
-            if(start<0 || end<=start){alert(s(R.string.AutoPostSelectText));return;}
-            String[] choices={s(R.string.AutoPostBold),s(R.string.AutoPostItalic),s(R.string.AutoPostSpoiler),s(R.string.AutoPostCode),s(R.string.AutoPostStrike),s(R.string.AutoPostUnderline),s(R.string.AutoPostLink),s(R.string.AutoPostQuote),s(R.string.AutoPostClearFormat)};
-            new AlertDialog.Builder(context).setTitle(s(R.string.AutoPostFormat)).setItems(choices,(dialog,which)->{
-                editor.setSelection(start,end);
-                switch(which){case 0:editor.makeSelectedBold();break;case 1:editor.makeSelectedItalic();break;
-                    case 2:editor.makeSelectedSpoiler();break;case 3:editor.makeSelectedMono();break;
-                    case 4:editor.makeSelectedStrike();break;case 5:editor.makeSelectedUnderline();break;
-                    case 6:editor.makeSelectedUrl();break;case 7:editor.makeSelectedQuote();break;
-                    case 8:editor.makeSelectedRegular();break;}
-            }).show();
-        });
         new AlertDialog.Builder(context).setTitle(s(R.string.AutoPostMessage)).setView(layout).setPositiveButton(s(R.string.Save),(d,w)->{
-            CharSequence[] input={new SpannableStringBuilder(editor.getText())};
-            QuoteSpan.normalizeQuotes((Spannable)input[0]);
+            SpannableStringBuilder editableCopy=new SpannableStringBuilder(editor.getText());
+            QuoteSpan.normalizeQuotes((Spannable)editableCopy);
+            CharSequence[] input={AndroidUtilities.getTrimmedString(editableCopy)};
             ArrayList<TLRPC.MessageEntity> entities=MediaDataController.getInstance(currentAccount).getEntities(input,true,false);
             String text=input[0].toString();
             if(text.trim().isEmpty())return;

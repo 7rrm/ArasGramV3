@@ -134,9 +134,24 @@ public final class AutoPost {
                 try {
                     if(eligible(account,step.dialogId,exclude)) {
                         PostMessage item=items.get(step.messageIndex);
-                        SendMessagesHelper.SendMessageParams params=SendMessagesHelper.SendMessageParams.of(item.text,step.dialogId);
-                        params.entities=decodeEntities(encodeEntities(item.entities),item.text);
-                        SendMessagesHelper.getInstance(account).sendMessage(params);
+                        // The chat composer trims whitespace at both ends. Older saved
+                        // quotes may include extra editor-generated newlines: trim the
+                        // outgoing copy and adjust every entity, without changing storage.
+                        int start=0, end=item.text.length();
+                        while(start<end && (item.text.charAt(start)==' ' || item.text.charAt(start)=='\n')) start++;
+                        while(end>start && (item.text.charAt(end-1)==' ' || item.text.charAt(end-1)=='\n')) end--;
+                        if(start<end) {
+                            ArrayList<TLRPC.MessageEntity> entities=decodeEntities(encodeEntities(item.entities),item.text);
+                            for(int i=entities.size()-1;i>=0;i--) {
+                                TLRPC.MessageEntity e=entities.get(i);
+                                int left=Math.max(e.offset,start), right=Math.min(e.offset+e.length,end);
+                                if(left>=right) entities.remove(i);
+                                else { e.offset=left-start; e.length=right-left; }
+                            }
+                            SendMessagesHelper.SendMessageParams params=SendMessagesHelper.SendMessageParams.of(item.text.substring(start,end),step.dialogId);
+                            params.entities=entities;
+                            SendMessagesHelper.getInstance(account).sendMessage(params);
+                        }
                     }
                     advance();
                 } catch (RuntimeException failure) {
