@@ -176,7 +176,7 @@ public class CustomHtml {
                 for (int j = 0; j < spans.length; ++j) {
                     URLSpanMono span = spans[j];
                     if (span != null) {
-                        out.append("<pre>");
+                        out.append("<code>");
                     }
                 }
             }
@@ -187,7 +187,7 @@ public class CustomHtml {
                 for (int j = 0; j < spans.length; ++j) {
                     URLSpanMono span = spans[j];
                     if (span != null) {
-                        out.append("</pre>");
+                        out.append("</code>");
                     }
                 }
             }

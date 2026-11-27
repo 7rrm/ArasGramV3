@@ -14,6 +14,7 @@ import static org.telegram.messenger.LocaleController.getString;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -39,11 +40,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputConnectionWrapper;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.core.view.inputmethod.EditorInfoCompat;
 
 import org.jetbrains.annotations.NotNull;
 import org.telegram.messenger.AndroidUtilities;
@@ -63,6 +67,11 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.LaunchActivity;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -1292,36 +1301,8 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
     public boolean onTextContextMenuItem(int id) {
         if (id == android.R.id.paste) {
             ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clipData = clipboard.getPrimaryClip();
-            if (clipData != null && clipData.getItemCount() == 1 && clipData.getDescription().hasMimeType("text/html")) {
-                try {
-                    String html = clipData.getItemAt(0).getHtmlText();
-                    SpannableStringBuilder pasted = new SpannableStringBuilder(CopyUtilities.fromHTML(html));
-                    Emoji.replaceEmoji(pasted, getPaint().getFontMetricsInt(), false, null);
-                    AnimatedEmojiSpan[] spans = pasted.getSpans(0, pasted.length(), AnimatedEmojiSpan.class);
-                    if (spans != null) {
-                        for (int k = 0; k < spans.length; ++k) {
-                            spans[k].applyFontMetrics(getPaint().getFontMetricsInt(), AnimatedEmojiDrawable.getCacheTypeForEnterView());
-                        }
-                    }
-                    int start = Math.max(0, getSelectionStart());
-                    int end = Math.min(getText().length(), getSelectionEnd());
-                    QuoteSpan.QuoteStyleSpan[] quotesInSelection = getText().getSpans(start, end, QuoteSpan.QuoteStyleSpan.class);
-                    if (quotesInSelection != null && quotesInSelection.length > 0) {
-                        QuoteSpan.QuoteStyleSpan[] quotesToDelete = pasted.getSpans(0, pasted.length(), QuoteSpan.QuoteStyleSpan.class);
-                        for (int i = 0; i < quotesToDelete.length; ++i) {
-                            pasted.removeSpan(quotesToDelete[i]);
-                            pasted.removeSpan(quotesToDelete[i].span);
-                        }
-                    } else {
-                        QuoteSpan.normalizeQuotes(pasted);
-                    }
-                    setText(getText().replace(start, end, pasted));
-                    setSelection(start + pasted.length(), start + pasted.length());
-                    return true;
-                } catch (Exception e) {
-                    FileLog.e(e);
-                }
+            if (clipboard != null && handleRichPaste(clipboard.getPrimaryClip())) {
+                return true;
             }
         } else if (id == android.R.id.copy) {
             int start = Math.max(0, getSelectionStart());
@@ -1354,5 +1335,121 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
             } catch (Exception e) {}
         }
         return super.onTextContextMenuItem(id);
+    }
+
+    @Override
+    public InputConnection onCreateInputConnection(@androidx.annotation.NonNull EditorInfo outAttrs) {
+        InputConnection ic = super.onCreateInputConnection(outAttrs);
+        if (ic == null) {
+            return null;
+        }
+
+        String[] currentMimeTypes = EditorInfoCompat.getContentMimeTypes(outAttrs);
+        LinkedHashSet<String> mimeTypes = new LinkedHashSet<>();
+        Collections.addAll(mimeTypes, currentMimeTypes);
+        mimeTypes.add("text/html");
+        mimeTypes.add("text/plain");
+        EditorInfoCompat.setContentMimeTypes(outAttrs, mimeTypes.toArray(new String[0]));
+
+        return new InputConnectionWrapper(ic, true) {
+            @Override
+            public boolean commitText(CharSequence text, int newCursorPosition) {
+                if (text != null && text.length() > 1) {
+                    try {
+                        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                        if (clipboard != null && clipboard.hasPrimaryClip() &&
+                                clipboard.getPrimaryClipDescription().hasMimeType("text/html")) {
+
+                            ClipData primaryClip = clipboard.getPrimaryClip();
+                            if (primaryClip != null && primaryClip.getItemCount() > 0) {
+                                CharSequence clipText = primaryClip.getItemAt(0).coerceToText(getContext());
+                                if (clipText != null && TextUtils.equals(text, clipText)) {
+                                    if (handleRichPaste(primaryClip)) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                }
+                return super.commitText(text, newCursorPosition);
+            }
+        };
+    }
+
+    private boolean handleRichPaste(ClipData clipData) {
+        if (clipData == null || clipData.getItemCount() != 1) return false;
+
+        ClipDescription description = clipData.getDescription();
+        if (description == null) return false;
+
+        if (description.hasMimeType("image/*") ||
+                description.hasMimeType("video/*") ||
+                description.hasMimeType("audio/*")) {
+            return false;
+        }
+
+        boolean isHtml = clipData.getDescription().hasMimeType("text/html");
+        boolean hasUri = clipData.getItemAt(0).getUri() != null;
+
+        if (isHtml || hasUri) {
+            try {
+                ClipData.Item item = clipData.getItemAt(0);
+                String html = item.getHtmlText();
+
+                if (html == null && item.getUri() != null) {
+                    html = readHtmlFromUri(item.getUri());
+                }
+
+                if (html == null) return false;
+
+                SpannableStringBuilder pasted = new SpannableStringBuilder(CopyUtilities.fromHTML(html));
+                Emoji.replaceEmoji(pasted, getPaint().getFontMetricsInt(), false, null);
+                AnimatedEmojiSpan[] spans = pasted.getSpans(0, pasted.length(), AnimatedEmojiSpan.class);
+                if (spans != null) {
+                    for (AnimatedEmojiSpan span : spans) {
+                        span.applyFontMetrics(getPaint().getFontMetricsInt(), AnimatedEmojiDrawable.getCacheTypeForEnterView());
+                    }
+                }
+                int start = Math.max(0, getSelectionStart());
+                int end = Math.min(getText().length(), getSelectionEnd());
+                QuoteSpan.QuoteStyleSpan[] quotesInSelection = getText().getSpans(start, end, QuoteSpan.QuoteStyleSpan.class);
+                if (quotesInSelection != null && quotesInSelection.length > 0) {
+                    QuoteSpan.QuoteStyleSpan[] quotesToDelete = pasted.getSpans(0, pasted.length(), QuoteSpan.QuoteStyleSpan.class);
+                    for (QuoteSpan.QuoteStyleSpan quoteStyleSpan : quotesToDelete) {
+                        pasted.removeSpan(quoteStyleSpan);
+                        pasted.removeSpan(quoteStyleSpan.span);
+                    }
+                } else {
+                    QuoteSpan.normalizeQuotes(pasted);
+                }
+                setText(getText().replace(start, end, pasted));
+                setSelection(start + pasted.length(), start + pasted.length());
+                return true;
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
+        return false;
+    }
+
+    private String readHtmlFromUri(android.net.Uri uri) {
+        // Refuse oversized content rather than pasting truncated or invalid HTML.
+        try (InputStream stream = getContext().getContentResolver().openInputStream(uri);
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            if (stream == null) return null;
+            byte[] buffer = new byte[4096];
+            int count;
+            while ((count = stream.read(buffer)) != -1) {
+                if (output.size() + count > 32 * 1024) return null;
+                output.write(buffer, 0, count);
+            }
+            return new String(output.toByteArray(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            FileLog.e(e);
+            return null;
+        }
     }
 }
