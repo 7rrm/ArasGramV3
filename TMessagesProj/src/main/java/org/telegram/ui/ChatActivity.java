@@ -34478,11 +34478,21 @@ public class ChatActivity extends BaseFragment implements
 
                 private ActionBarMenuSubItem meeroFindItem(float rawX, float rawY) {
                     if (scrimPopupWindowItems == null) return null;
+                    // MotionEvent raw coordinates are screen coordinates, while global
+                    // visible rectangles are relative to the popup window's root.
+                    // Account for the window's screen offset (status bar, cutout, etc.).
+                    View root = getRootView();
+                    int[] onScreen = new int[2];
+                    int[] inWindow = new int[2];
+                    root.getLocationOnScreen(onScreen);
+                    root.getLocationInWindow(inWindow);
+                    int windowX = onScreen[0] - inWindow[0];
+                    int windowY = onScreen[1] - inWindow[1];
                     for (ActionBarMenuSubItem item : scrimPopupWindowItems) {
                         if (item != null && item.isShown() && item.isEnabled() && item.isClickable()
-                                && item.getGlobalVisibleRect(meeroVisibleRect)
-                                && meeroVisibleRect.contains((int) rawX, (int) rawY)) {
-                            return item;
+                                && item.getGlobalVisibleRect(meeroVisibleRect)) {
+                            meeroVisibleRect.offset(windowX, windowY);
+                            if (meeroVisibleRect.contains((int) rawX, (int) rawY)) return item;
                         }
                     }
                     return null;
