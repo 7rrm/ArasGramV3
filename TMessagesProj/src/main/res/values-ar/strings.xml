@@ -1455,4 +1455,15 @@
     <string name="AutoPostRisk">أقل من 7 ثوانٍ: النشر على مسؤوليتك وقد يقيّد تيليجرام حسابك. هل تريد المتابعة؟</string>
     <string name="AutoPostMessage">رسالة النشر</string>
     <string name="AutoPostIneligible">المحادثة غير متاحة أو قناة أو بوت أو لا يمكن الإرسال فيها.</string>
+    <string name="AutoPostFormat">تنسيق النص المحدد</string>
+    <string name="AutoPostSelectText">حدد النص أولاً</string>
+    <string name="AutoPostBold">عريض</string>
+    <string name="AutoPostItalic">مائل</string>
+    <string name="AutoPostSpoiler">مخفي</string>
+    <string name="AutoPostCode">كود</string>
+    <string name="AutoPostStrike">مشطوب</string>
+    <string name="AutoPostUnderline">تسطير</string>
+    <string name="AutoPostLink">رابط</string>
+    <string name="AutoPostQuote">اقتباس</string>
+    <string name="AutoPostClearFormat">إزالة التنسيق</string>
 </resources>

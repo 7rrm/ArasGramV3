@@ -12,13 +12,15 @@ public final class AutoPostPlan {
     public static final class Step {
         public final long dialogId;
         public final String message;
+        public final int messageIndex;
         /** Delay before this step, in milliseconds. */
         public final long delayMs;
         public final int round;
 
-        private Step(long dialogId, String message, long delayMs, int round) {
+        private Step(long dialogId, String message, int messageIndex, long delayMs, int round) {
             this.dialogId = dialogId;
             this.message = message;
+            this.messageIndex = messageIndex;
             this.delayMs = delayMs;
             this.round = round;
         }
@@ -68,7 +70,7 @@ public final class AutoPostPlan {
         if (finished) return null;
         long delay = first ? 0 : messageIndex == 0 ? dialogDelayMs : messageDelayMs;
         first = false;
-        Step step = new Step(dialogs.get(dialogIndex), messages.get(messageIndex), delay, round);
+        Step step = new Step(dialogs.get(dialogIndex), messages.get(messageIndex), messageIndex, delay, round);
         if (++messageIndex == messages.size()) {
             messageIndex = 0;
             if (++dialogIndex == dialogs.size()) {

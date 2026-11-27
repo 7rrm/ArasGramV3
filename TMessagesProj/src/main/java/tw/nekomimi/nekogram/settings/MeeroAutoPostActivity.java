@@ -5,11 +5,21 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.view.View;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.MediaDataController;
+import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Components.EditTextCaption;
+import org.telegram.ui.Components.QuoteSpan;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLRPC;
@@ -24,7 +34,7 @@ public class MeeroAutoPostActivity extends BaseNekoSettingsActivity {
     private final int page; // 0=hub, 1=selected, 2=global
     private int modeStart, chats, messages, delay, chatDelay, privacy, repeat, rounds, chatStart, chatEnd, msgStart, msgEnd, addMsg;
     private final ArrayList<Long> ids=new ArrayList<>();
-    private final ArrayList<String> texts=new ArrayList<>();
+    private final ArrayList<AutoPost.PostMessage> texts=new ArrayList<>();
     public MeeroAutoPostActivity(){this(0);}
     private MeeroAutoPostActivity(int page){this.page=page;}
     private boolean global(){return page==2;}
@@ -39,7 +49,7 @@ public class MeeroAutoPostActivity extends BaseNekoSettingsActivity {
         modeStart=addRow(); chats=global()?-1:addRow();
         chatStart=rowCount; for(long ignored:ids)addRow(); chatEnd=rowCount;
         privacy=global()?addRow():-1; messages=addRow(); addMsg=addRow();
-        msgStart=rowCount; for(String ignored:texts)addRow(); msgEnd=rowCount;
+        msgStart=rowCount; for(AutoPost.PostMessage ignored:texts)addRow(); msgEnd=rowCount;
         delay=addRow(); chatDelay=addRow(); repeat=addRow(); rounds=prefs().getInt("repeat",0)==1?addRow():-1;
     }
     private void refresh(){updateRows(); if(listAdapter!=null)listAdapter.notifyDataSetChanged();}
@@ -72,8 +82,55 @@ public class MeeroAutoPostActivity extends BaseNekoSettingsActivity {
             if(key.equals("message_delay")&&n<7)new AlertDialog.Builder(getParentActivity()).setMessage(s(R.string.AutoPostRisk)).setPositiveButton(s(R.string.OK),(di,wi)->save.run()).setNegativeButton(s(R.string.Cancel),null).show();else save.run();
         }).setNegativeButton(s(R.string.Cancel),null).show();
     }
-    private void editText(int index){EditText e=new EditText(getParentActivity());e.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);if(index>=0)e.setText(texts.get(index));
-        new AlertDialog.Builder(getParentActivity()).setTitle(s(R.string.AutoPostMessage)).setView(e).setPositiveButton(s(R.string.Save),(d,w)->{String t=e.getText().toString();if(t.trim().isEmpty())return;if(index<0)texts.add(t);else texts.set(index,t);AutoPost.saveMessages(currentAccount,global(),texts);refresh();}).setNegativeButton(s(R.string.Cancel),null).show();}
+    private void editText(int index){
+        Context context=getParentActivity();
+        if(context==null)return;
+        EditTextCaption editor=new EditTextCaption(context,resourcesProvider);
+        editor.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
+        editor.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        editor.setMinLines(3); editor.setMaxLines(8);
+        editor.setAllowTextEntitiesIntersection(true);
+        if(index>=0){
+            AutoPost.PostMessage post=texts.get(index);
+            SpannableStringBuilder value=new SpannableStringBuilder(post.text);
+            MessageObject.addEntitiesToText(value,post.entities,false,false,false,false);
+            Spannable withEmoji=MessageObject.replaceAnimatedEmoji(value,post.entities,editor.getPaint().getFontMetricsInt());
+            editor.setText(withEmoji);
+            QuoteSpan.normalizeQuotes(editor.getText());
+            editor.setSelection(editor.length());
+        }
+        LinearLayout layout=new LinearLayout(context); layout.setOrientation(LinearLayout.VERTICAL);
+        int inset=AndroidUtilities.dp(16); layout.setPadding(inset,0,inset,0);
+        layout.addView(editor,new LinearLayout.LayoutParams(-1,-2));
+        TextView format=new TextView(context);
+        format.setText(s(R.string.AutoPostFormat));
+        format.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueText));
+        format.setPadding(0,AndroidUtilities.dp(12),0,AndroidUtilities.dp(12));
+        layout.addView(format,new LinearLayout.LayoutParams(-1,-2));
+        format.setOnClickListener(v->{
+            int start=editor.getSelectionStart(), end=editor.getSelectionEnd();
+            if(start<0 || end<=start){alert(s(R.string.AutoPostSelectText));return;}
+            String[] choices={s(R.string.AutoPostBold),s(R.string.AutoPostItalic),s(R.string.AutoPostSpoiler),s(R.string.AutoPostCode),s(R.string.AutoPostStrike),s(R.string.AutoPostUnderline),s(R.string.AutoPostLink),s(R.string.AutoPostQuote),s(R.string.AutoPostClearFormat)};
+            new AlertDialog.Builder(context).setTitle(s(R.string.AutoPostFormat)).setItems(choices,(dialog,which)->{
+                editor.setSelection(start,end);
+                switch(which){case 0:editor.makeSelectedBold();break;case 1:editor.makeSelectedItalic();break;
+                    case 2:editor.makeSelectedSpoiler();break;case 3:editor.makeSelectedMono();break;
+                    case 4:editor.makeSelectedStrike();break;case 5:editor.makeSelectedUnderline();break;
+                    case 6:editor.makeSelectedUrl();break;case 7:editor.makeSelectedQuote();break;
+                    case 8:editor.makeSelectedRegular();break;}
+            }).show();
+        });
+        new AlertDialog.Builder(context).setTitle(s(R.string.AutoPostMessage)).setView(layout).setPositiveButton(s(R.string.Save),(d,w)->{
+            CharSequence[] input={new SpannableStringBuilder(editor.getText())};
+            QuoteSpan.normalizeQuotes((Spannable)input[0]);
+            ArrayList<TLRPC.MessageEntity> entities=MediaDataController.getInstance(currentAccount).getEntities(input,true,false);
+            String text=input[0].toString();
+            if(text.trim().isEmpty())return;
+            AutoPost.PostMessage item=new AutoPost.PostMessage(text,entities);
+            if(index<0)texts.add(item);else texts.set(index,item);
+            AutoPost.saveMessages(currentAccount,global(),texts);refresh();
+        }).setNegativeButton(s(R.string.Cancel),null).show();
+    }
     private void pickChat(){Bundle b=new Bundle();b.putBoolean("onlySelect",true);b.putBoolean("allowGlobalSearch",false);b.putBoolean("checkCanWrite",true);DialogsActivity f=new DialogsActivity(b);
         f.setDelegate((fragment,dids,message,param,notify,scheduleDate,scheduleRepeatPeriod,topicsFragment)->{if(dids==null||dids.isEmpty())return false;long id=dids.get(0).dialogId;if(parentLayout!=null)parentLayout.removeFragmentFromStack(fragment,true);if(!AutoPost.eligible(currentAccount,id,false)){alert(s(R.string.AutoPostIneligible));return true;}if(!ids.contains(id)){ids.add(id);AutoPost.saveSelected(currentAccount,ids);}refresh();return true;});presentFragment(f);}
     private String name(long id){MessagesController mc=MessagesController.getInstance(currentAccount);if(id>0){TLRPC.User u=mc.getUser(id);return u==null?Long.toString(id):UserObject.getUserName(u);}TLRPC.Chat c=mc.getChat(-id);return c==null?Long.toString(id):c.title;}
@@ -90,7 +147,7 @@ public class MeeroAutoPostActivity extends BaseNekoSettingsActivity {
             else if(pos==privacy){title=s(R.string.AutoPostExcludePrivate);value=s(prefs().getBoolean("exclude_private",true)?R.string.AutoPostOn:R.string.AutoPostOff);}
             else if(pos==messages){title=s(R.string.AutoPostMessages);value=texts.size()+" / 10";}
             else if(pos==addMsg)title=s(R.string.AutoPostAddMessage);
-            else if(pos>=msgStart&&pos<msgEnd)title=texts.get(pos-msgStart).replace('\n',' ');
+            else if(pos>=msgStart&&pos<msgEnd)title=texts.get(pos-msgStart).text.replace('\n',' ');
             else if(pos==delay){title=s(R.string.AutoPostMessageDelay);value=String.valueOf(prefs().getInt("message_delay",10));}
             else if(pos==chatDelay){title=s(R.string.AutoPostChatDelay);value=String.valueOf(prefs().getInt("dialog_delay",30));}
             else if(pos==repeat){title=s(R.string.AutoPostRepeat);int r=prefs().getInt("repeat",0);value=s(r==1?R.string.AutoPostCount:r==2?R.string.AutoPostContinuous:R.string.AutoPostOnce);}

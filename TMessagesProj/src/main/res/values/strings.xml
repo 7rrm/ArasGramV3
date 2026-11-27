@@ -11810,4 +11810,15 @@
     <string name="AutoPostRisk">Less than 7 seconds: sending is at your own risk. Telegram may restrict your account. Continue?</string>
     <string name="AutoPostMessage">Post message</string>
     <string name="AutoPostIneligible">This chat is unavailable, a channel or bot, or cannot receive messages.</string>
+    <string name="AutoPostFormat">Format selected text</string>
+    <string name="AutoPostSelectText">Select text first</string>
+    <string name="AutoPostBold">Bold</string>
+    <string name="AutoPostItalic">Italic</string>
+    <string name="AutoPostSpoiler">Spoiler</string>
+    <string name="AutoPostCode">Monospace</string>
+    <string name="AutoPostStrike">Strikethrough</string>
+    <string name="AutoPostUnderline">Underline</string>
+    <string name="AutoPostLink">Link</string>
+    <string name="AutoPostQuote">Quote</string>
+    <string name="AutoPostClearFormat">Clear formatting</string>
 </resources>
