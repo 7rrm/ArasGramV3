@@ -489,6 +489,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private Paint actionBarBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private ActionBarPopupWindow scrimPopupWindow;
     private Theme.ResourcesProvider resourcesProvider;
+    private final org.telegram.ui.Stars.CherryProfileColors cherryProfileColors = new org.telegram.ui.Stars.CherryProfileColors(null);
 
     private int overlayCountVisible;
 
@@ -1425,9 +1426,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return false;
         }
 
+        private final AnimatedFloat cherryMusicDim = new AnimatedFloat(this, 0, 400, CubicBezierInterpolator.EASE_OUT);
+
         private void updateBackgroundPaint() {
-            final int color1 = color1Animated.set(this.color1);
-            final int color2 = color2Animated.set(this.color2);
+            float dim = cherryMusicDim.set(giftsView instanceof org.telegram.ui.Stars.CherryProfileGiftsView
+                    && ((org.telegram.ui.Stars.CherryProfileGiftsView) giftsView).isMusicPlaying() ? .42f : 0f);
+            if (resourcesProvider == cherryProfileColors) {
+                cherryProfileColors.setMusicDim(dim);
+                if (listView != null) listView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
+            }
+            int color1 = color1Animated.set(this.color1);
+            int color2 = color2Animated.set(this.color2);
+            if (dim > 0f) {
+                color1 = ColorUtils.blendARGB(color1, Color.BLACK, dim);
+                color2 = ColorUtils.blendARGB(color2, Color.BLACK, dim);
+            }
             if (actionsView != null) {
                 actionsView.setActionsColor(btnColor, hasColorById);
                 actionsView.setHasProfileBackground(hasColorById || hasCurrentBackgroundEmoji);
@@ -2729,6 +2742,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         BaseFragment lastFragment = parentLayout.getLastFragment();
         if (lastFragment instanceof ChatActivity && ((ChatActivity) lastFragment).themeDelegate != null && ((ChatActivity) lastFragment).themeDelegate.getCurrentTheme() != null && !((ChatActivity) lastFragment).themeDelegate.isGiftTheme()) {
             resourcesProvider = lastFragment.getResourceProvider();
+        }
+        if (tw.nekomimi.nekogram.NekoConfig.meeroCherryProfile.Bool() && !isSettings()) {
+            if (resourcesProvider != cherryProfileColors) cherryProfileColors.setParent(resourcesProvider);
+            cherryProfileColors.setPeerColor(peerColor);
+            resourcesProvider = cherryProfileColors;
+        } else if (resourcesProvider == cherryProfileColors) {
+            resourcesProvider = cherryProfileColors.getParent();
         }
         searchTransitionOffset = 0;
         searchTransitionProgress = 1f;
@@ -5618,6 +5638,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             CanvasButton canvasButton;
 
             @Override
+            protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+                if (child == avatarGooey && giftsView instanceof org.telegram.ui.Stars.CherryProfileGiftsView && avatarContainer != null) {
+                    org.telegram.ui.Stars.CherryProfileGiftsView cherry = (org.telegram.ui.Stars.CherryProfileGiftsView) giftsView;
+                    float scale = 1f + 0.09f * cherry.getBeatLevel();
+                    canvas.save();
+                    canvas.scale(scale, scale, avatarContainer.getX() + avatarContainer.getWidth() / 2f,
+                            avatarContainer.getY() + avatarContainer.getHeight() / 2f);
+                    boolean result = super.drawChild(canvas, child, drawingTime);
+                    canvas.restore();
+                    return result;
+                }
+                return super.drawChild(canvas, child, drawingTime);
+            }
+
+            @Override
             protected void dispatchDraw(Canvas canvas) {
                 super.dispatchDraw(canvas);
                 if (transitionOnlineText != null) {
@@ -6034,7 +6069,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             avatarImage.setHasStories(needInsetForStories());
         }
         avatarContainer2.addView(storyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
-        giftsView = new ProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
+        if (tw.nekomimi.nekogram.NekoConfig.meeroCherryProfile.Bool()) {
+            org.telegram.ui.Stars.CherryProfileGiftsView cherry = new org.telegram.ui.Stars.CherryProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
+            cherry.setAnimationFrameListener(() -> {
+                if (avatarContainer2 != null) avatarContainer2.invalidate();
+                if (topView != null) topView.invalidate();
+            });
+            giftsView = cherry;
+        } else {
+            giftsView = new ProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
+        }
         avatarContainer2.addView(giftsView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         updateProfileData(true);
 
@@ -12821,6 +12865,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void updatedPeerColor() {
+        if (resourcesProvider == cherryProfileColors) {
+            cherryProfileColors.setPeerColor(peerColor);
+            if (listView != null) listView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
+        }
         adaptedColors.clear();
         if (topView != null) {
             topView.setBackgroundColorId(peerColor, true);

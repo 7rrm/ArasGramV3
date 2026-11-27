@@ -94,6 +94,22 @@ public class BlurredBackgroundProviderImpl {
         return messageMenuBackground(resourcesProvider);
     }
 
+    /** Cherrygram 11.6.0 uses alpha 180/255 for its iOS message menu. */
+    public static BlurredBackgroundProvider cherryMessageMenuBackground(Theme.ResourcesProvider resourcesProvider) {
+        return new BlurredBackgroundProviderBuilder(resourcesProvider)
+                .setBackgroundColor((r, isDark) -> {
+                    int color = Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, r);
+                    color = ColorUtils.blendARGB(color, isDark ? Color.WHITE : Color.BLACK, isDark ? .05f : .15f);
+                    return ColorUtils.setAlphaComponent(color, 180);
+                })
+                .setStrokeColorTop(0x44FFFFFF, 0)
+                .setStrokeColorBottom(0x22FFFFFF, 0)
+                .setShadowColor(0x38000000, 0)
+                .setShadowLayer(dpf2(3.5f), 0, 0)
+                .setStrokeWidth(dpf2(2 / 3f), dpf2(2 / 3f))
+                .build();
+    }
+
     public static BlurredBackgroundProvider messageMenuBackground(Theme.ResourcesProvider resourcesProvider) {
         return new BlurredBackgroundProviderBuilder(resourcesProvider)
                 .setBackgroundColor((r, isDark) -> {

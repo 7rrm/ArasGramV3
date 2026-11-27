@@ -1459,4 +1459,6 @@
     <string name="EnhancedRichClipboardDesc">الحفاظ على التنسيق والإيموجي المخصص والاقتباس عند اللصق من لوحة المفاتيح.</string>
     <string name="MeeroMenuDragSelect">اختيار عناصر القائمة بالسحب</string>
     <string name="MeeroMenuDragSelectDesc">اضغط على خيار واسحب إصبعك بين الخيارات، ثم ارفعه لاختيار العنصر.</string>
+    <string name="MeeroCherryProfileTitle">تصميم البروفايل الجديد</string>
+    <string name="MeeroCherryProfileDesc">تفعيل تصميم البروفايل الجديد ودوائر الهدايا وتأثيرات الموسيقى.</string>
 </resources>

@@ -33381,7 +33381,9 @@ public class ChatActivity extends BaseFragment implements
             updateScrimSourceBitmap();
 
             popupLayout.setBackground(scrimBlur3Factory.create(popupLayout, true)
-                .setColorProvider(BlurredBackgroundProviderImpl.messageMenuBackground(resourceProvider))
+                .setColorProvider(meeroIosMsgMenuOn()
+                        ? BlurredBackgroundProviderImpl.cherryMessageMenuBackground(resourceProvider)
+                        : BlurredBackgroundProviderImpl.messageMenuBackground(resourceProvider))
                 .setRadius(dp(12))
                 .setPadding(dp(8)));
 

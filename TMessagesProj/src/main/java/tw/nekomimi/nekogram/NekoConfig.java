@@ -185,6 +185,7 @@ public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackB
     public static ConfigItem meeroCherryAdaptive = addConfig("meeroCherryAdaptive", configTypeBool, true);
     public static ConfigItem meeroGlare = addConfig("meeroGlare", configTypeBool, true);
     public static ConfigItem meeroProfileGlare = addConfig("meeroProfileGlare", configTypeBool, true);
+    public static ConfigItem meeroCherryProfile = addConfig("meeroCherryProfile", configTypeBool, false);
 
     // MeeroX v233: top bar sizes & fonts (chat header, pinned strip, music bar).
     // Master off = the conversation-start originals; on = tuned baseline x scale%.

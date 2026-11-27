@@ -119,6 +119,8 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
             MeeroStrings.s("MeeroHdrAdaptiveDesc"), MeeroStrings.s("MeeroHdrAdaptiveTitle"));
     private final ConfigCellTextCheck hdrProfileGlareRow = new ConfigCellTextCheck(NekoConfig.meeroProfileGlare,
             getString(R.string.MeeroProfileGlareDesc), getString(R.string.MeeroProfileGlareTitle));
+    private final ConfigCellTextCheck cherryProfileRow = new ConfigCellTextCheck(NekoConfig.meeroCherryProfile,
+            getString(R.string.MeeroCherryProfileDesc), getString(R.string.MeeroCherryProfileTitle));
     private final ConfigCellTextCheck hdrGlareRow = new ConfigCellTextCheck(NekoConfig.meeroGlare,
             getString(R.string.MeeroHdrGlareDesc), getString(R.string.MeeroHdrGlareTitle));
     private final ConfigCellTextCheck hdrBadgeRow = new ConfigCellTextCheck(NekoConfig.unreadBadgeOnBackButton,
@@ -150,6 +152,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
         meeroHdrSubRows.add(hdrCenterRow);
         meeroHdrSubRows.add(hdrAdaptiveRow);
         meeroHdrSubRows.add(hdrProfileGlareRow);
+        meeroHdrSubRows.add(cherryProfileRow);
         meeroHdrSubRows.add(hdrGlareRow);
         meeroHdrSubRows.add(hdrBadgeRow);
         meeroHdrSubRows.add(hdrCommunityRow);

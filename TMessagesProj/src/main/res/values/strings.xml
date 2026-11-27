@@ -11814,4 +11814,6 @@
     <string name="EnhancedRichClipboardDesc">Preserve formatting, custom emoji and quotes when pasting from the keyboard.</string>
     <string name="MeeroMenuDragSelect">Drag to select menu items</string>
     <string name="MeeroMenuDragSelectDesc">Hold a menu item and slide to another item, then release to select it.</string>
+    <string name="MeeroCherryProfileTitle">Cherry-style profile</string>
+    <string name="MeeroCherryProfileDesc">Use the new profile appearance, gift bubbles and music effects.</string>
 </resources>

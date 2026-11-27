@@ -1873,6 +1873,9 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
 
     private class VisualizerBufferSink implements TeeAudioProcessor.AudioBufferSink {
 
+        // Analysis uses a read-only duplicate; never alter the audio buffer or playback.
+        private final org.telegram.ui.Stars.CherryProfileBeat cherryBeat = new org.telegram.ui.Stars.CherryProfileBeat();
+        private long cherryBeatLastPost;
         private final int BUFFER_SIZE = 1024;
         private final int MAX_BUFFER_SIZE = BUFFER_SIZE * 8;
         FourierTransform.FFT fft = new FourierTransform.FFT(BUFFER_SIZE, 48000);
@@ -1887,7 +1890,8 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
 
         @Override
         public void flush(int sampleRateHz, int channelCount, int encoding) {
-
+            cherryBeat.m2875(sampleRateHz, channelCount, encoding);
+            cherryBeatLastPost = 0;
         }
 
 
@@ -1895,18 +1899,26 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
 
         @Override
         public void handleBuffer(ByteBuffer buffer) {
-            if (audioVisualizerDelegate == null) {
-                return;
-            }
             if (buffer == AudioProcessor.EMPTY_BUFFER || !mixedPlayWhenReady) {
-                audioUpdateHandler.postDelayed(() -> {
-                    audioUpdateHandler.removeCallbacksAndMessages(null);
-                    audioVisualizerDelegate.onVisualizerUpdate(false, true, null);
-                }, 80);
+                if (audioVisualizerDelegate != null) {
+                    audioUpdateHandler.postDelayed(() -> {
+                        audioUpdateHandler.removeCallbacksAndMessages(null);
+                        if (audioVisualizerDelegate != null) audioVisualizerDelegate.onVisualizerUpdate(false, true, null);
+                    }, 80);
+                }
                 return;
             }
 
-            if (!audioVisualizerDelegate.needUpdate()) {
+            if (org.telegram.ui.Stars.CherryProfileBeat.m2873()) {
+                // A duplicate keeps the actual player buffer untouched.
+                float strength = cherryBeat.m2876(buffer.asReadOnlyBuffer());
+                long now = android.os.SystemClock.uptimeMillis();
+                if (strength >= 0f && now - cherryBeatLastPost >= 30) {
+                    cherryBeatLastPost = now;
+                    audioUpdateHandler.post(() -> org.telegram.ui.Stars.CherryProfileBeat.m2874(strength));
+                }
+            }
+            if (audioVisualizerDelegate == null || !audioVisualizerDelegate.needUpdate()) {
                 return;
             }
 
