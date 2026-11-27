@@ -374,6 +374,7 @@ public static ConfigItem unreadBadgeOnBackButton = addConfig("unreadBadgeOnBackB
     public static ConfigItem tabsTitleType = addConfig("TabTitleType", configTypeInt, NekoXConfig.TITLE_TYPE_TEXT);
     public static ConfigItem confirmAVMessage = addConfig("ConfirmAVMessage", configTypeBool, false);
     public static ConfigItem confirmGifSend = addConfig("ConfirmGifSend", configTypeBool, false);
+    public static ConfigItem enhancedRichClipboard = addConfig("EnhancedRichClipboard", configTypeBool, true);
     public static ConfigItem askBeforeCall = addConfig("AskBeforeCalling", configTypeBool, true);
     public static ConfigItem disableNumberRounding = addConfig("DisableNumberRounding", configTypeBool, false);
 

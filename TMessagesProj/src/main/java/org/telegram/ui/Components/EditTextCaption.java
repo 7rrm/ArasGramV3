@@ -75,6 +75,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 
+import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.helpers.ChatsHelper;
 import tw.nekomimi.nekogram.llm.LlmConfig;
 import tw.nekomimi.nekogram.translate.Translator;
@@ -1301,7 +1302,8 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
     public boolean onTextContextMenuItem(int id) {
         if (id == android.R.id.paste) {
             ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-            if (clipboard != null && handleRichPaste(clipboard.getPrimaryClip())) {
+            ClipData clip = clipboard == null ? null : clipboard.getPrimaryClip();
+            if (NekoConfig.enhancedRichClipboard.Bool() ? handleRichPaste(clip) : handleOriginalRichPaste(clip)) {
                 return true;
             }
         } else if (id == android.R.id.copy) {
@@ -1344,17 +1346,19 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
             return null;
         }
 
-        String[] currentMimeTypes = EditorInfoCompat.getContentMimeTypes(outAttrs);
-        LinkedHashSet<String> mimeTypes = new LinkedHashSet<>();
-        Collections.addAll(mimeTypes, currentMimeTypes);
-        mimeTypes.add("text/html");
-        mimeTypes.add("text/plain");
-        EditorInfoCompat.setContentMimeTypes(outAttrs, mimeTypes.toArray(new String[0]));
+        if (NekoConfig.enhancedRichClipboard.Bool()) {
+            String[] currentMimeTypes = EditorInfoCompat.getContentMimeTypes(outAttrs);
+            LinkedHashSet<String> mimeTypes = new LinkedHashSet<>();
+            Collections.addAll(mimeTypes, currentMimeTypes);
+            mimeTypes.add("text/html");
+            mimeTypes.add("text/plain");
+            EditorInfoCompat.setContentMimeTypes(outAttrs, mimeTypes.toArray(new String[0]));
+        }
 
         return new InputConnectionWrapper(ic, true) {
             @Override
             public boolean commitText(CharSequence text, int newCursorPosition) {
-                if (text != null && text.length() > 1) {
+                if (NekoConfig.enhancedRichClipboard.Bool() && text != null && text.length() > 1) {
                     try {
                         ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
                         if (clipboard != null && clipboard.hasPrimaryClip() &&
@@ -1377,6 +1381,40 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
                 return super.commitText(text, newCursorPosition);
             }
         };
+    }
+
+    // Before the exteraGram enhancement, only the normal Paste action decoded
+    // clipboard HTML. Keep that stock behaviour when the new switch is off.
+    private boolean handleOriginalRichPaste(ClipData clipData) {
+        if (clipData == null || clipData.getItemCount() != 1 || clipData.getDescription() == null ||
+                !clipData.getDescription().hasMimeType("text/html")) return false;
+        try {
+            String html = clipData.getItemAt(0).getHtmlText();
+            SpannableStringBuilder pasted = new SpannableStringBuilder(CopyUtilities.fromHTML(html));
+            Emoji.replaceEmoji(pasted, getPaint().getFontMetricsInt(), false, null);
+            AnimatedEmojiSpan[] spans = pasted.getSpans(0, pasted.length(), AnimatedEmojiSpan.class);
+            if (spans != null) {
+                for (AnimatedEmojiSpan span : spans) span.applyFontMetrics(getPaint().getFontMetricsInt(), AnimatedEmojiDrawable.getCacheTypeForEnterView());
+            }
+            int start = Math.max(0, getSelectionStart());
+            int end = Math.min(getText().length(), getSelectionEnd());
+            QuoteSpan.QuoteStyleSpan[] selected = getText().getSpans(start, end, QuoteSpan.QuoteStyleSpan.class);
+            if (selected != null && selected.length > 0) {
+                QuoteSpan.QuoteStyleSpan[] quotes = pasted.getSpans(0, pasted.length(), QuoteSpan.QuoteStyleSpan.class);
+                for (QuoteSpan.QuoteStyleSpan quote : quotes) {
+                    pasted.removeSpan(quote);
+                    pasted.removeSpan(quote.span);
+                }
+            } else {
+                QuoteSpan.normalizeQuotes(pasted);
+            }
+            setText(getText().replace(start, end, pasted));
+            setSelection(start + pasted.length(), start + pasted.length());
+            return true;
+        } catch (Exception e) {
+            FileLog.e(e);
+            return false;
+        }
     }
 
     private boolean handleRichPaste(ClipData clipData) {

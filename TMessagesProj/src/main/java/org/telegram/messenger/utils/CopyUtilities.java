@@ -31,6 +31,10 @@ import java.util.ArrayList;
 
 public class CopyUtilities {
 
+    private static boolean enhancedClipboard() {
+        return tw.nekomimi.nekogram.NekoConfig.enhancedRichClipboard.Bool();
+    }
+
     private final static int TYPE_SPOILER = 0;
     private final static int TYPE_MONO = 1;
     private final static int TYPE_QUOTE = 2;
@@ -275,7 +279,7 @@ public class CopyUtilities {
                         return true;
                     }
                 }
-            } else if (tag.equals("pre") || tag.equals("code") || tag.equals("tt")) {
+            } else if (tag.equals("pre") || enhancedClipboard() && (tag.equals("code") || tag.equals("tt"))) {
                 final boolean preformatted = tag.equals("pre");
                 if (!preformatted && getLast(output, ParsedSpan.class, TYPE_MONO) != null) {
                     return false;
@@ -304,7 +308,7 @@ public class CopyUtilities {
             } else if (tag.equals("blockquote")) {
                 if (opening) {
                     final String className = HTMLTagAttributesHandler.getValue(attributes, "class");
-                    final boolean collapsed = HTMLTagAttributesHandler.getValue(attributes, "collapsed") != null
+                    final boolean collapsed = enhancedClipboard() && HTMLTagAttributesHandler.getValue(attributes, "collapsed") != null
                             || HTMLTagAttributesHandler.getValue(attributes, "data-collapsed") != null
                             || className != null && className.contains("telegram-collapsed-quote");
                     output.setSpan(new ParsedSpan(collapsed ? TYPE_COLLAPSE : TYPE_QUOTE), output.length(), output.length(), Spanned.SPAN_MARK_MARK);
