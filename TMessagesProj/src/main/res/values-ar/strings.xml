@@ -1457,4 +1457,6 @@
     <string name="AutoPostIneligible">المحادثة غير متاحة أو قناة أو بوت أو لا يمكن الإرسال فيها.</string>
     <string name="EnhancedRichClipboard">النسخ واللصق المحسّن</string>
     <string name="EnhancedRichClipboardDesc">الحفاظ على التنسيق والإيموجي المخصص والاقتباس عند اللصق من لوحة المفاتيح.</string>
+    <string name="MeeroMenuDragSelect">اختيار عناصر القائمة بالسحب</string>
+    <string name="MeeroMenuDragSelectDesc">اضغط على خيار واسحب إصبعك بين الخيارات، ثم ارفعه لاختيار العنصر.</string>
 </resources>

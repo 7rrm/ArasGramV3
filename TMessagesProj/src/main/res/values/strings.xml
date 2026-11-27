@@ -11812,4 +11812,6 @@
     <string name="AutoPostIneligible">This chat is unavailable, a channel or bot, or cannot receive messages.</string>
     <string name="EnhancedRichClipboard">Enhanced copy and paste</string>
     <string name="EnhancedRichClipboardDesc">Preserve formatting, custom emoji and quotes when pasting from the keyboard.</string>
+    <string name="MeeroMenuDragSelect">Drag to select menu items</string>
+    <string name="MeeroMenuDragSelectDesc">Hold a menu item and slide to another item, then release to select it.</string>
 </resources>

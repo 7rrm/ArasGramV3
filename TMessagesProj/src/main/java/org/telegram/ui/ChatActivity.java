@@ -34470,6 +34470,47 @@ public class ChatActivity extends BaseFragment implements
             }
 
             ChatScrimPopupContainerLayout scrimPopupContainerLayout = new ChatScrimPopupContainerLayout(contentView.getContext()) {
+                private boolean meeroDragCandidate;
+                private boolean meeroDragging;
+                private float meeroDownX, meeroDownY;
+                private ActionBarMenuSubItem meeroHovered;
+                private final Rect meeroVisibleRect = new Rect();
+
+                private ActionBarMenuSubItem meeroFindItem(float rawX, float rawY) {
+                    if (scrimPopupWindowItems == null) return null;
+                    for (ActionBarMenuSubItem item : scrimPopupWindowItems) {
+                        if (item != null && item.isShown() && item.isEnabled() && item.isClickable()
+                                && item.getGlobalVisibleRect(meeroVisibleRect)
+                                && meeroVisibleRect.contains((int) rawX, (int) rawY)) {
+                            return item;
+                        }
+                    }
+                    return null;
+                }
+
+                private void meeroSetHovered(ActionBarMenuSubItem next, float rawX, float rawY) {
+                    if (meeroHovered != next) {
+                        if (meeroHovered != null) meeroHovered.setPressed(false);
+                        meeroHovered = next;
+                        if (next != null) {
+                            next.setPressed(true);
+                            next.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                        }
+                    }
+                    if (next != null) {
+                        int[] location = new int[2];
+                        next.getLocationOnScreen(location);
+                        next.drawableHotspotChanged(rawX - location[0], rawY - location[1]);
+                    }
+                }
+
+                private void meeroResetDrag() {
+                    if (meeroHovered != null) meeroHovered.setPressed(false);
+                    meeroHovered = null;
+                    meeroDragCandidate = false;
+                    meeroDragging = false;
+                }
+
                 @Override
                 public boolean dispatchKeyEvent(KeyEvent event) {
                     if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
@@ -34480,10 +34521,38 @@ public class ChatActivity extends BaseFragment implements
 
                 @Override
                 public boolean dispatchTouchEvent(MotionEvent ev) {
+                    final int action = ev.getActionMasked();
+                    if (action == MotionEvent.ACTION_DOWN) {
+                        meeroResetDrag();
+                        meeroDragCandidate = NekoConfig.meeroMenuDragSelect.Bool()
+                                && meeroFindItem(ev.getRawX(), ev.getRawY()) != null;
+                        meeroDownX = ev.getRawX();
+                        meeroDownY = ev.getRawY();
+                    } else if (meeroDragCandidate && action == MotionEvent.ACTION_MOVE) {
+                        if (!meeroDragging && Math.hypot(ev.getRawX() - meeroDownX, ev.getRawY() - meeroDownY)
+                                > ViewConfiguration.get(getContext()).getScaledTouchSlop()) {
+                            meeroDragging = true;
+                            MotionEvent cancel = MotionEvent.obtain(ev);
+                            cancel.setAction(MotionEvent.ACTION_CANCEL);
+                            super.dispatchTouchEvent(cancel);
+                            cancel.recycle();
+                        }
+                        if (meeroDragging) {
+                            meeroSetHovered(meeroFindItem(ev.getRawX(), ev.getRawY()), ev.getRawX(), ev.getRawY());
+                            return true;
+                        }
+                    } else if (meeroDragging && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)) {
+                        ActionBarMenuSubItem target = action == MotionEvent.ACTION_UP
+                                ? meeroFindItem(ev.getRawX(), ev.getRawY()) : null;
+                        meeroResetDrag();
+                        if (target != null) target.performClick();
+                        return true;
+                    }
                     boolean b = super.dispatchTouchEvent(ev);
-                    if (ev.getAction() == MotionEvent.ACTION_DOWN && !b) {
+                    if (action == MotionEvent.ACTION_DOWN && !b) {
                         closeMenu();
                     }
+                    if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) meeroResetDrag();
                     return b;
                 }
             };

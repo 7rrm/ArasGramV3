@@ -598,6 +598,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     // Interactions
     private final AbstractConfigCell headerInteractions = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.InteractionSettings)));
     private final AbstractConfigCell richClipboardRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.enhancedRichClipboard, getString(R.string.EnhancedRichClipboardDesc), getString(R.string.EnhancedRichClipboard)));
+    private final AbstractConfigCell menuDragSelectRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.meeroMenuDragSelect, getString(R.string.MeeroMenuDragSelectDesc), getString(R.string.MeeroMenuDragSelect)));
     private final AbstractConfigCell groupedMessageMenuRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getGroupedMessageMenu(), getString(R.string.GroupedMessageMenuNotice)));
     private final AbstractConfigCell hideKeyboardOnChatScrollRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideKeyboardOnChatScroll));
     private final AbstractConfigCell disableVibrationRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.disableVibration));
