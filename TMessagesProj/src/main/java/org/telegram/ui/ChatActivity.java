@@ -33350,6 +33350,7 @@ public class ChatActivity extends BaseFragment implements
                 flags |= ActionBarPopupWindow.ActionBarPopupWindowLayout.FLAG_USE_SWIPEBACK;
             }
 
+            final ArrayList<View> meeroDragQuickActions = new ArrayList<>();
             ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), R.drawable.popup_fixed_alert4, themeDelegate, flags);
             popupLayout.setMinimumWidth(AndroidUtilities.dp(200));
             Rect backgroundPaddings = new Rect();
@@ -34445,17 +34446,27 @@ public class ChatActivity extends BaseFragment implements
 
                 // MeeroX v255: compact quick-action circles at the menu bottom
                 if (tw.nekomimi.nekogram.MeeroMsgMenu.compactOn() && !meeroCompactIds.isEmpty()) {
-                    popupLayout.addView(tw.nekomimi.nekogram.MeeroMsgMenu.buildCompactRow(getParentActivity(), meeroCompactIds, meeroCompactIcons, meeroBtn -> {
+                    View compactRow = tw.nekomimi.nekogram.MeeroMsgMenu.buildCompactRow(getParentActivity(), meeroCompactIds, meeroCompactIcons, meeroBtn -> {
                         final Object tag = meeroBtn.getTag();
                         if (tag instanceof Integer && selectedObject != null) {
                             processSelectedOption((Integer) tag);
                         }
-                    }));
+                    });
+                    if (compactRow instanceof ViewGroup) {
+                        ViewGroup actions = (ViewGroup) compactRow;
+                        for (int i = 0; i < actions.getChildCount(); i++) {
+                            meeroDragQuickActions.add(actions.getChildAt(i));
+                        }
+                    }
+                    popupLayout.addView(compactRow);
                 }
                 if (GroupedIconsView.useGroupedIcons()) {
                     popupLayout.addView(new ActionBarPopupWindow.GapView(contentView.getContext(), themeDelegate), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
 
                     var groupedIconsView = new GroupedIconsView(getContext(), ChatActivity.this, selectedObject, this.lastMessageMenuStatus.allowReply, this.lastMessageMenuStatus.allowReplyPm, this.lastMessageMenuStatus.allowEdit, this.lastMessageMenuStatus.allowDelete, this.lastMessageMenuStatus.allowForward, this.lastMessageMenuStatus.allowCopy, this.lastMessageMenuStatus.allowCopyPhoto, this.lastMessageMenuStatus.allowCopyLink, this.lastMessageMenuStatus.allowCopyLinkPm);
+                    for (int i = 0; i < groupedIconsView.linearLayout.getChildCount(); i++) {
+                        meeroDragQuickActions.add(groupedIconsView.linearLayout.getChildAt(i));
+                    }
                     popupLayout.addView(groupedIconsView.linearLayout);
                 }
 
@@ -34473,10 +34484,10 @@ public class ChatActivity extends BaseFragment implements
                 private boolean meeroDragCandidate;
                 private boolean meeroDragging;
                 private float meeroDownX, meeroDownY;
-                private ActionBarMenuSubItem meeroHovered;
+                private View meeroHovered;
                 private final Rect meeroVisibleRect = new Rect();
 
-                private ActionBarMenuSubItem meeroFindItem(float rawX, float rawY) {
+                private View meeroFindItem(float rawX, float rawY) {
                     if (scrimPopupWindowItems == null) return null;
                     // MotionEvent raw coordinates are screen coordinates, while global
                     // visible rectangles are relative to the popup window's root.
@@ -34495,10 +34506,17 @@ public class ChatActivity extends BaseFragment implements
                             if (meeroVisibleRect.contains((int) rawX, (int) rawY)) return item;
                         }
                     }
+                    for (View item : meeroDragQuickActions) {
+                        if (item != null && item.isShown() && item.isEnabled() && item.isClickable()
+                                && item.getGlobalVisibleRect(meeroVisibleRect)) {
+                            meeroVisibleRect.offset(windowX, windowY);
+                            if (meeroVisibleRect.contains((int) rawX, (int) rawY)) return item;
+                        }
+                    }
                     return null;
                 }
 
-                private void meeroSetHovered(ActionBarMenuSubItem next, float rawX, float rawY) {
+                private void meeroSetHovered(View next, float rawX, float rawY) {
                     if (meeroHovered != next) {
                         if (meeroHovered != null) meeroHovered.setPressed(false);
                         meeroHovered = next;
@@ -34552,7 +34570,7 @@ public class ChatActivity extends BaseFragment implements
                             return true;
                         }
                     } else if (meeroDragging && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)) {
-                        ActionBarMenuSubItem target = action == MotionEvent.ACTION_UP
+                        View target = action == MotionEvent.ACTION_UP
                                 ? meeroFindItem(ev.getRawX(), ev.getRawY()) : null;
                         meeroResetDrag();
                         if (target != null) target.performClick();
