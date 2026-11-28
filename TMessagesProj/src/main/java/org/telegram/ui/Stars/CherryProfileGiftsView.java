@@ -32,6 +32,7 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
     private final HashMap<Long, CherryGiftMotion> motion = new HashMap<>();
     private final Paint bubblePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint bubbleGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint musicGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint glassPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint edgePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint sparklePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -40,7 +41,7 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
     private long lastOrbitTime;
     private boolean orbitDragging;
     private float expandedY, maxExpandedY, centerX, centerY, time;
-    private float beat, smoothedBeat;
+    private float beat, smoothedBeat, musicPresence, actionModeProgress;
     private long lastFrame, lastSample;
     private Gift selected;
     private float downX, downY, offsetX, offsetY;
@@ -114,6 +115,16 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
 
     @Override public void mo2878(float strength) {
         if (musicPlaying()) {
+            if (strength > beat + .25f && collapseProgress >= .8f && expandProgress <= .1f && actionModeProgress <= .1f) {
+                float impulse = AndroidUtilities.dp(150) * strength * getMusicVisibility();
+                for (CherryGiftMotion m : motion.values()) {
+                    if (!m.f2027) {
+                        float length = (float) Math.hypot(m.f2037, m.f2028);
+                        m.m2050(length > 1f ? m.f2037 / length : 0f,
+                                length > 1f ? m.f2028 / length : -1f, impulse, strength);
+                    }
+                }
+            }
             beat = strength;
             lastSample = SystemClock.uptimeMillis();
             invalidate();
@@ -121,6 +132,16 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
     }
 
     public float getBeatLevel() { return smoothedBeat; }
+    public float getMusicPresence() { return musicPresence; }
+    public float getMusicVisibility() {
+        if (!active || !isShown()) return 0f;
+        return Math.max(0f, Math.min(1f, (collapseProgress - .5f) / .4f))
+                * (1f - expandProgress) * (1f - actionModeProgress);
+    }
+    @Override public void setActionBarActionMode(float progress) {
+        super.setActionBarActionMode(progress);
+        actionModeProgress = Math.max(0f, Math.min(1f, progress));
+    }
     public boolean isMusicPlaying() { return musicPlaying(); }
     public void setAnimationFrameListener(Runnable listener) { animationFrameListener = listener; }
 
@@ -149,11 +170,15 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
             orbitVelocity *= (float) Math.exp(-dt / .7f);
             if (Math.abs(orbitVelocity) < .01f) orbitVelocity = 0f;
         }
-        float targetBeat = musicPlaying() && now - lastSample < 350 ? beat : 0f;
+        boolean playing = musicPlaying();
+        float presenceTarget = playing ? 1f : 0f;
+        musicPresence += (presenceTarget - musicPresence) * (1f - (float)Math.exp(-dt / (playing ? .22f : .28f)));
+        float targetBeat = playing && now - lastSample < 350 ? beat : 0f;
+        if (!playing || now - lastSample >= 350) beat = 0f;
         smoothedBeat += (targetBeat - smoothedBeat) * (1f - (float)Math.exp(-dt / (targetBeat > smoothedBeat ? .045f : .2f)));
         if (animationFrameListener != null) animationFrameListener.run();
         if (gifts.isEmpty() || expandProgress >= 1f || collapseProgress <= 0f) {
-            if ((musicPlaying() || smoothedBeat > .001f) && isShown()) postInvalidateOnAnimation();
+            if ((playing || smoothedBeat > .001f || musicPresence > .001f) && isShown()) postInvalidateOnAnimation();
             return;
         }
         float x = avatar.getX(), y = avatar.getY();
@@ -189,15 +214,30 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
         for (Gift gift : gifts) {
             CherryGiftMotion m = motion.get(gift.id);
             float enter = gift.animatedFloat.set(1f);
-            float alpha = visible * enter * (1f - expandProgress);
-            float gx = centerX + m.f2037, gy = centerY + m.f2028;
-            float scale = m.f2000 * m.f2018 * (1f + smoothedBeat * .15f) * enter;
+            float alpha = visible * enter * (1f - expandProgress) * (1f - actionModeProgress);
+            float collapse = isOpening ? collapseProgress : Math.min(enter, collapseProgress);
+            float interpolation = 1f - (float)Math.pow(1f - Math.max(0f, Math.min(1f, collapse)), 5);
+            float realCenterX = x + width / 2f, realCenterY = y + height / 2f;
+            float gx = realCenterX + (centerX + m.f2037 - realCenterX) * interpolation;
+            float gy = realCenterY + (centerY + m.f2028 - realCenterY) * interpolation;
+            float scale = (.3f + .7f * interpolation) * (.5f + .5f * enter) * m.f2000 * m.f2018
+                    * (1f + smoothedBeat * .15f * getMusicVisibility());
             float r = radius * scale;
             gift.bounds.set(gx - r, gy - r, gx + r, gy + r);
             if (r > .01f && alpha > 0f) {
                 canvas.save();
                 canvas.translate(gx, gy);
                 canvas.scale(r, r);
+                float musicVisibility = getMusicVisibility();
+                if (musicPresence > .001f && musicVisibility > .001f) {
+                    float glowRadius = 1.65f + smoothedBeat * .6f;
+                    musicGlowPaint.setShader(new RadialGradient(0f, 0f, 1f,
+                            new int[]{Theme.multAlpha(gift.color, .65f), Theme.multAlpha(gift.color, .3f), Theme.multAlpha(gift.color, 0f)},
+                            new float[]{0f, .48f, 1f}, Shader.TileMode.CLAMP));
+                    musicGlowPaint.setAlpha(Math.round(255f * alpha * musicVisibility * musicPresence * (smoothedBeat * .75f + .25f)));
+                    canvas.save(); canvas.scale(glowRadius, glowRadius);
+                    canvas.drawCircle(0f, 0f, 1f, musicGlowPaint); canvas.restore();
+                }
                 bubbleGlowPaint.setShader(new RadialGradient(0f, 0f, 1.45f,
                         new int[]{Theme.multAlpha(gift.color, .35f), Theme.multAlpha(gift.color, .12f), Theme.multAlpha(gift.color, 0f)},
                         new float[]{0f, .65f, 1f}, Shader.TileMode.CLAMP));

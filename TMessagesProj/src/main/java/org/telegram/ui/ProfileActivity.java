@@ -5686,7 +5686,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
                 if (child == avatarGooey && giftsView instanceof org.telegram.ui.Stars.CherryProfileGiftsView && avatarContainer != null) {
                     org.telegram.ui.Stars.CherryProfileGiftsView cherry = (org.telegram.ui.Stars.CherryProfileGiftsView) giftsView;
-                    float scale = 1f + 0.09f * cherry.getBeatLevel();
+                    float scale = 1f + 0.09f * cherry.getBeatLevel() * cherry.getMusicVisibility();
                     canvas.save();
                     canvas.scale(scale, scale, avatarContainer.getX() + avatarContainer.getWidth() / 2f,
                             avatarContainer.getY() + avatarContainer.getHeight() / 2f);
@@ -5702,11 +5702,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (giftsView instanceof org.telegram.ui.Stars.CherryProfileGiftsView && avatarContainer != null) {
                     org.telegram.ui.Stars.CherryProfileGiftsView cherry = (org.telegram.ui.Stars.CherryProfileGiftsView) giftsView;
                     float level = cherry.getBeatLevel();
-                    if (cherry.isMusicPlaying()) {
+                    float haloVisibility = cherry.getMusicPresence() * cherry.getMusicVisibility() * avatarContainer.getAlpha();
+                    if (haloVisibility > .001f) {
                         float width = avatarContainer.getWidth() * avatarContainer.getScaleX();
                         float height = avatarContainer.getHeight() * avatarContainer.getScaleY();
                         float haloRadius = Math.min(width, height) * .5f * (1.35f + level * .95f);
-                        cherryHaloPaint.setAlpha(Math.round(255 * Math.min(1f, level * .88f + .12f)));
+                        cherryHaloPaint.setAlpha(Math.round(255 * Math.min(1f, haloVisibility * (level * .88f + .12f))));
                         canvas.save();
                         canvas.translate(avatarContainer.getX() + width * .5f, avatarContainer.getY() + height * .5f);
                         canvas.scale(haloRadius, haloRadius);
