@@ -180,7 +180,7 @@ public final class MeeroWhisper {
         return new JSONObject().put("type","article").put("id",id).put("title",title)
                 .put("input_message_content",content).put("reply_markup",markup);
     }
-    private static final String HEADER="ᯓ 𝖶𝗁𝗂𝗌𝗉 - همسـة سـريـه 📨\n\n⋆┄─┄─┄─┄┄─┄─┄─┄─┄┄⋆\n\n";
+    private static final String HEADER="ᯓ 𝖶𝗁𝗂𝗌𝗉𝖾𝗋  - همسـة سـريـه 📨\n⋆┄─┄─┄─┄┄─┄─┄─┄─┄┄⋆\n\n";
     private static void handleInline(String token,long owner,JSONObject q) throws Exception {
         String queryId=q.getString("id"), query=q.optString("query");
         long asker=q.getJSONObject("from").optLong("id");
@@ -355,14 +355,89 @@ public final class MeeroWhisper {
     public static void warnInlineDraft(Context context) {
         alert(context,"لا ترسل نص الهمسة كرسالة عادية. اكتب الهمسة ثم اختر نتيجة البوت الظاهرة لإرسالها بأمان.");
     }
+    private static final java.util.HashMap<String, SendGuard> sendingCards = new java.util.HashMap<>();
+    /** Tracks this specific local message through Telegram's server acknowledgement. UI thread only. */
+    private static final class SendGuard implements org.telegram.messenger.NotificationCenter.NotificationCenterDelegate {
+        final int account;
+        final long dialogId;
+        final String key, token;
+        final Context context;
+        final ChatActivity fragment;
+        final ChatActivityEnterView view;
+        final String original;
+        final org.telegram.messenger.NotificationCenter notifications;
+        final AlertDialog progress;
+        int outgoingId;
+        boolean finished, submitted;
+        final Runnable timeout = () -> finish(false, true);
+        SendGuard(int account,long dialogId,String token,Context context,ChatActivity fragment,ChatActivityEnterView view,String original) {
+            this.account=account;this.dialogId=dialogId;this.token=token;this.context=context;this.fragment=fragment;this.view=view;this.original=original;
+            key=account+":"+dialogId;
+            notifications=org.telegram.messenger.NotificationCenter.getInstance(account);
+            progress=new AlertDialog.Builder(context).setMessage("جاري إرسال الهمسة…").create();
+            progress.setCancelable(false);progress.setCanceledOnTouchOutside(false);progress.setCanCancel(false);
+        }
+        void start() {
+            sendingCards.put(key,this);
+            notifications.addObserver(this,org.telegram.messenger.NotificationCenter.didReceiveNewMessages);
+            notifications.addObserver(this,org.telegram.messenger.NotificationCenter.messageReceivedByServer);
+            notifications.addObserver(this,org.telegram.messenger.NotificationCenter.messageSendError);
+            progress.show();
+            // Never trap the user indefinitely if the network goes away.
+            AndroidUtilities.runOnUIThread(timeout,60000);
+        }
+        void finish(boolean success,boolean timedOut) {
+            if(finished)return;
+            finished=true;
+            AndroidUtilities.cancelRunOnUIThread(timeout);
+            notifications.removeObserver(this,org.telegram.messenger.NotificationCenter.didReceiveNewMessages);
+            notifications.removeObserver(this,org.telegram.messenger.NotificationCenter.messageReceivedByServer);
+            notifications.removeObserver(this,org.telegram.messenger.NotificationCenter.messageSendError);
+            sendingCards.remove(key);
+            pending.remove(token);
+            try {progress.dismiss();}catch(Exception ignored) { }
+            if(success) {
+                if(view.getFieldText()!=null && original.contentEquals(view.getFieldText().toString().trim())) {
+                    view.setFieldText("");
+                    fragment.hideFieldPanel(false);
+                }
+            } else if(timedOut) {
+                alert(context,submitted?"تأخر تأكيد الإرسال. قد تكون الرسالة معلّقة؛ تحقق من المحادثة قبل إعادة المحاولة.":"تعذر تجهيز الهمسة في الوقت المحدد. لم تُرسل؛ تحقق من الاتصال وحاول مجدداً.");
+            } else {
+                alert(context,submitted?"تعذر تأكيد إرسال الهمسة. راجع حالة الرسالة في المحادثة قبل إعادة المحاولة.":"تعذر تجهيز الهمسة؛ لم تُرسل. تحقق من اتصال البوت.");
+            }
+        }
+        @Override public void didReceivedNotification(int id,int eventAccount,Object... args) {
+            if(finished || eventAccount!=account)return;
+            if(id==org.telegram.messenger.NotificationCenter.didReceiveNewMessages && args.length>1 && args[0] instanceof Long && ((Long)args[0])==dialogId && args[1] instanceof java.util.ArrayList) {
+                for(Object item:(java.util.ArrayList<?>)args[1]) {
+                    if(!(item instanceof MessageObject))continue;
+                    MessageObject message=(MessageObject)item;
+                    if(message.messageOwner.params!=null && token.equals(message.messageOwner.params.get("meero_whisper_send_token"))) {
+                        outgoingId=message.getId();break;
+                    }
+                }
+            } else if(id==org.telegram.messenger.NotificationCenter.messageReceivedByServer && outgoingId!=0 && args.length>3 && args[0] instanceof Integer && args[3] instanceof Long && ((Integer)args[0])==outgoingId && ((Long)args[3])==dialogId) {
+                finish(true,false);
+            } else if(id==org.telegram.messenger.NotificationCenter.messageSendError && outgoingId!=0 && args.length>0 && args[0] instanceof Integer && ((Integer)args[0])==outgoingId) {
+                finish(false,false);
+            }
+        }
+    }
     public static void send(ChatActivity fragment,ChatActivityEnterView view,int account,long dialogId,MessageObject reply,MessageObject top,ChatActivity.ReplyQuote quote,String original,boolean notify,long stars,long mono) {
-        Context context=fragment.getParentActivity();String text=original.replaceFirst("(?s)^/(همسه|همسة|hmsa)\\s*","").trim();
-        if(activeToken==null || botName==null || ownerId!=UserConfig.getInstance(account).getClientUserId()){alert(context,"ضع توكن البوت أولاً في إعدادات المحادثات، واستخدم الحساب الذي أضفته منه.");return;}
+        Context context=fragment.getParentActivity();if(context==null)return;
+        String key=account+":"+dialogId;
+        if(sendingCards.containsKey(key))return;
+        String text=original.replaceFirst("(?s)^/(همسه|همسة|hmsa)\\s*","").trim();
+        if(activeToken==null || botName==null || ownerId!=UserConfig.getInstance(account).getClientUserId()){alert(context,"ضع توكن البوت أولاً في إعدادات أراس كرام ← يوزر بوت ← الهمسة، واستخدم الحساب الذي أضفته منه.");return;}
         if(reply==null || reply.isTopicMainMessage || reply.getSenderId()<=0){alert(context,"رد على رسالة شخص أولاً.");return;}
         if(!text.isEmpty()){alert(context,"اكتب أمر /همسه فقط بالرد، ثم اضغط زر البطاقة لكتابة الهمسة.");return;}
         if(dialogId==0 || org.telegram.messenger.DialogObject.isEncryptedDialog(dialogId) || stars!=0){alert(context,"الهمسة غير مدعومة في هذه المحادثة أو عند إرسال الرسائل المدفوعة.");return;}
+        String id=randomId();
+        SendGuard guard=new SendGuard(account,dialogId,id,context,fragment,view,original);
         try {
-            String id=randomId();long recipient=reply.getSenderId();
+            guard.start();
+            long recipient=reply.getSenderId();
             TLRPC.User targetUser=MessagesController.getInstance(account).getUser(recipient);
             String username=targetUser==null || targetUser.username==null?"":targetUser.username;
             String targetName=targetUser==null?"المستخدم":org.telegram.messenger.UserObject.getUserName(targetUser);
@@ -371,20 +446,26 @@ public final class MeeroWhisper {
             pending.put(id,entry);String name=botName;long owner=ownerId;
             TLRPC.TL_contacts_resolveUsername resolve=new TLRPC.TL_contacts_resolveUsername();resolve.username=name;
             ConnectionsManager.getInstance(account).sendRequest(resolve,(response,error)->AndroidUtilities.runOnUIThread(()->{
-                if(owner!=ownerId || !name.equals(botName) || !(response instanceof TLRPC.TL_contacts_resolvedPeer)){pending.remove(id);alert(context,"تعذر الوصول إلى البوت؛ الهمسة لم تُرسل.");return;}
+                if(guard.finished)return;
+                if(owner!=ownerId || !name.equals(botName) || !(response instanceof TLRPC.TL_contacts_resolvedPeer)){guard.finish(false,false);return;}
                 TLRPC.TL_contacts_resolvedPeer peer=(TLRPC.TL_contacts_resolvedPeer)response;
-                if(peer.users.isEmpty()){pending.remove(id);alert(context,"تعذر العثور على البوت؛ الهمسة لم تُرسل.");return;}
+                if(peer.users.isEmpty()){guard.finish(false,false);return;}
                 MessagesController mc=MessagesController.getInstance(account);mc.putUsers(peer.users,false);TLRPC.User bot=peer.users.get(0);
                 TLRPC.TL_messages_getInlineBotResults req=new TLRPC.TL_messages_getInlineBotResults();req.bot=mc.getInputUser(bot);req.peer=mc.getInputPeer(dialogId);req.query=id;req.offset="";
                 ConnectionsManager.getInstance(account).sendRequest(req,(result,err)->AndroidUtilities.runOnUIThread(()->{
+                    if(guard.finished)return;
                     pending.remove(id);
-                    if(owner!=ownerId || !name.equals(botName) || !(result instanceof TLRPC.TL_messages_botResults) || ((TLRPC.TL_messages_botResults)result).results.isEmpty()) {alert(context,"تعذر تجهيز الهمسة. تأكد أن البوت شغال وInline مفعّل؛ لم تُرسل.");return;}
+                    if(owner!=ownerId || !name.equals(botName) || !(result instanceof TLRPC.TL_messages_botResults) || ((TLRPC.TL_messages_botResults)result).results.isEmpty()) {guard.finish(false,false);return;}
                     TLRPC.TL_messages_botResults results=(TLRPC.TL_messages_botResults)result;TLRPC.BotInlineResult item=results.results.get(0);item.query_id=results.query_id;
                     HashMap<String,String> params=new HashMap<>();params.put("id",item.id);params.put("query_id",Long.toString(item.query_id));params.put("bot",Long.toString(bot.id));params.put("bot_name",name);
-                    SendMessagesHelper.prepareSendingBotContextResult(fragment,org.telegram.messenger.AccountInstance.getInstance(account),item,params,dialogId,reply,top,null,quote,notify,0,0,fragment.getMessageChatSendParams(),0,mono);
-                    if(view.getFieldText()!=null && original.contentEquals(view.getFieldText().toString().trim()))view.setFieldText("");
+                    params.put("meero_whisper_send_token",id);
+                    try {
+                        guard.submitted=true;
+                        SendMessagesHelper.prepareSendingBotContextResult(fragment,org.telegram.messenger.AccountInstance.getInstance(account),item,params,dialogId,reply,top,null,quote,notify,0,0,fragment.getMessageChatSendParams(),0,mono);
+                    } catch(Exception e) {guard.finish(false,false);}
                 }));
             }));
-        } catch(Exception e){alert(context,"تعذر حفظ الهمسة بأمان؛ لم تُرسل.");}
+        } catch(Exception e){guard.finish(false,false);}
     }
+
 }

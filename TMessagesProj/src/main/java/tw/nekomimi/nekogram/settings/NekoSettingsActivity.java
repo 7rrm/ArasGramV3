@@ -90,6 +90,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
     /** MeeroX v98: Auto-reply entry directly below the MeeroX section row. */
     private int autoReplyRow;
     private int autoPostRow;
+    private int userBotRow;
     /** MeeroX v102: activity details + account watching entries (v102 requests). */
     private int activityStatsRow;
     private int watchRow;
@@ -139,6 +140,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
         meeroRow = addRow();
         autoReplyRow = addRow();
         autoPostRow = addRow();
+        userBotRow = addRow();
         activityStatsRow = addRow();
         watchRow = addRow();
         hunterRow = addRow();
@@ -460,6 +462,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
             presentFragment(new MeeroAutoReplyActivity());
         } else if (position == autoPostRow) {
             presentFragment(new MeeroAutoPostActivity());
+        } else if (position == userBotRow) {
+            presentFragment(new MeeroUserBotActivity());
         } else if (position == activityStatsRow) {
             presentFragment(new MeeroActivityStatsActivity());
         } else if (position == watchRow) {
@@ -559,6 +563,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                         textCell.setTextAndIcon(MeeroStrings.s(26), R.drawable.input_reply_solar, true);
                     } else if (position == autoPostRow) {
                         textCell.setTextAndIcon(getString(R.string.AutoPostTitle), R.drawable.input_forward_solar, true);
+                    } else if (position == userBotRow) {
+                        textCell.setTextAndIcon("يوزر بوت", R.drawable.input_reply_solar, true);
                     } else if (position == activityStatsRow) {
                         textCell.setTextAndIcon(MeeroStrings.s(254), R.drawable.msg_stats_solar, true);
                     } else if (position == watchRow) {
@@ -612,7 +618,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                 return TYPE_SHADOW;
             } else if (position == meeroRow ||
                     position == chatRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
-                    position == autoReplyRow || position == autoPostRow ||
+                    position == autoReplyRow || position == autoPostRow || position == userBotRow ||
                     position == activityStatsRow || position == watchRow || position == hunterRow ||
                     position == keywordRow || position == mixerRow ||
                     position == onceGuardRow || position == lockRow ||
