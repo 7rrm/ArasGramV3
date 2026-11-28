@@ -153,31 +153,99 @@ public final class MeeroWhisper {
             }
         }
     }
+    private static String randomId() {
+        byte[] bytes=new byte[18];random.nextBytes(bytes);
+        return Base64.encodeToString(bytes,Base64.URL_SAFE|Base64.NO_WRAP|Base64.NO_PADDING);
+    }
+    private static String escapeHtml(String value) {
+        return value.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;");
+    }
+    private static String mention(long id, String username, String displayName) {
+        if(username!=null && username.matches("[A-Za-z0-9_]{5,32}")) return "@"+username;
+        String label=displayName==null || displayName.trim().isEmpty()?"المستخدم":displayName;
+        return "<a href=\"tg://user?id="+id+"\">"+escapeHtml(label)+"</a>";
+    }
+    private static void savePerson(long id, String username, String displayName) throws Exception {
+        JSONObject person=new JSONObject().put("id",id).put("username",username==null?"":username)
+                .put("name",displayName==null?"":displayName);
+        if(!prefs().edit().putString("person_"+id,encrypt(person.toString())).commit())throw new IllegalStateException();
+    }
+    private static JSONObject getPerson(long id) throws Exception {
+        String saved=prefs().getString("person_"+id,null);
+        return saved==null?null:new JSONObject(decrypt(saved));
+    }
+    private static JSONObject article(String id,String title,String message,JSONObject button) throws Exception {
+        JSONObject markup=new JSONObject().put("inline_keyboard",new JSONArray().put(new JSONArray().put(button)));
+        JSONObject content=new JSONObject().put("message_text",message).put("parse_mode","HTML");
+        return new JSONObject().put("type","article").put("id",id).put("title",title)
+                .put("input_message_content",content).put("reply_markup",markup);
+    }
+    private static final String HEADER="ᯓ 𝖶𝗁𝗂𝗌𝗉 - همسـة سـريـه 📨\n\n⋆┄─┄─┄─┄┄─┄─┄─┄─┄┄⋆\n\n";
     private static void handleInline(String token,long owner,JSONObject q) throws Exception {
-        String id=q.getString("id"), query=q.optString("query");
-        JSONObject entry=q.getJSONObject("from").optLong("id")==owner?pending.get(query):null;
+        String queryId=q.getString("id"), query=q.optString("query");
+        long asker=q.getJSONObject("from").optLong("id");
         JSONArray results=new JSONArray();
-        if(entry!=null) {
-            JSONObject button=new JSONObject().put("text","افتح الهمسة 🔒").put("callback_data","w:"+query);
-            JSONObject markup=new JSONObject().put("inline_keyboard",new JSONArray().put(new JSONArray().put(button)));
-            JSONObject content=new JSONObject().put("message_text","🔒 همسة خاصة للشخص المقصود\nاضغط الزر لقراءة الهمسة.");
-            results.put(new JSONObject().put("type","article").put("id",query).put("title","همسة خاصة 🔒")
-                    .put("input_message_content",content).put("reply_markup",markup));
+        // The initial card is generated only for the account that owns this bot.
+        JSONObject card=asker==owner?pending.get(query):null;
+        if(card!=null && "card".equals(card.optString("kind"))) {
+            long recipient=card.getLong("recipient");
+            String target=mention(recipient,card.optString("username"),card.optString("name"));
+            JSONObject button=new JSONObject().put("text","اضغط هنا")
+                    .put("switch_inline_query_current_chat","secret "+recipient+" \nهلو");
+            results.put(article(query,"همسة سرية",HEADER+"⌔╎لـ أࢪسـال همسـه سـريـه الى "+target+" 💌",button));
+        } else if(query.startsWith("secret ")) {
+            // Inline text goes to Telegram and the bot, not the chat, unless the user sends it as an ordinary message.
+            java.util.regex.Matcher m=java.util.regex.Pattern.compile("(?s)^secret ([0-9]{1,20})\\s+(.+)$").matcher(query);
+            if(m.matches() && asker>0) {
+                long recipient;
+                try {recipient=Long.parseLong(m.group(1));}catch(NumberFormatException e){recipient=0;}
+                String text=m.group(2).trim();JSONObject person=recipient>0?getPerson(recipient):null;
+                if(person!=null && !text.isEmpty() && text.length()<=180) {
+                    JSONObject from=q.getJSONObject("from");
+                    String senderName=from.optString("first_name","");
+                    if(!from.optString("last_name","").isEmpty())senderName+=" "+from.optString("last_name");
+                    savePerson(asker,from.optString("username",""),senderName);
+                    String id=randomId();
+                    JSONObject entry=new JSONObject().put("recipient",recipient).put("sender",asker).put("text",text).put("created",System.currentTimeMillis());
+                    if(!prefs().edit().putString("w_"+id,encrypt(entry.toString())).commit())throw new IllegalStateException();
+                    String target=mention(recipient,person.optString("username"),person.optString("name"));
+                    JSONObject button=new JSONObject().put("text","• فتـح الهمسـه •").put("callback_data","w:"+id);
+                    results.put(article(id,"همسة لـ "+(person.optString("username").isEmpty()?person.optString("name","المستخدم"):"@"+person.optString("username")),
+                            HEADER+"⌔╎الهمسـة لـ "+target+"\n⌔╎هو فقط من يستطيع رؤيتها",button));
+                }
+            }
         }
-        api(token,"answerInlineQuery",new JSONObject().put("inline_query_id",id).put("results",results).put("cache_time",0).put("is_personal",true),10000);
+        api(token,"answerInlineQuery",new JSONObject().put("inline_query_id",queryId).put("results",results).put("cache_time",0).put("is_personal",true),10000);
     }
     private static void handleCallback(String token,long owner,JSONObject cb) throws Exception {
         String data=cb.optString("data"), answer="الهمسة غير متوفرة على هذا الجهاز.";
+        JSONObject entry=null;long who=cb.getJSONObject("from").optLong("id");
         if(data.startsWith("w:")) {
             String id=data.substring(2);String encrypted=prefs().getString("w_"+id,null);
             if(encrypted!=null) {
                 try {
-                    JSONObject entry=new JSONObject(decrypt(encrypted));long who=cb.getJSONObject("from").optLong("id");
-                    answer=(who==entry.getLong("recipient") || who==owner)?entry.getString("text"):"هذه الهمسة ليست لك 🔒";
-                } catch(Exception ignored) { }
+                    entry=new JSONObject(decrypt(encrypted));
+                    long sender=entry.optLong("sender",owner);
+                    answer=(who==entry.getLong("recipient") || who==sender)?entry.getString("text"):"هذه الهمسة ليست لك 🔒";
+                } catch(Exception ignored) {entry=null;}
             }
         }
         api(token,"answerCallbackQuery",new JSONObject().put("callback_query_id",cb.getString("id")).put("text",answer).put("show_alert",true).put("cache_time",0),10000);
+        // The recipient's first read replaces the button, as in the supplied example.
+        if(entry!=null && who==entry.getLong("recipient") && cb.has("inline_message_id")) {
+            long sender=entry.optLong("sender",owner);JSONObject from=cb.getJSONObject("from");
+            String name=from.optString("first_name","");
+            if(!from.optString("last_name","").isEmpty())name+=" "+from.optString("last_name");
+            String reader=mention(who,from.optString("username",""),name);
+            String time=new java.text.SimpleDateFormat("h:mm a",java.util.Locale.getDefault()).format(new java.util.Date());
+            JSONObject button=new JSONObject().put("text","اضغط للرد")
+                    .put("switch_inline_query_current_chat","secret "+sender+" \nهلو");
+            JSONObject markup=new JSONObject().put("inline_keyboard",new JSONArray().put(new JSONArray().put(button)));
+            JSONObject edit=new JSONObject().put("inline_message_id",cb.getString("inline_message_id"))
+                    .put("text","📨 تم قراءة الهمسة\n⌔╎قرأها "+reader+" ✅\n⌔╎عند "+escapeHtml(time))
+                    .put("parse_mode","HTML").put("reply_markup",markup);
+            try {api(token,"editMessageText",edit,10000);}catch(Exception ignored) { }
+        }
     }
     private static JSONObject storedConfig() throws Exception {
         String value=prefs().getString("config",null);
@@ -280,16 +348,26 @@ public final class MeeroWhisper {
     }
     private static void alert(Context c,String text){if(c!=null)new AlertDialog.Builder(c).setTitle("الهمسة").setMessage(text).setPositiveButton("حسناً",null).show();}
     public static boolean isCommand(String s){return s.matches("(?s)^/(همسه|همسة|hmsa)(?:\\s.*|$)");}
+    public static boolean isUnsafeInlineDraft(String s) {
+        String name=botName;
+        return name!=null && s.regionMatches(true,0,"@"+name+" secret ",0,name.length()+9);
+    }
+    public static void warnInlineDraft(Context context) {
+        alert(context,"لا ترسل نص الهمسة كرسالة عادية. اكتب الهمسة ثم اختر نتيجة البوت الظاهرة لإرسالها بأمان.");
+    }
     public static void send(ChatActivity fragment,ChatActivityEnterView view,int account,long dialogId,MessageObject reply,MessageObject top,ChatActivity.ReplyQuote quote,String original,boolean notify,long stars,long mono) {
         Context context=fragment.getParentActivity();String text=original.replaceFirst("(?s)^/(همسه|همسة|hmsa)\\s*","").trim();
         if(activeToken==null || botName==null || ownerId!=UserConfig.getInstance(account).getClientUserId()){alert(context,"ضع توكن البوت أولاً في إعدادات المحادثات، واستخدم الحساب الذي أضفته منه.");return;}
         if(reply==null || reply.isTopicMainMessage || reply.getSenderId()<=0){alert(context,"رد على رسالة شخص أولاً.");return;}
-        if(text.isEmpty() || text.length()>180){alert(context,"اكتب نص الهمسة بعد الأمر، بحد أقصى 180 حرفاً.");return;}
+        if(!text.isEmpty()){alert(context,"اكتب أمر /همسه فقط بالرد، ثم اضغط زر البطاقة لكتابة الهمسة.");return;}
         if(dialogId==0 || org.telegram.messenger.DialogObject.isEncryptedDialog(dialogId) || stars!=0){alert(context,"الهمسة غير مدعومة في هذه المحادثة أو عند إرسال الرسائل المدفوعة.");return;}
         try {
-            byte[] bytes=new byte[18];random.nextBytes(bytes);String id=Base64.encodeToString(bytes,Base64.URL_SAFE|Base64.NO_WRAP|Base64.NO_PADDING);
-            JSONObject entry=new JSONObject().put("recipient",reply.getSenderId()).put("text",text).put("created",System.currentTimeMillis());
-            if(!prefs().edit().putString("w_"+id,encrypt(entry.toString())).commit())throw new IllegalStateException();
+            String id=randomId();long recipient=reply.getSenderId();
+            TLRPC.User targetUser=MessagesController.getInstance(account).getUser(recipient);
+            String username=targetUser==null || targetUser.username==null?"":targetUser.username;
+            String targetName=targetUser==null?"المستخدم":org.telegram.messenger.UserObject.getUserName(targetUser);
+            savePerson(recipient,username,targetName);
+            JSONObject entry=new JSONObject().put("kind","card").put("recipient",recipient).put("username",username).put("name",targetName);
             pending.put(id,entry);String name=botName;long owner=ownerId;
             TLRPC.TL_contacts_resolveUsername resolve=new TLRPC.TL_contacts_resolveUsername();resolve.username=name;
             ConnectionsManager.getInstance(account).sendRequest(resolve,(response,error)->AndroidUtilities.runOnUIThread(()->{

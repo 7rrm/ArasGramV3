@@ -8969,6 +8969,10 @@ public class ChatActivityEnterView extends FrameLayout implements
             }
             if (!TextUtils.isEmpty(message)) {
                 String whisperCommand = message.toString().trim();
+                if (tw.nekomimi.nekogram.MeeroWhisper.isUnsafeInlineDraft(whisperCommand)) {
+                    tw.nekomimi.nekogram.MeeroWhisper.warnInlineDraft(parentActivity);
+                    return;
+                }
                 if (tw.nekomimi.nekogram.MeeroWhisper.isCommand(whisperCommand)) {
                     if (parentFragment == null || scheduleDate != 0 || isInScheduleMode()) {
                         if (parentActivity != null) new org.telegram.ui.ActionBar.AlertDialog.Builder(parentActivity).setMessage("لا يمكن جدولة الهمسة.").setPositiveButton("حسناً", null).show();
