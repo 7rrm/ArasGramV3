@@ -10,6 +10,7 @@ import android.util.Base64;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
 import org.json.JSONArray;
@@ -193,6 +194,11 @@ public final class MeeroWhisper {
             JSONObject button=new JSONObject().put("text","اضغط هنا")
                     .put("switch_inline_query_current_chat","secret "+recipient+" \nهلو");
             results.put(article(query,"همسة سرية",HEADER+"⌔╎لـ أࢪسـال همسـه سـريـه الى "+target+" 💌",button));
+        } else if(card!=null && "direct".equals(card.optString("kind"))) {
+            long recipient=card.getLong("recipient");
+            String target=mention(recipient,card.optString("username"),card.optString("name"));
+            JSONObject button=new JSONObject().put("text","• فتـح الهمسـه •").put("callback_data","w:"+query);
+            results.put(article(query,"همسة سرية",HEADER+"⌔╎الهمسـة لـ "+target+"\n⌔╎هو فقط من يستطيع رؤيتها",button));
         } else if(query.startsWith("secret ")) {
             // Inline text goes to Telegram and the bot, not the chat, unless the user sends it as an ordinary message.
             java.util.regex.Matcher m=java.util.regex.Pattern.compile("(?s)^secret ([0-9]{1,20})\\s+(.+)$").matcher(query);
@@ -314,8 +320,16 @@ public final class MeeroWhisper {
                 verifyToken(config.getString("token"),config.getLong("owner"),status,account);
             }catch(Exception e){prefs().edit().putString("last_setup_issue",explain(e)).apply();status.setText(settingsStatus(account));}
         });
+        CheckBox direct=new CheckBox(context);
+        direct.setText("إرسال الهمسة مباشرة بدون بطاقة");
+        direct.setTextColor(fragment.getThemedColor(org.telegram.ui.ActionBar.Theme.key_dialogTextBlack));
+        direct.setChecked(prefs().getBoolean("direct_send",false));
+        direct.setOnCheckedChangeListener((button,checked)->prefs().edit().putBoolean("direct_send",checked).apply());
+        TextView directInfo=new TextView(context);directInfo.setTextSize(13);
+        directInfo.setTextColor(fragment.getThemedColor(org.telegram.ui.ActionBar.Theme.key_dialogTextBlack));
+        directInfo.setText("عند التفعيل: رد على الشخص واكتب /همسه ثم نص الهمسة. عند الإيقاف تظهر بطاقة اضغط هنا.");
         LinearLayout box=new LinearLayout(context);box.setOrientation(LinearLayout.VERTICAL);int pad=AndroidUtilities.dp(18);box.setPadding(pad,pad,pad,pad);
-        box.addView(status);box.addView(refresh);box.addView(input);
+        box.addView(status);box.addView(direct);box.addView(directInfo);box.addView(refresh);box.addView(input);
         new AlertDialog.Builder(context).setTitle("بوت الهمسة").setView(box)
             .setPositiveButton("تحقق وحفظ",(d,w)->{
                 String token=input.getText().toString().trim();long owner=UserConfig.getInstance(account).getClientUserId();
@@ -431,7 +445,9 @@ public final class MeeroWhisper {
         String text=original.replaceFirst("(?s)^/(همسه|همسة|hmsa)\\s*","").trim();
         if(activeToken==null || botName==null || ownerId!=UserConfig.getInstance(account).getClientUserId()){alert(context,"ضع توكن البوت أولاً في إعدادات أراس كرام ← يوزر بوت ← الهمسة، واستخدم الحساب الذي أضفته منه.");return;}
         if(reply==null || reply.isTopicMainMessage || reply.getSenderId()<=0){alert(context,"رد على رسالة شخص أولاً.");return;}
-        if(!text.isEmpty()){alert(context,"اكتب أمر /همسه فقط بالرد، ثم اضغط زر البطاقة لكتابة الهمسة.");return;}
+        final boolean direct=prefs().getBoolean("direct_send",false);
+        if(direct && (text.isEmpty() || text.length()>180)){alert(context,"رد على الشخص واكتب /همسه ثم نص الهمسة، بحد أقصى 180 حرفاً.");return;}
+        if(!direct && !text.isEmpty()){alert(context,"اكتب أمر /همسه فقط بالرد، ثم اضغط زر البطاقة لكتابة الهمسة. أو فعّل الإرسال المباشر من إعدادات الهمسة.");return;}
         if(dialogId==0 || org.telegram.messenger.DialogObject.isEncryptedDialog(dialogId) || stars!=0){alert(context,"الهمسة غير مدعومة في هذه المحادثة أو عند إرسال الرسائل المدفوعة.");return;}
         String id=randomId();
         SendGuard guard=new SendGuard(account,dialogId,id,context,fragment,view,original);
@@ -442,7 +458,14 @@ public final class MeeroWhisper {
             String username=targetUser==null || targetUser.username==null?"":targetUser.username;
             String targetName=targetUser==null?"المستخدم":org.telegram.messenger.UserObject.getUserName(targetUser);
             savePerson(recipient,username,targetName);
-            JSONObject entry=new JSONObject().put("kind","card").put("recipient",recipient).put("username",username).put("name",targetName);
+            JSONObject entry=new JSONObject().put("kind",direct?"direct":"card").put("recipient",recipient).put("username",username).put("name",targetName);
+            if(direct) {
+                long sender=UserConfig.getInstance(account).getClientUserId();
+                TLRPC.User senderUser=UserConfig.getInstance(account).getCurrentUser();
+                if(senderUser!=null)savePerson(sender,senderUser.username,org.telegram.messenger.UserObject.getUserName(senderUser));
+                JSONObject secret=new JSONObject().put("recipient",recipient).put("sender",sender).put("text",text).put("created",System.currentTimeMillis());
+                if(!prefs().edit().putString("w_"+id,encrypt(secret.toString())).commit())throw new IllegalStateException();
+            }
             pending.put(id,entry);String name=botName;long owner=ownerId;
             TLRPC.TL_contacts_resolveUsername resolve=new TLRPC.TL_contacts_resolveUsername();resolve.username=name;
             ConnectionsManager.getInstance(account).sendRequest(resolve,(response,error)->AndroidUtilities.runOnUIThread(()->{
