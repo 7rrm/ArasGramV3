@@ -12134,11 +12134,13 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
 
     /** The player at the top under the header, the tabs and what is under them below it. */
     public void updateProfileMusicColors() {
+        // A profile music dim is local, so it does not emit a global theme event.
+        // Refresh the source as well as the manually-drawn glass and text.
+        updateColors();
         if (fragmentContextView != null) fragmentContextView.updateColors();
-        if (topPanelLayout != null) {
-            topPanelLayout.updateColors();
-            topPanelLayout.invalidate();
-        }
+        if (topPanelLayout != null) topPanelLayout.updateColors();
+        if (scrollSlidingTextTabStrip != null) scrollSlidingTextTabStrip.updateColors();
+        invalidate();
     }
 
     private void applyTopPanelOffset() {

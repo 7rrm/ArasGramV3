@@ -117,6 +117,14 @@ public class BaseFragmentSimpleGlass {
     }
 
 
+    /** Update a fragment-local dynamic surface without waiting for a global theme change. */
+    public void setDynamicBackgroundColor(int color) {
+        if (glassBackgroundSourceColor.getColor() != color) {
+            glassBackgroundSourceColor.setColor(color);
+            glassEngine.invalidate();
+        }
+    }
+
     /** The capture under the glass of this screen; null without one (before Android 12). Records nothing with the blur off, unless {@link #setCaptureIgnoresBlurSetting}. */
     @Nullable
     public GlassCaptureSourceCanvas getCaptureSourceCanvas() {

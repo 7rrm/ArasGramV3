@@ -547,9 +547,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             listView.invalidate();
         }
         if (sharedMediaLayout != null) {
+            // This dim changes a local resource provider, not the global theme.
+            // Refresh both the glass backing source and the player/tabs on each frame.
+            getBaseSimpleGlass().setDynamicBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
             sharedMediaLayout.updateProfileMusicColors();
-            if (sharedMediaLayout.scrollSlidingTextTabStrip != null) sharedMediaLayout.scrollSlidingTextTabStrip.updateColors();
-            sharedMediaLayout.invalidate();
         }
         if (simpleActionBar != null) {
             simpleActionBar.invalidate();
@@ -14396,7 +14397,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 case VIEW_TYPE_LOCATION:
                     view = new ProfileLocationCell(mContext, resourcesProvider);
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, ProfileActivity.this.resourcesProvider);
+                    if (resourcesProvider != cherryProfileColors) {
+                        ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, ProfileActivity.this.resourcesProvider);
+                    } // In the new design the section behind the transparent row owns the surface color.
                     break;
                 case VIEW_TYPE_HOURS:
                     view = new ProfileHoursCell(mContext, resourcesProvider) {
@@ -14405,7 +14408,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             return dontApplyPeerColor(color, false);
                         }
                     };
-                    ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, ProfileActivity.this.resourcesProvider);
+                    if (resourcesProvider != cherryProfileColors) {
+                        ThemeBind.backgroundColor(view, Theme.key_windowBackgroundWhite, ProfileActivity.this.resourcesProvider);
+                    }
                     break;
                 case VIEW_TYPE_MUSIC: {
                     ProfileMusicCard card = new ProfileMusicCard(mContext, resourcesProvider);
