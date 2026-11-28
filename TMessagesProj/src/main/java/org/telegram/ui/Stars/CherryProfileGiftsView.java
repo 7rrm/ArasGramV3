@@ -9,6 +9,7 @@ import android.graphics.LinearGradient;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.os.SystemClock;
+import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -30,6 +31,35 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
     private final int account;
     private Runnable animationFrameListener;
     private final HashMap<Long, CherryGiftMotion> motion = new HashMap<>();
+    private final HashSet<Long> aliveMotionIds = new HashSet<>();
+    private final SparseArray<GiftShaders> giftShaders = new SparseArray<>();
+
+    // Reuse the same color gradients across frames, like Cherry's gift paints.
+    // The geometry is normalized, so canvas scaling still controls each glow.
+    private static final class GiftShaders {
+        final Shader musicGlow, bubbleGlow, bubble;
+        GiftShaders(int color) {
+            musicGlow = new RadialGradient(0f, 0f, 1f,
+                    new int[]{Theme.multAlpha(color, .65f), Theme.multAlpha(color, .3f), Theme.multAlpha(color, 0f)},
+                    new float[]{0f, .48f, 1f}, Shader.TileMode.CLAMP);
+            bubbleGlow = new RadialGradient(0f, 0f, 1.45f,
+                    new int[]{Theme.multAlpha(color, .35f), Theme.multAlpha(color, .12f), Theme.multAlpha(color, 0f)},
+                    new float[]{0f, .65f, 1f}, Shader.TileMode.CLAMP);
+            bubble = new RadialGradient(-.25f, -.35f, 1.45f,
+                    new int[]{Theme.multAlpha(color, .45f), Theme.multAlpha(color, .70f), Theme.multAlpha(color, .95f)},
+                    new float[]{0f, .55f, 1f}, Shader.TileMode.CLAMP);
+        }
+    }
+
+    private GiftShaders shadersFor(int color) {
+        GiftShaders shaders = giftShaders.get(color);
+        if (shaders == null) {
+            // Bound the cache if a long-lived profile is updated repeatedly.
+            if (giftShaders.size() >= 128) giftShaders.clear();
+            giftShaders.put(color, shaders = new GiftShaders(color));
+        }
+        return shaders;
+    }
     private final Paint bubblePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint bubbleGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint musicGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -146,10 +176,10 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
     public void setAnimationFrameListener(Runnable listener) { animationFrameListener = listener; }
 
     private void syncMotion() {
-        HashSet<Long> alive = new HashSet<>();
+        aliveMotionIds.clear();
         for (int i = 0; i < gifts.size(); i++) {
             Gift gift = gifts.get(i);
-            alive.add(gift.id);
+            aliveMotionIds.add(gift.id);
             CherryGiftMotion item = motion.get(gift.id);
             if (item == null) {
                 motion.put(gift.id, new CherryGiftMotion(gift.id, i, gifts.size()));
@@ -157,7 +187,7 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
                 item.m2044(gift.id, i, gifts.size());
             }
         }
-        motion.keySet().retainAll(alive);
+        motion.keySet().retainAll(aliveMotionIds);
     }
 
     @Override protected void dispatchDraw(Canvas canvas) {
@@ -229,23 +259,18 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
                 canvas.translate(gx, gy);
                 canvas.scale(r, r);
                 float musicVisibility = getMusicVisibility();
+                GiftShaders shaders = shadersFor(gift.color);
                 if (musicPresence > .001f && musicVisibility > .001f) {
                     float glowRadius = 1.65f + smoothedBeat * .6f;
-                    musicGlowPaint.setShader(new RadialGradient(0f, 0f, 1f,
-                            new int[]{Theme.multAlpha(gift.color, .65f), Theme.multAlpha(gift.color, .3f), Theme.multAlpha(gift.color, 0f)},
-                            new float[]{0f, .48f, 1f}, Shader.TileMode.CLAMP));
+                    musicGlowPaint.setShader(shaders.musicGlow);
                     musicGlowPaint.setAlpha(Math.round(255f * alpha * musicVisibility * musicPresence * (smoothedBeat * .75f + .25f)));
                     canvas.save(); canvas.scale(glowRadius, glowRadius);
                     canvas.drawCircle(0f, 0f, 1f, musicGlowPaint); canvas.restore();
                 }
-                bubbleGlowPaint.setShader(new RadialGradient(0f, 0f, 1.45f,
-                        new int[]{Theme.multAlpha(gift.color, .35f), Theme.multAlpha(gift.color, .12f), Theme.multAlpha(gift.color, 0f)},
-                        new float[]{0f, .65f, 1f}, Shader.TileMode.CLAMP));
+                bubbleGlowPaint.setShader(shaders.bubbleGlow);
                 bubbleGlowPaint.setAlpha(Math.round(255 * alpha));
                 canvas.drawCircle(0f, 0f, 1.45f, bubbleGlowPaint);
-                bubblePaint.setShader(new RadialGradient(-.25f, -.35f, 1.45f,
-                        new int[]{Theme.multAlpha(gift.color, .45f), Theme.multAlpha(gift.color, .70f), Theme.multAlpha(gift.color, .95f)},
-                        new float[]{0f, .55f, 1f}, Shader.TileMode.CLAMP));
+                bubblePaint.setShader(shaders.bubble);
                 bubblePaint.setAlpha(Math.round(255 * alpha));
                 m.m2048(time);
                 bubblePath.rewind();

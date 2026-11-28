@@ -651,7 +651,11 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
 
             drawDiscAndRing(canvas, cx, cy, radius);
             drawIcon(canvas, cx, cy);
-            invalidate();
+            // Keep the progress ring smooth while playing; paused state is
+            // redrawn by playback, seek, theme and panel change events.
+            if (!previewMode && current != null && !MediaController.getInstance().isMessagePaused()) {
+                postInvalidateOnAnimation();
+            }
         }
 
         private void drawDiscAndRing(Canvas canvas, float cx, float cy, float radius) {
