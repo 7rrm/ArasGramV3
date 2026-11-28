@@ -490,6 +490,74 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private ActionBarPopupWindow scrimPopupWindow;
     private Theme.ResourcesProvider resourcesProvider;
     private final org.telegram.ui.Stars.CherryProfileColors cherryProfileColors = new org.telegram.ui.Stars.CherryProfileColors(null);
+    private float cherryProfileDim;
+    private Boolean cherryPlayingState;
+    private ValueAnimator cherryDimAnimator;
+
+    private void updateCherryPlayingState(boolean playing) {
+        if (resourcesProvider != cherryProfileColors || (cherryPlayingState != null && cherryPlayingState == playing)) return;
+        cherryPlayingState = playing;
+        if (cherryDimAnimator != null) cherryDimAnimator.cancel();
+        final float target = playing ? .42f : 0f;
+        if (fragmentView == null || !fragmentView.isLaidOut() || openAnimationInProgress) {
+            applyCherryProfileDim(target, true);
+            return;
+        }
+        cherryDimAnimator = ValueAnimator.ofFloat(cherryProfileDim, target);
+        cherryDimAnimator.setDuration(400);
+        cherryDimAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT);
+        cherryDimAnimator.addUpdateListener(a -> applyCherryProfileDim((float)a.getAnimatedValue(), a.getAnimatedFraction() >= 1f));
+        cherryDimAnimator.start();
+    }
+
+    private void applyCherryProfileDim(float dim, boolean finalFrame) {
+        if (resourcesProvider != cherryProfileColors) return;
+        cherryProfileDim = dim;
+        cherryProfileColors.setMusicDim(dim);
+        if (topView != null) {
+            final int buttonColor = topView.hasColorById
+                    ? ColorUtils.blendARGB(topView.btnColor, topView.btnColor & 0xFF000000, dim) : topView.btnColor;
+            if (actionsView != null) actionsView.setActionsColor(buttonColor, topView.hasColorById);
+            if (musicView != null) musicView.setButtonColor(buttonColor, topView.hasColorById);
+            if (buttonsGlass != null) buttonsGlass.setButtonColor(buttonColor, topView.hasColorById);
+            topView.invalidate();
+        }
+        if (listView != null) {
+            listView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
+            final int sectionColor = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
+            for (int i = 0; i < listView.getChildCount(); i++) {
+                View row = listView.getChildAt(i);
+                if (row instanceof TextDetailCell) ((TextDetailCell) row).updateColors();
+                else if (row instanceof TextCell) ((TextCell) row).updateColors();
+                else if (row instanceof ProfileHoursCell) ((ProfileHoursCell) row).updateColors();
+                else if (row instanceof ProfileChannelCell) ((ProfileChannelCell) row).updateColors();
+                if (row instanceof AboutLinkCell) {
+                    ((AboutLinkCell) row).updateColors();
+                    ((AboutLinkCell) row).setMeeroSurfaceColor(sectionColor);
+                }
+                if (row instanceof ProfileMusicCard) ((ProfileMusicCard) row).refreshProfileTint();
+                row.invalidate();
+            }
+            listView.invalidate();
+        }
+        if (sharedMediaLayout != null) {
+            if (sharedMediaLayout.scrollSlidingTextTabStrip != null) sharedMediaLayout.scrollSlidingTextTabStrip.updateColors();
+            sharedMediaLayout.invalidate();
+        }
+        if (simpleActionBar != null) {
+            simpleActionBar.invalidate();
+            simpleActionBar.updateButtonsGlassColors();
+        }
+        if (finalFrame && listView != null && listAdapter != null) {
+            Runnable rebind = () -> {
+                if (listAdapter == null) return;
+                int count = sharedMediaRow >= 0 ? sharedMediaRow : listAdapter.getItemCount();
+                if (count > 0) listAdapter.notifyItemRangeChanged(0, Math.min(count, listAdapter.getItemCount()), Boolean.TRUE);
+            };
+            if (listView.isComputingLayout()) listView.post(rebind); else rebind.run();
+        }
+    }
+
 
     private int overlayCountVisible;
 
@@ -1334,8 +1402,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         public void setBackgroundColorId(MessagesController.PeerColor peerColor, boolean animated) {
             if (peerColor != null) {
                 hasColorById = true;
-                color1 = peerColor.getBgColor1(Theme.isCurrentThemeDark());
-                color2 = peerColor.getBgColor2(Theme.isCurrentThemeDark());
+                color1 = peerColor.getBgColor1(resourcesProvider == cherryProfileColors || Theme.isCurrentThemeDark());
+                color2 = peerColor.getBgColor2(resourcesProvider == cherryProfileColors || Theme.isCurrentThemeDark());
                 actionBarBackgroundColor = ColorUtils.blendARGB(color1, color2, 0.25f);
                 if (peerColor.patternColor != 0) {
                     emojiColor = peerColor.patternColor;
@@ -1426,30 +1494,25 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return false;
         }
 
-        private final AnimatedFloat cherryMusicDim = new AnimatedFloat(this, 0, 400, CubicBezierInterpolator.EASE_OUT);
-
         private void updateBackgroundPaint() {
-            float dim = cherryMusicDim.set(giftsView instanceof org.telegram.ui.Stars.CherryProfileGiftsView
-                    && ((org.telegram.ui.Stars.CherryProfileGiftsView) giftsView).isMusicPlaying() ? .42f : 0f);
-            if (resourcesProvider == cherryProfileColors) {
-                cherryProfileColors.setMusicDim(dim);
-                if (listView != null) listView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
-            }
+            float dim = cherryProfileDim;
             int color1 = color1Animated.set(this.color1);
             int color2 = color2Animated.set(this.color2);
-            if (dim > 0f) {
+            if (resourcesProvider == cherryProfileColors && dim > 0f) {
                 color1 = ColorUtils.blendARGB(color1, Color.BLACK, dim);
                 color2 = ColorUtils.blendARGB(color2, Color.BLACK, dim);
             }
+            int currentButtonColor = resourcesProvider == cherryProfileColors && hasColorById
+                    ? ColorUtils.blendARGB(btnColor, btnColor & 0xFF000000, dim) : btnColor;
             if (actionsView != null) {
-                actionsView.setActionsColor(btnColor, hasColorById);
+                actionsView.setActionsColor(currentButtonColor, hasColorById);
                 actionsView.setHasProfileBackground(hasColorById || hasCurrentBackgroundEmoji);
             }
             if (musicView != null) {
-                musicView.setButtonColor(btnColor, hasColorById);
+                musicView.setButtonColor(currentButtonColor, hasColorById);
             }
             if (buttonsGlass != null) {
-                buttonsGlass.setButtonColor(btnColor, hasColorById);
+                buttonsGlass.setButtonColor(currentButtonColor, hasColorById);
             }
 
             int gradientX = getWidth() / 2;
@@ -2479,6 +2542,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public void onFragmentDestroy() {
+        if (cherryDimAnimator != null) { cherryDimAnimator.cancel(); cherryDimAnimator = null; }
         super.onFragmentDestroy();
         if (sharedMediaLayout != null) {
             sharedMediaLayout.onDestroy();
@@ -6135,6 +6199,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             cherry.setAnimationFrameListener(() -> {
                 if (avatarContainer2 != null) avatarContainer2.invalidate();
                 if (topView != null) topView.invalidate();
+                boolean playing = cherry.isMusicPlaying();
+                if (resourcesProvider == cherryProfileColors && (cherryPlayingState == null || cherryPlayingState != playing)) {
+                    // Do not mutate RecyclerView rows while the profile is being drawn.
+                    if (avatarContainer2 != null) avatarContainer2.post(() -> updateCherryPlayingState(cherry.isMusicPlaying()));
+                }
             });
             giftsView = cherry;
         } else {

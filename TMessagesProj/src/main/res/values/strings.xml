@@ -11816,4 +11816,10 @@
     <string name="MeeroMenuDragSelectDesc">Hold a menu item and slide to another item, then release to select it.</string>
     <string name="MeeroCherryProfileTitle">Cherry-style profile</string>
     <string name="MeeroCherryProfileDesc">Use the new profile appearance, gift bubbles and music effects.</string>
+    <string name="MeeroIconCurrent">Currently used icon</string>
+    <string name="MeeroIconHint">Swipe to choose an icon, then tap Apply</string>
+    <string name="MeeroIconOcean">Ocean Blue</string>
+    <string name="MeeroIconEmerald">Emerald Green</string>
+    <string name="MeeroIconViolet">Violet</string>
+    <string name="MeeroIconMidnight">Midnight</string>
 </resources>

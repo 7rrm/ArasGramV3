@@ -1461,4 +1461,10 @@
     <string name="MeeroMenuDragSelectDesc">اضغط على خيار واسحب إصبعك بين الخيارات، ثم ارفعه لاختيار العنصر.</string>
     <string name="MeeroCherryProfileTitle">تصميم البروفايل الجديد</string>
     <string name="MeeroCherryProfileDesc">تفعيل تصميم البروفايل الجديد ودوائر الهدايا وتأثيرات الموسيقى.</string>
+    <string name="MeeroIconCurrent">الأيقونة المستخدمة حالياً</string>
+    <string name="MeeroIconHint">اسحب لاختيار أيقونة ثم اضغط تطبيق</string>
+    <string name="MeeroIconOcean">أزرق المحيط</string>
+    <string name="MeeroIconEmerald">أخضر زمردي</string>
+    <string name="MeeroIconViolet">بنفسجي</string>
+    <string name="MeeroIconMidnight">أسود ليلي</string>
 </resources>

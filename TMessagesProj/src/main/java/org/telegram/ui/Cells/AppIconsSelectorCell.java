@@ -108,42 +108,9 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
             }
         });
         setOnItemClickListener((view, position) -> {
-            IconHolderView holderView = (IconHolderView) view;
-            LauncherIconController.LauncherIcon icon = availableIcons.get(position);
-            if (icon.premium && !UserConfig.hasPremiumOnAccounts()) {
-                fragment.showDialog(new PremiumFeatureBottomSheet(fragment, PremiumPreviewFragment.PREMIUM_FEATURE_APPLICATION_ICONS, true));
-                return;
+            if (position >= 0 && position < availableIcons.size()) {
+                fragment.presentFragment(new tw.nekomimi.nekogram.icons.AppIconsPreferencesEntry(availableIcons.get(position)));
             }
-
-            if (LauncherIconController.isEnabled(icon)) {
-                return;
-            }
-
-            LinearSmoothScroller smoothScroller = new LinearSmoothScroller(context) {
-                @Override
-                public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
-                    return boxStart - viewStart + AndroidUtilities.dp(16);
-                }
-
-                @Override
-                protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
-                    return super.calculateSpeedPerPixel(displayMetrics) * 3f;
-                }
-            };
-            smoothScroller.setTargetPosition(position);
-            linearLayoutManager.startSmoothScroll(smoothScroller);
-
-            LauncherIconController.setIcon(icon);
-            holderView.setSelected(true, true);
-
-            for (int i = 0; i < getChildCount(); i++) {
-                IconHolderView otherView = (IconHolderView) getChildAt(i);
-                if (otherView != holderView) {
-                    otherView.setSelected(false, true);
-                }
-            }
-
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_APP_ICON, icon);
         });
         updateIconsVisibility();
     }

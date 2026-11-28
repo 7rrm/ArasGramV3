@@ -333,7 +333,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         boolean paused = MediaController.getInstance().isMessagePaused();
         if (paused) {
             // v255 fix6: أزرق واضح عند التوقّف — لا يتأثر بلون الثيم أو الغلاف
-            return PlayerColors.fromSeed(0xff3390EC, false);
+            return PlayerColors.fromSeed(0xff3390EC, bubble ? false : dark);
         }
         final int argb = Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
         int chosenSeed;

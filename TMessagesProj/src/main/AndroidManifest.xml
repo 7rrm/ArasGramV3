@@ -281,6 +281,22 @@
             </intent-filter>
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity-alias>
+        <activity-alias android:enabled="false" android:name="org.telegram.messenger.MeeroMarkerOceanIcon" android:targetActivity="org.telegram.ui.LaunchActivity" android:icon="@mipmap/meero_marker_ocean" android:roundIcon="@mipmap/meero_marker_ocean_round" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/><category android:name="android.intent.category.MULTIWINDOW_LAUNCHER"/></intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts"/>
+        </activity-alias>
+        <activity-alias android:enabled="false" android:name="org.telegram.messenger.MeeroMarkerEmeraldIcon" android:targetActivity="org.telegram.ui.LaunchActivity" android:icon="@mipmap/meero_marker_emerald" android:roundIcon="@mipmap/meero_marker_emerald_round" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/><category android:name="android.intent.category.MULTIWINDOW_LAUNCHER"/></intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts"/>
+        </activity-alias>
+        <activity-alias android:enabled="false" android:name="org.telegram.messenger.MeeroMarkerVioletIcon" android:targetActivity="org.telegram.ui.LaunchActivity" android:icon="@mipmap/meero_marker_violet" android:roundIcon="@mipmap/meero_marker_violet_round" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/><category android:name="android.intent.category.MULTIWINDOW_LAUNCHER"/></intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts"/>
+        </activity-alias>
+        <activity-alias android:enabled="false" android:name="org.telegram.messenger.MeeroMarkerMidnightIcon" android:targetActivity="org.telegram.ui.LaunchActivity" android:icon="@mipmap/meero_marker_midnight" android:roundIcon="@mipmap/meero_marker_midnight_round" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/><category android:name="android.intent.category.MULTIWINDOW_LAUNCHER"/></intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts"/>
+        </activity-alias>
         <activity-alias
             android:enabled="false"
             android:name="org.telegram.messenger.MeeroMTileIcon"

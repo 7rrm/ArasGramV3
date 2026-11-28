@@ -101,7 +101,9 @@ public class ProfileMusicCard extends FrameLayout {
         cardLayout = new FrameLayout(context) {
             @Override
             protected void dispatchDraw(@NonNull Canvas canvas) {
-                emoji.setColor(accentColor);
+                emoji.setColor(resourcesProvider instanceof org.telegram.ui.Stars.CherryProfileColors
+                        && ((org.telegram.ui.Stars.CherryProfileColors) resourcesProvider).isTinting()
+                        ? getThemedColor(Theme.key_windowBackgroundWhiteBlueHeader) : accentColor);
                 drawPattern(canvas, emoji, getWidth(), getHeight(), hasCover ? 1f : 0.4f);
                 super.dispatchDraw(canvas);
             }
@@ -288,10 +290,18 @@ public class ProfileMusicCard extends FrameLayout {
         applyColors();
     }
 
+    /** Refresh only the appearance, preserving the currently loaded album artwork. */
+    public void refreshProfileTint() {
+        applyColors();
+    }
+
     private void applyColors() {
         background.mutate();
-        background.setColors(new int[]{backgroundColor, hasCover ? adjustHsl(backgroundColor, 1.5f) : backgroundColor});
-        int textColor = hasCover ? Color.WHITE : getThemedColor(Theme.key_windowBackgroundWhiteBlackText);
+        boolean profileTint = resourcesProvider instanceof org.telegram.ui.Stars.CherryProfileColors
+                && ((org.telegram.ui.Stars.CherryProfileColors) resourcesProvider).isTinting();
+        int cardColor = profileTint ? getThemedColor(Theme.key_windowBackgroundWhite) : backgroundColor;
+        background.setColors(new int[]{cardColor, !profileTint && hasCover ? adjustHsl(cardColor, 1.5f) : cardColor});
+        int textColor = profileTint ? getThemedColor(Theme.key_windowBackgroundWhiteBlackText) : hasCover ? Color.WHITE : getThemedColor(Theme.key_windowBackgroundWhiteBlackText);
         nameView.setTextColor(textColor);
         artistView.setTextColor(textColor);
         cardLayout.invalidate();
