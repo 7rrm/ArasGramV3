@@ -201,7 +201,7 @@ public final class MeeroWhisper {
         return new JSONObject().put("type","article").put("id",id).put("title",title)
                 .put("input_message_content",content).put("reply_markup",markup);
     }
-    private static String header() { return tr(R.string.HmsaHeader); }
+    private static String header() { return tr(R.string.HmsaHeader).trim()+"\n\n"; }
     private static void handleInline(String token,long owner,JSONObject q) throws Exception {
         String queryId=q.getString("id"), query=q.optString("query");
         long asker=q.getJSONObject("from").optLong("id");
@@ -213,12 +213,12 @@ public final class MeeroWhisper {
             String target=mention(recipient,card.optString("username"),card.optString("name"));
             JSONObject button=new JSONObject().put("text",tr(R.string.HmsaPressHere))
                     .put("switch_inline_query_current_chat","secret "+recipient+" \n"+tr(R.string.HmsaSample));
-            results.put(article(query,tr(R.string.HmsaSecretWhisper),header()+tr(R.string.HmsaInvitation)+target+" 💌",button));
+            results.put(article(query,tr(R.string.HmsaSecretWhisper),header()+tr(R.string.HmsaInvitation).trim()+" "+target+" 💌",button));
         } else if(card!=null && "direct".equals(card.optString("kind"))) {
             long recipient=card.getLong("recipient");
             String target=mention(recipient,card.optString("username"),card.optString("name"));
             JSONObject button=new JSONObject().put("text",tr(R.string.HmsaOpen)).put("callback_data","w:"+query);
-            results.put(article(query,tr(R.string.HmsaSecretWhisper),header()+tr(R.string.HmsaWhisperTo)+target+tr(R.string.HmsaOnlyRecipient),button));
+            results.put(article(query,tr(R.string.HmsaSecretWhisper),header()+tr(R.string.HmsaWhisperTo).trim()+" "+target+"\n"+tr(R.string.HmsaOnlyRecipient).trim(),button));
         } else if(query.startsWith("secret ")) {
             // Inline text goes to Telegram and the bot, not the chat, unless the user sends it as an ordinary message.
             java.util.regex.Matcher m=java.util.regex.Pattern.compile("(?s)^secret ([0-9]{1,20})\\s+(.+)$").matcher(query);
@@ -236,8 +236,8 @@ public final class MeeroWhisper {
                     if(!prefs().edit().putString("w_"+id,encrypt(entry.toString())).commit())throw new IllegalStateException();
                     String target=mention(recipient,person.optString("username"),person.optString("name"));
                     JSONObject button=new JSONObject().put("text",tr(R.string.HmsaOpen)).put("callback_data","w:"+id);
-                    results.put(article(id,tr(R.string.HmsaWhisperFor)+(person.optString("username").isEmpty()?person.optString("name",tr(R.string.HmsaUser)):"@"+person.optString("username")),
-                            header()+tr(R.string.HmsaWhisperTo)+target+tr(R.string.HmsaOnlyRecipient),button));
+                    results.put(article(id,tr(R.string.HmsaWhisperFor).trim()+" "+(person.optString("username").isEmpty()?person.optString("name",tr(R.string.HmsaUser)):"@"+person.optString("username")),
+                            header()+tr(R.string.HmsaWhisperTo).trim()+" "+target+"\n"+tr(R.string.HmsaOnlyRecipient).trim(),button));
                 }
             }
         }
@@ -268,7 +268,7 @@ public final class MeeroWhisper {
                     .put("switch_inline_query_current_chat","secret "+sender+" \n"+tr(R.string.HmsaSample));
             JSONObject markup=new JSONObject().put("inline_keyboard",new JSONArray().put(new JSONArray().put(button)));
             JSONObject edit=new JSONObject().put("inline_message_id",cb.getString("inline_message_id"))
-                    .put("text",tr(R.string.HmsaReadPrefix)+reader+tr(R.string.HmsaReadTime)+escapeHtml(time))
+                    .put("text",tr(R.string.HmsaReadPrefix).trim()+" "+reader+" ✅\n"+tr(R.string.HmsaReadTime).replace("✅", "").trim()+" "+escapeHtml(time))
                     .put("parse_mode","HTML").put("reply_markup",markup);
             try {api(token,"editMessageText",edit,10000);}catch(Exception ignored) { }
         }
@@ -283,22 +283,22 @@ public final class MeeroWhisper {
             JSONObject config=storedConfig();
             if(config==null) out.append(tr(R.string.HmsaNoTokenStatus));
             else {
-                out.append(tr(R.string.HmsaSavedTokenStatus)).append(config.optString("username","—"));
+                out.append(tr(R.string.HmsaSavedTokenStatus).trim()).append(config.optString("username","—"));
                 if(config.optLong("owner")!=UserConfig.getInstance(account).getClientUserId()) {
-                    out.append(tr(R.string.HmsaWrongAccountStatus));
+                    out.append("\n").append(tr(R.string.HmsaWrongAccountStatus).trim());
                 } else if(!config.optBoolean("inline",true)) {
-                    out.append(tr(R.string.HmsaInlineDisabled));
+                    out.append("\n").append(tr(R.string.HmsaInlineDisabled).trim());
                 } else if(config.optBoolean("webhook",false)) {
-                    out.append(tr(R.string.HmsaWebhookEnabled));
+                    out.append("\n").append(tr(R.string.HmsaWebhookEnabled).trim());
                 } else {
-                    out.append(tr(R.string.HmsaBotStatusPrefix)).append(tr(connectionStatus));
-                    if(!connectionProblem.isEmpty())out.append(tr(R.string.HmsaProblemPrefix)).append(describeIssue(connectionProblem));
+                    out.append("\n").append(tr(R.string.HmsaBotStatusPrefix).trim()).append(" ").append(tr(connectionStatus));
+                    if(!connectionProblem.isEmpty())out.append("\n").append(tr(R.string.HmsaProblemPrefix).trim()).append(" ").append(describeIssue(connectionProblem));
                 }
             }
         } catch(Exception e) {out.append(tr(R.string.HmsaSecureStoreStatus)).append(describeIssue(issueKey(e)));}
         String last=prefs().getString("last_setup_issue","");
-        if(!last.isEmpty())out.append(tr(R.string.HmsaLastIssuePrefix)).append(describeIssue(last));
-        out.append(tr(R.string.HmsaUsageNote));
+        if(!last.isEmpty())out.append("\n").append(tr(R.string.HmsaLastIssuePrefix).trim()).append(" ").append(describeIssue(last));
+        out.append("\n\n").append(tr(R.string.HmsaUsageNote).trim());
         return out.toString();
     }
     /** Validate before saving; a failing replacement must not erase the working bot. */
