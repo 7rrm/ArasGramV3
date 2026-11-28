@@ -3522,7 +3522,9 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
 
         if (!customTabs()) {
             // a simple host's tabs are glass like its header
-            final BlurredBackgroundProvider glassColors = simpleActionBar != null ? BlurredBackgroundProviderImpl.simpleActionBar(resourcesProvider) : BlurredBackgroundProviderImpl.topPanel(resourcesProvider);
+            final BlurredBackgroundProvider glassColors = simpleActionBar != null
+                ? (viewType == VIEW_TYPE_PROFILE_ACTIVITY ? BlurredBackgroundProviderImpl.profileActionBar(resourcesProvider) : BlurredBackgroundProviderImpl.simpleActionBar(resourcesProvider))
+                : BlurredBackgroundProviderImpl.topPanel(resourcesProvider);
             topPanelLayout = new DialogsActivityTopPanelLayout(context);
             // the content exactly in the glass: the layout's background starts 14dp in and is inset by 7dp
             topPanelLayout.setPadding(dp(11), TOP_PANEL_GLASS_TOP, dp(11), TOP_PANEL_GLASS_TOP);

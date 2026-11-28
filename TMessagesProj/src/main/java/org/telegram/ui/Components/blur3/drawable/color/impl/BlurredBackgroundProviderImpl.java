@@ -265,6 +265,28 @@ public class BlurredBackgroundProviderImpl {
             .build();
     }
 
+    /** Profile surfaces may be dark even while the app uses its light theme. */
+    public static BlurredBackgroundProvider profileActionBar(Theme.ResourcesProvider resourcesProvider) {
+        final BlurredBackgroundProvider base = simpleActionBar(resourcesProvider);
+        return new BlurredBackgroundProvider() {
+            private boolean darkSurface() {
+                return ColorUtils.calculateLuminance(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider)) < .35;
+            }
+            @Override public int getBackgroundColor() { return base.getBackgroundColor(); }
+            @Override public int getShadowColor() { return base.getShadowColor(); }
+            @Override public int getStrokeColorTop() { return darkSurface() ? 0x20FFFFFF : base.getStrokeColorTop(); }
+            @Override public int getStrokeColorBottom() { return darkSurface() ? 0x14FFFFFF : base.getStrokeColorBottom(); }
+            @Override public float getStrokeWidthTop() { return base.getStrokeWidthTop(); }
+            @Override public float getStrokeWidthBottom() { return base.getStrokeWidthBottom(); }
+            @Override public float getShadowRadius() { return base.getShadowRadius(); }
+            @Override public float getShadowDx() { return base.getShadowDx(); }
+            @Override public float getShadowDy() { return base.getShadowDy(); }
+            @Override public int getOutlineShadowColor() { return base.getOutlineShadowColor(); }
+            @Override public int getOutlineColor() { return base.getOutlineColor(); }
+            @Override public float getOutlineWidth() { return base.getOutlineWidth(); }
+        };
+    }
+
     /** A frosted sheet over the content, e.g. the list over the map: the content shows through its blur. */
     public static BlurredBackgroundProvider frostedSheet(Theme.ResourcesProvider resourcesProvider) {
         return new BlurredBackgroundProviderBuilder(resourcesProvider)
