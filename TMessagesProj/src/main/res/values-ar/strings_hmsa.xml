@@ -69,4 +69,21 @@
     <string name="HmsaUnsupportedChat">الهمسة\u0020غير\u0020مدعومة\u0020في\u0020هذه\u0020المحادثة\u0020أو\u0020عند\u0020إرسال\u0020الرسائل\u0020المدفوعة.</string>
     <string name="HmsaUserbot">يوزر\u0020بوت</string>
     <string name="HmsaScheduleUnsupported">لا\u0020يمكن\u0020جدولة\u0020الهمسة.</string>
+    <string name="HmsaEnable">تفعيل\u0020الهمسة</string>
+    <string name="HmsaDisabledNotice">الهمسة\u0020معطّلة.\u0020فعّلها\u0020من\u0020إعدادات\u0020الهمسة\u0020أولاً.</string>
+    <string name="HmsaNone">لا\u0020يوجد</string>
+    <string name="HmsaNoProblem">لا\u0020توجد\u0020مشكلة</string>
+    <string name="HmsaName">الاسم</string>
+    <string name="HmsaBot">البوت</string>
+    <string name="HmsaStatus">الحالة</string>
+    <string name="HmsaProblemTitle">المشكلة</string>
+    <string name="HmsaTokenLabel">التوكن</string>
+    <string name="HmsaTokenSaved">محفوظ\u0020ومخفي</string>
+    <string name="HmsaPageNote">يعمل\u0020البوت\u0020ما\u0020دامت\u0020النسخة\u0020شغّالة.\u0020عند\u0020تفعيل\u0020الإرسال\u0020المباشر،\u0020رد\u0020على\u0020الشخص\u0020واكتب\u0020/همسه\u0020ثم\u0020نص\u0020الهمسة.\u0020لا\u0020تشارك\u0020التوكن\u0020مع\u0020أحد.</string>
+    <string name="HmsaAboutUpdates">التحديثات</string>
+    <string name="HmsaAboutDeveloper">المطور</string>
+    <string name="HmsaAboutChannels">القنوات</string>
+    <string name="HmsaAboutMainChannel">قناتي\u0020الأساسية</string>
+    <string name="HmsaAboutFirstChannel">القناة\u0020الأولى</string>
+    <string name="HmsaAboutMadeWithLove">صُنع\u0020بحب\u0020@Lx5x5</string>
 </resources>

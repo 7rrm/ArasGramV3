@@ -136,7 +136,7 @@ public final class MeeroWhisper {
         }
     }
     public static void start() {
-        if(Build.VERSION.SDK_INT<23)return;
+        if(Build.VERSION.SDK_INT<23 || !isEnabled())return;
         try {
             String v=prefs().getString("config",null);if(v==null)return;
             JSONObject j=new JSONObject(decrypt(v));
@@ -146,6 +146,7 @@ public final class MeeroWhisper {
         } catch(Exception e) { connectionStatus=R.string.HmsaStorageProblem;connectionProblem=issueKey(e); }
     }
     private static synchronized void begin(String token,String name,long owner) {
+        if(!isEnabled())return;
         if(token.equals(activeToken) && owner==ownerId && name.equals(botName))return;
         int g=++generation;activeToken=token;botName=name;ownerId=owner;offset=0;
         connectionStatus=R.string.HmsaConnecting;connectionProblem="";
@@ -311,7 +312,7 @@ public final class MeeroWhisper {
                 boolean inline=bot.optBoolean("supports_inline_queries",false);
                 JSONObject hook=api(token,"getWebhookInfo",new JSONObject(),10000).getJSONObject("result");
                 boolean webhook=!hook.optString("url","").isEmpty();
-                JSONObject config=new JSONObject().put("token",token).put("username",name).put("owner",owner).put("inline",inline).put("webhook",webhook);
+                JSONObject config=new JSONObject().put("token",token).put("username",name).put("name",bot.optString("first_name",name)).put("owner",owner).put("inline",inline).put("webhook",webhook);
                 if(check!=verification.get())return;
                 if(!prefs().edit().putString("config",encrypt(config.toString())).remove("last_setup_issue").commit())throw new IllegalStateException();
                 if(inline && !webhook) begin(token,name,owner); else stop();
@@ -320,6 +321,67 @@ public final class MeeroWhisper {
                 prefs().edit().putString("last_setup_issue",issueKey(e)).apply();
             }
             AndroidUtilities.runOnUIThread(()->{if(check==verification.get())status.setText(settingsStatus(account));});
+        },"WhisperSetup").start();
+    }
+    public static boolean isEnabled() { return prefs().getBoolean("enabled",true); }
+    public static void setEnabled(boolean enabled) {
+        prefs().edit().putBoolean("enabled",enabled).apply();
+        if(enabled) start(); else { verification.incrementAndGet(); stop(); }
+    }
+    public static boolean isDirect() { return prefs().getBoolean("direct_send",false); }
+    public static void setDirect(boolean direct) { prefs().edit().putBoolean("direct_send",direct).apply(); }
+    public static String savedBotName() {
+        try { JSONObject c=storedConfig(); return c==null?tr(R.string.HmsaNone):c.optString("name",c.optString("username",tr(R.string.HmsaNone))); }
+        catch(Exception e){return tr(R.string.HmsaNone);}
+    }
+    public static String savedBotUser() {
+        try { JSONObject c=storedConfig();return c==null?tr(R.string.HmsaNone):"@"+c.optString("username",""); }
+        catch(Exception e){return tr(R.string.HmsaNone);}
+    }
+    public static String displayStatus(int account) {
+        if(!isEnabled())return tr(R.string.HmsaStopped);
+        try {
+            JSONObject c=storedConfig();if(c==null)return tr(R.string.HmsaNotRunning);
+            if(c.optLong("owner")!=UserConfig.getInstance(account).getClientUserId())return tr(R.string.HmsaConnectionProblem);
+            if(!c.optBoolean("inline",true)||c.optBoolean("webhook",false))return tr(R.string.HmsaConnectionProblem);
+            return tr(connectionStatus);
+        } catch(Exception e) {return tr(R.string.HmsaStorageProblem);}
+    }
+    public static String displayProblem(int account) {
+        try {
+            JSONObject c=storedConfig();
+            if(c!=null && c.optLong("owner")!=UserConfig.getInstance(account).getClientUserId())return tr(R.string.HmsaWrongAccountStatus).trim();
+            if(c!=null && !c.optBoolean("inline",true))return tr(R.string.HmsaInlineDisabled).trim();
+            if(c!=null && c.optBoolean("webhook",false))return tr(R.string.HmsaWebhookEnabled).trim();
+            if(!connectionProblem.isEmpty())return describeIssue(connectionProblem);
+            String issue=prefs().getString("last_setup_issue","");if(!issue.isEmpty())return describeIssue(issue);
+        } catch(Exception e) {return describeIssue(issueKey(e));}
+        return tr(R.string.HmsaNoProblem);
+    }
+    public static boolean hasToken() { return prefs().contains("config"); }
+    public static void removeToken() {verification.incrementAndGet();stop();prefs().edit().remove("config").remove("last_setup_issue").apply();}
+    /** Save only a validated token; a failing replacement leaves the existing bot intact. */
+    public static void verifyFromPage(String candidate,int account,Runnable done) {
+        long owner=UserConfig.getInstance(account).getClientUserId();
+        String token=candidate==null?"":candidate.trim();
+        if(token.isEmpty()) {
+            try {JSONObject c=storedConfig();if(c!=null && c.optLong("owner")==owner)token=c.getString("token");}catch(Exception ignored){}
+        }
+        if(!token.matches("[0-9]{5,20}:[A-Za-z0-9_-]{20,100}") || owner<=0) {
+            prefs().edit().putString("last_setup_issue","invalid_format").apply();if(done!=null)done.run();return;
+        }
+        final String selected=token;final int check=verification.incrementAndGet();
+        new Thread(()->{
+            try {
+                JSONObject bot=api(selected,"getMe",new JSONObject(),10000).getJSONObject("result");
+                String username=bot.getString("username");boolean inline=bot.optBoolean("supports_inline_queries",false);
+                boolean webhook=!api(selected,"getWebhookInfo",new JSONObject(),10000).getJSONObject("result").optString("url","").isEmpty();
+                JSONObject c=new JSONObject().put("token",selected).put("username",username).put("name",bot.optString("first_name",username)).put("owner",owner).put("inline",inline).put("webhook",webhook);
+                if(check!=verification.get()){if(done!=null)AndroidUtilities.runOnUIThread(done);return;}
+                if(!prefs().edit().putString("config",encrypt(c.toString())).remove("last_setup_issue").commit())throw new IllegalStateException();
+                if(inline && !webhook && isEnabled())begin(selected,username,owner);else stop();
+            }catch(Exception e){if(check!=verification.get()){if(done!=null)AndroidUtilities.runOnUIThread(done);return;}prefs().edit().putString("last_setup_issue",issueKey(e)).apply();}
+            if(done!=null)AndroidUtilities.runOnUIThread(done);
         },"WhisperSetup").start();
     }
     public static void showSettings(org.telegram.ui.ActionBar.BaseFragment fragment,int account) {
@@ -461,6 +523,7 @@ public final class MeeroWhisper {
         Context context=fragment.getParentActivity();if(context==null)return;
         String key=account+":"+dialogId;
         if(sendingCards.containsKey(key))return;
+        if(!isEnabled()){alert(context,tr(R.string.HmsaDisabledNotice));return;}
         String text=original.replaceFirst("(?s)^/(همسه|همسة|hmsa)\\s*","").trim();
         if(activeToken==null || botName==null || ownerId!=UserConfig.getInstance(account).getClientUserId()){alert(context,tr(R.string.HmsaConfigure));return;}
         if(reply==null || reply.isTopicMainMessage || reply.getSenderId()<=0){alert(context,tr(R.string.HmsaReplyRequired));return;}

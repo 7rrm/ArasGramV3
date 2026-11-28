@@ -5008,7 +5008,24 @@ public class LocaleController {
             R.string.HmsaCardRequired,
             R.string.HmsaUnsupportedChat,
             R.string.HmsaUserbot,
-            R.string.HmsaScheduleUnsupported
+            R.string.HmsaScheduleUnsupported,
+            R.string.HmsaEnable,
+            R.string.HmsaDisabledNotice,
+            R.string.HmsaNone,
+            R.string.HmsaNoProblem,
+            R.string.HmsaName,
+            R.string.HmsaBot,
+            R.string.HmsaStatus,
+            R.string.HmsaProblemTitle,
+            R.string.HmsaTokenLabel,
+            R.string.HmsaTokenSaved,
+            R.string.HmsaPageNote,
+            R.string.HmsaAboutUpdates,
+            R.string.HmsaAboutDeveloper,
+            R.string.HmsaAboutChannels,
+            R.string.HmsaAboutMainChannel,
+            R.string.HmsaAboutFirstChannel,
+            R.string.HmsaAboutMadeWithLove
     ));
 
     private boolean meeroArabicLanguage() {

@@ -15,7 +15,7 @@ public class MeeroUserBotActivity extends BaseNekoSettingsActivity {
     @Override protected void updateRows() { super.updateRows(); whisperRow=addRow(); }
     @Override protected BaseListAdapter createAdapter(Context c) { return new Adapter(c); }
     @Override protected void onItemClick(View view,int position,float x,float y) {
-        if(position==whisperRow) MeeroWhisper.showSettings(this,currentAccount);
+        if(position==whisperRow) presentFragment(new MeeroWhisperSettingsActivity());
     }
     private class Adapter extends BaseListAdapter {
         Adapter(Context context) { super(context); }

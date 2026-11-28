@@ -69,4 +69,21 @@
     <string name="HmsaUnsupportedChat">Whispers\u0020are\u0020not\u0020supported\u0020in\u0020this\u0020chat\u0020or\u0020with\u0020paid\u0020messages.</string>
     <string name="HmsaUserbot">Userbot</string>
     <string name="HmsaScheduleUnsupported">Whispers\u0020cannot\u0020be\u0020scheduled.</string>
+    <string name="HmsaEnable">Enable\u0020whispers</string>
+    <string name="HmsaDisabledNotice">Whispers\u0020are\u0020disabled.\u0020Enable\u0020them\u0020in\u0020whisper\u0020settings\u0020first.</string>
+    <string name="HmsaNone">None</string>
+    <string name="HmsaNoProblem">No\u0020problem\u0020detected</string>
+    <string name="HmsaName">Name</string>
+    <string name="HmsaBot">Bot</string>
+    <string name="HmsaStatus">Status</string>
+    <string name="HmsaProblemTitle">Problem</string>
+    <string name="HmsaTokenLabel">Token</string>
+    <string name="HmsaTokenSaved">Saved\u0020and\u0020hidden</string>
+    <string name="HmsaPageNote">The\u0020bot\u0020runs\u0020while\u0020the\u0020app\u0020process\u0020is\u0020active.\u0020With\u0020direct\u0020sending\u0020enabled,\u0020reply\u0020and\u0020type\u0020/hmsa\u0020followed\u0020by\u0020the\u0020whisper.\u0020Never\u0020share\u0020your\u0020token.</string>
+    <string name="HmsaAboutUpdates">Updates</string>
+    <string name="HmsaAboutDeveloper">DEVELOPER</string>
+    <string name="HmsaAboutChannels">CHANNELS</string>
+    <string name="HmsaAboutMainChannel">Main\u0020channel</string>
+    <string name="HmsaAboutFirstChannel">First\u0020channel</string>
+    <string name="HmsaAboutMadeWithLove">Made\u0020with\u0020love\u0020@Lx5x5</string>
 </resources>
