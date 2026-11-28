@@ -2596,7 +2596,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     for (LauncherIconController.LauncherIcon icon : LauncherIconController.LauncherIcon.values()) {
                         if (LauncherIconController.isEnabled(icon)) { selected = icon; break; }
                     }
-                    cell.setTextAndIcon(getString(R.string.AppIcon), new tw.nekomimi.nekogram.icons.LauncherIconDrawable(mContext, selected, dp(30)), false);
+                    cell.setTextAndValueDrawable(getString(R.string.AppIcon), new tw.nekomimi.nekogram.icons.LauncherIconDrawable(mContext, selected, dp(30)), false);
                     break;
                 }
                 case TYPE_TEXT_SETTING: {

@@ -1012,6 +1012,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     }
 
     public void updateColors() {
+        if (md3Bar != null) md3Bar.updateColors();
         float currentPlaybackSpeed = MediaController.getInstance().getPlaybackSpeed(isMusic);
         final int color = getThemedColor(!equals(currentPlaybackSpeed, 1.0f) ? Theme.key_featuredStickers_addButtonPressed : Theme.key_inappPlayerClose);
         if (speedIcon != null) {
@@ -1486,6 +1487,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             globalObserversGroup = NotificationCenter.getGlobalInstance()
                 .createObserversGroup(this)
                 .add(NotificationCenter.messagePlayingSpeedChanged)
+                .add(NotificationCenter.didSetNewTheme)
+                .add(NotificationCenter.didApplyNewTheme)
                 .add(NotificationCenter.didStartedCall)
                 .add(NotificationCenter.didEndCall)
                 .add(NotificationCenter.webRtcSpeakerAmplitudeEvent)
@@ -1542,7 +1545,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.liveLocationsChanged) {
+        if (id == NotificationCenter.didSetNewTheme || id == NotificationCenter.didApplyNewTheme) {
+            updateColors();
+        } else if (id == NotificationCenter.liveLocationsChanged) {
             checkLiveLocation(false);
         } else if (id == NotificationCenter.liveStoryUpdated) {
             checkLiveStory(false);

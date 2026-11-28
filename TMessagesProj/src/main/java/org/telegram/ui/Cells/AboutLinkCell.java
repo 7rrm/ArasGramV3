@@ -29,6 +29,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.StaticLayout;
 import android.text.TextUtils;
+import android.text.TextPaint;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.util.TypedValue;
@@ -74,6 +75,7 @@ import xyz.nextalone.nagram.NaConfig;
 
 public class AboutLinkCell extends FrameLayout {
 
+    private final TextPaint aboutTextPaint;
     private StaticLayout textLayout;
     private String oldText;
     private int textX;
@@ -118,6 +120,8 @@ public class AboutLinkCell extends FrameLayout {
         super(context);
 
         this.resourcesProvider = resourcesProvider;
+        aboutTextPaint = Theme.profile_aboutTextPaint != null ? new TextPaint(Theme.profile_aboutTextPaint) : new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        if (Theme.profile_aboutTextPaint == null) aboutTextPaint.setTextSize(dp(16));
         parentFragment = fragment;
 
         container = new FrameLayout(context);
@@ -228,7 +232,8 @@ public class AboutLinkCell extends FrameLayout {
     }
 
     public void updateColors() {
-        Theme.profile_aboutTextPaint.linkColor = processColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
+        aboutTextPaint.setColor(processColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider)));
+        aboutTextPaint.linkColor = processColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
     }
 
     @Override
@@ -327,7 +332,7 @@ public class AboutLinkCell extends FrameLayout {
         canvas.translate(0, textY = dp(8));
 
         try {
-            Theme.profile_aboutTextPaint.linkColor = processColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
+            updateColors();
             if (firstThreeLinesLayout == null || !shouldExpand) {
                 if (textLayout != null) {
                     textLayout.draw(canvas);
@@ -401,7 +406,7 @@ public class AboutLinkCell extends FrameLayout {
         stringBuilder = new SpannableStringBuilder(oldText);
         accessibilityText = null;
         MessageObject.addLinks(false, stringBuilder, false, false, !parseLinks);
-        Emoji.replaceEmoji(stringBuilder, Theme.profile_aboutTextPaint.getFontMetricsInt(), false);
+        Emoji.replaceEmoji(stringBuilder, aboutTextPaint.getFontMetricsInt(), false);
         if (lastMaxWidth <= 0) {
             lastMaxWidth = AndroidUtilities.displaySize.x - dp(18 + 18);
         }
@@ -727,13 +732,13 @@ public class AboutLinkCell extends FrameLayout {
 
     private StaticLayout makeTextLayout(CharSequence string, int width) {
         if (Build.VERSION.SDK_INT >= 24) {
-            return StaticLayout.Builder.obtain(string, 0, string.length(), Theme.profile_aboutTextPaint, Math.max(1, width))
+            return StaticLayout.Builder.obtain(string, 0, string.length(), aboutTextPaint, Math.max(1, width))
                     .setBreakStrategy(StaticLayout.BREAK_STRATEGY_SIMPLE)
                     .setHyphenationFrequency(StaticLayout.HYPHENATION_FREQUENCY_NONE)
                     .setAlignment(LocaleController.isRTL ? StaticLayoutEx.ALIGN_RIGHT() : StaticLayoutEx.ALIGN_LEFT())
                     .build();
         } else {
-            return new StaticLayout(string, Theme.profile_aboutTextPaint, width, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+            return new StaticLayout(string, aboutTextPaint, width, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
         }
     }
 

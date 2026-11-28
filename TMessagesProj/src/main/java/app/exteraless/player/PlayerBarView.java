@@ -5,6 +5,7 @@ import static org.telegram.messenger.LocaleController.getString;
 
 import android.content.Context;
 import android.graphics.PorterDuff;
+import android.graphics.Canvas;
 import android.view.View;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -43,9 +44,11 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
     private final PlayerIcon nextIcon = PlayerIcon.fill(PlayerIcon.NEXT, 22);
     private final PlayerIcon closeIcon = PlayerIcon.stroke(PlayerIcon.CLOSE, 20);
     private MessageObject current;
+    private final Theme.ResourcesProvider resourcesProvider;
 
     public PlayerBarView(Context context, Theme.ResourcesProvider resourcesProvider, Runnable onOpen, Runnable onClose) {
         super(context);
+        this.resourcesProvider = resourcesProvider;
         PlayerColors theme = PlayerColors.fromSeed(PlayerColors.fallbackSeed(resourcesProvider), PlayerColors.isDark(resourcesProvider));
 
         setBackground(Theme.getSelectorDrawable(false));
@@ -127,6 +130,11 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         buttons.addView(closeButton, LayoutHelper.createLinear(40, 40));
         addView(buttons, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 6, 0));
 
+        updateColors();
+    }
+
+    public void updateColors() {
+        PlayerColors theme = PlayerColors.fromSeed(PlayerColors.fallbackSeed(resourcesProvider), PlayerColors.isDark(resourcesProvider));
         int text = Theme.getColor(Theme.key_inappPlayerPerformer, resourcesProvider);
         int secondary = Theme.getColor(Theme.key_inappPlayerTitle, resourcesProvider);
         int icons = Theme.getColor(Theme.key_inappPlayerClose, resourcesProvider);
@@ -142,6 +150,20 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         int accent = Theme.getColor(Theme.key_inappPlayerPlayPause, resourcesProvider);
         playButton.setColors(accent, ColorUtils.setAlphaComponent(accent, 51), accent);
         cover.setColors(theme.primaryContainer, theme.onPrimaryContainer);
+        ((ImageView) voiceIcon).setColorFilter(theme.onPrimaryContainer, PorterDuff.Mode.SRC_IN);
+        voiceIcon.setBackground(Theme.createRoundRectDrawable(dp(10), theme.primaryContainer));
+        invalidate();
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        // Also follow intermediate theme-animation frames: the theme event can
+        // arrive before the transition has reached its final colours.
+        int titleColor = Theme.getColor(Theme.key_inappPlayerPerformer, resourcesProvider);
+        int artistColor = ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_inappPlayerTitle, resourcesProvider), 0xbf);
+        if (titleView.getCurrentTextColor() != titleColor) titleView.setTextColor(titleColor);
+        if (artistView.getCurrentTextColor() != artistColor) artistView.setTextColor(artistColor);
+        super.dispatchDraw(canvas);
     }
 
     /** مفاتيح «تصغير المقاسات»: same sizes as the stock music bar. */
@@ -157,6 +179,9 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         super.onAttachedToWindow();
         tw.nekomimi.nekogram.MeeroTopBar.addListener(meeroTopBarListener);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.messagePlayingSpeedChanged);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didSetNewTheme);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didApplyNewTheme);
+        updateColors();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             NotificationCenter nc = NotificationCenter.getInstance(a);
             nc.addObserver(this, NotificationCenter.messagePlayingDidStart);
@@ -173,6 +198,8 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
         super.onDetachedFromWindow();
         tw.nekomimi.nekogram.MeeroTopBar.removeListener(meeroTopBarListener);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.messagePlayingSpeedChanged);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didSetNewTheme);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didApplyNewTheme);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             NotificationCenter nc = NotificationCenter.getInstance(a);
             nc.removeObserver(this, NotificationCenter.messagePlayingDidStart);
@@ -185,7 +212,9 @@ public class PlayerBarView extends FrameLayout implements NotificationCenter.Not
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.messagePlayingSpeedChanged) {
+        if (id == NotificationCenter.didSetNewTheme || id == NotificationCenter.didApplyNewTheme) {
+            updateColors();
+        } else if (id == NotificationCenter.messagePlayingSpeedChanged) {
             updateSpeed();
         } else if (id == NotificationCenter.messagePlayingProgressDidChanged) {
             playButton.progressChanged();
