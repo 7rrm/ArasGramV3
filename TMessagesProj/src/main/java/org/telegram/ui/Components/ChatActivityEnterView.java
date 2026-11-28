@@ -8968,6 +8968,15 @@ public class ChatActivityEnterView extends FrameLayout implements
                 return;
             }
             if (!TextUtils.isEmpty(message)) {
+                String whisperCommand = message.toString().trim();
+                if (tw.nekomimi.nekogram.MeeroWhisper.isCommand(whisperCommand)) {
+                    if (parentFragment == null || scheduleDate != 0 || isInScheduleMode()) {
+                        if (parentActivity != null) new org.telegram.ui.ActionBar.AlertDialog.Builder(parentActivity).setMessage("لا يمكن جدولة الهمسة.").setPositiveButton("حسناً", null).show();
+                    } else {
+                        tw.nekomimi.nekogram.MeeroWhisper.send(parentFragment, this, currentAccount, dialog_id, replyingMessageObject, getThreadMessage(), replyingQuote, whisperCommand, notify, payStars, getSendMonoForumPeerId());
+                    }
+                    return;
+                }
                 if (delegate != null) {
                     delegate.beforeMessageSend(message, notify, scheduleDate, payStars);
                 }

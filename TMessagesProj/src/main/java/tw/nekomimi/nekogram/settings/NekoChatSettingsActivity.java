@@ -253,6 +253,9 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
 
     // Chats
     private final AbstractConfigCell headerChats = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Chat)));
+    private final AbstractConfigCell meeroWhisperRow = cellGroup.appendCell(new ConfigCellText("بوت الهمسة", () -> {
+        tw.nekomimi.nekogram.MeeroWhisper.showSettings(this, currentAccount);
+    }));
     // MeeroX v233: per-element top bar sizing
     private final AbstractConfigCell meeroTopBarSizesRow = cellGroup.appendCell(new ConfigCellText("MeeroTopBarSizes", () -> {
         presentFragment(new MeeroTopBarSizesActivity());

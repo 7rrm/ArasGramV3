@@ -426,6 +426,7 @@ public class ApplicationLoader extends Application {
         // The master switch defaults OFF, so start() runs a cheap check that
         // exits immediately for users who never armed it.
         tw.nekomimi.nekogram.MeeroJanitor.start();
+        tw.nekomimi.nekogram.MeeroWhisper.start();
     }
 
 
