@@ -564,7 +564,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                     } else if (position == autoPostRow) {
                         textCell.setTextAndIcon(getString(R.string.AutoPostTitle), R.drawable.input_forward_solar, true);
                     } else if (position == userBotRow) {
-                        textCell.setTextAndIcon("يوزر بوت", R.drawable.input_reply_solar, true);
+                        textCell.setTextAndIcon(org.telegram.messenger.LocaleController.getString(R.string.HmsaUserbot), R.drawable.input_reply_solar, true);
                     } else if (position == activityStatsRow) {
                         textCell.setTextAndIcon(MeeroStrings.s(254), R.drawable.msg_stats_solar, true);
                     } else if (position == watchRow) {

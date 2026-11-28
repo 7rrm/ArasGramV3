@@ -16,6 +16,8 @@ import android.widget.LinearLayout;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.R;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessageObject;
@@ -51,7 +53,7 @@ public final class MeeroWhisper {
     private static volatile String activeToken;
     private static volatile long ownerId;
     private static volatile String botName;
-    private static volatile String connectionStatus = "غير مشغّل";
+    private static volatile int connectionStatus = R.string.HmsaNotRunning;
     private static volatile String connectionProblem = "";
     private static long offset;
     private static final SecureRandom random = new SecureRandom();
@@ -101,20 +103,37 @@ public final class MeeroWhisper {
             }
         } finally {c.disconnect();}
     }
-    /** Never display exception messages: URLs may contain the token. */
-    private static String explain(Exception e) {
+    private static String tr(int id) { return LocaleController.getString(id); }
+    /** Store only stable error codes, never exception messages that may contain the token. */
+    private static String issueKey(Exception e) {
         if(e instanceof ApiFailure) {
             int code=((ApiFailure)e).code;
-            if(code==401 || code==404) return "التوكن غير صالح أو تم إلغاؤه من BotFather.";
-            if(code==409) return "يوجد تعارض: ربما البوت يعمل في تطبيق آخر أو يوجد Webhook مفعّل.";
-            if(code==429) return "تيليغرام قيّد الطلبات مؤقتاً؛ انتظر وحاول مجدداً.";
-            return "تعذر الاتصال بواجهة البوت (رمز HTTP " + code + ").";
+            if(code==401 || code==404)return "bad_token";
+            if(code==409)return "conflict";
+            if(code==429)return "rate_limit";
+            return "http:"+code;
         }
-        if(e instanceof java.net.UnknownHostException) return "تعذر العثور على api.telegram.org؛ تحقق من DNS والاتصال.";
-        if(e instanceof java.net.SocketTimeoutException) return "انتهت مهلة الاتصال بواجهة تيليغرام؛ تحقق من الإنترنت.";
-        if(e instanceof javax.net.ssl.SSLException) return "تعذر إنشاء اتصال آمن بواجهة تيليغرام؛ تحقق من اتصالك ووقت الجهاز.";
-        if(e instanceof java.io.IOException) return "تعذر الاتصال بواجهة تيليغرام. اتصال البوت مباشر وقد لا يستخدم بروكسي التطبيق.";
-        return "تعذر إكمال التحقق أو فتح التخزين الآمن على الجهاز.";
+        if(e instanceof java.net.UnknownHostException)return "dns";
+        if(e instanceof java.net.SocketTimeoutException)return "timeout";
+        if(e instanceof javax.net.ssl.SSLException)return "ssl";
+        if(e instanceof java.io.IOException)return "network";
+        return "unknown";
+    }
+    private static String describeIssue(String issue) {
+        switch(issue) {
+            case "bad_token":return tr(R.string.HmsaBadToken);
+            case "conflict":return tr(R.string.HmsaConflict);
+            case "rate_limit":return tr(R.string.HmsaRateLimit);
+            case "dns":return tr(R.string.HmsaDnsError);
+            case "timeout":return tr(R.string.HmsaTimeoutError);
+            case "ssl":return tr(R.string.HmsaSslError);
+            case "network":return tr(R.string.HmsaNetworkError);
+            case "invalid_format":return tr(R.string.HmsaInvalidFormat);
+            case "unknown":return tr(R.string.HmsaUnknownError);
+            default:
+                if(issue.matches("http:[0-9]{1,3}"))return tr(R.string.HmsaHttpError).replace("{code}",issue.substring(5));
+                return tr(R.string.HmsaOldIssue);
+        }
     }
     public static void start() {
         if(Build.VERSION.SDK_INT<23)return;
@@ -124,15 +143,15 @@ public final class MeeroWhisper {
             if (j.optBoolean("inline",true) && !j.optBoolean("webhook",false)) {
                 begin(j.getString("token"),j.getString("username"),j.getLong("owner"));
             }
-        } catch(Exception e) { connectionStatus="مشكلة في التخزين الآمن";connectionProblem=explain(e); }
+        } catch(Exception e) { connectionStatus=R.string.HmsaStorageProblem;connectionProblem=issueKey(e); }
     }
     private static synchronized void begin(String token,String name,long owner) {
         if(token.equals(activeToken) && owner==ownerId && name.equals(botName))return;
         int g=++generation;activeToken=token;botName=name;ownerId=owner;offset=0;
-        connectionStatus="جاري الاتصال";connectionProblem="";
+        connectionStatus=R.string.HmsaConnecting;connectionProblem="";
         new Thread(()->poll(token,owner,g),"MeeroWhisperBot").start();
     }
-    private static synchronized void stop() {generation++;activeToken=null;botName=null;ownerId=0;offset=0;pending.clear();connectionStatus="متوقف";connectionProblem="";}
+    private static synchronized void stop() {generation++;activeToken=null;botName=null;ownerId=0;offset=0;pending.clear();connectionStatus=R.string.HmsaStopped;connectionProblem="";}
     private static void poll(String token,long owner,int g) {
         long next=0;
         while(g==generation) {
@@ -140,7 +159,7 @@ public final class MeeroWhisper {
                 JSONObject request=new JSONObject().put("offset",next).put("timeout",20).put("allowed_updates",new JSONArray().put("inline_query").put("callback_query"));
                 JSONArray updates=api(token,"getUpdates",request,30000).getJSONArray("result");
                 if(g!=generation)return;
-                connectionStatus="نشط";connectionProblem="";
+                connectionStatus=R.string.HmsaActive;connectionProblem="";
                 for(int i=0;i<updates.length();i++) {
                     JSONObject u=updates.getJSONObject(i);next=Math.max(next,u.getLong("update_id")+1);
                     JSONObject q=u.optJSONObject("inline_query"), cb=u.optJSONObject("callback_query");
@@ -149,7 +168,7 @@ public final class MeeroWhisper {
                 }
             } catch(Exception e) {
                 if(g!=generation)return;
-                connectionStatus="مشكلة اتصال";connectionProblem=explain(e);
+                connectionStatus=R.string.HmsaConnectionProblem;connectionProblem=issueKey(e);
                 try{Thread.sleep(4000);}catch(InterruptedException interrupted){return;}
             }
         }
@@ -163,7 +182,7 @@ public final class MeeroWhisper {
     }
     private static String mention(long id, String username, String displayName) {
         if(username!=null && username.matches("[A-Za-z0-9_]{5,32}")) return "@"+username;
-        String label=displayName==null || displayName.trim().isEmpty()?"المستخدم":displayName;
+        String label=displayName==null || displayName.trim().isEmpty()?tr(R.string.HmsaUser):displayName;
         return "<a href=\"tg://user?id="+id+"\">"+escapeHtml(label)+"</a>";
     }
     private static void savePerson(long id, String username, String displayName) throws Exception {
@@ -181,7 +200,7 @@ public final class MeeroWhisper {
         return new JSONObject().put("type","article").put("id",id).put("title",title)
                 .put("input_message_content",content).put("reply_markup",markup);
     }
-    private static final String HEADER="ᯓ 𝖶𝗁𝗂𝗌𝗉𝖾𝗋  - همسـة سـريـه 📨\n⋆┄─┄─┄─┄┄─┄─┄─┄─┄┄⋆\n\n";
+    private static String header() { return tr(R.string.HmsaHeader); }
     private static void handleInline(String token,long owner,JSONObject q) throws Exception {
         String queryId=q.getString("id"), query=q.optString("query");
         long asker=q.getJSONObject("from").optLong("id");
@@ -191,14 +210,14 @@ public final class MeeroWhisper {
         if(card!=null && "card".equals(card.optString("kind"))) {
             long recipient=card.getLong("recipient");
             String target=mention(recipient,card.optString("username"),card.optString("name"));
-            JSONObject button=new JSONObject().put("text","اضغط هنا")
-                    .put("switch_inline_query_current_chat","secret "+recipient+" \nهلو");
-            results.put(article(query,"همسة سرية",HEADER+"⌔╎لـ أࢪسـال همسـه سـريـه الى "+target+" 💌",button));
+            JSONObject button=new JSONObject().put("text",tr(R.string.HmsaPressHere))
+                    .put("switch_inline_query_current_chat","secret "+recipient+" \n"+tr(R.string.HmsaSample));
+            results.put(article(query,tr(R.string.HmsaSecretWhisper),header()+tr(R.string.HmsaInvitation)+target+" 💌",button));
         } else if(card!=null && "direct".equals(card.optString("kind"))) {
             long recipient=card.getLong("recipient");
             String target=mention(recipient,card.optString("username"),card.optString("name"));
-            JSONObject button=new JSONObject().put("text","• فتـح الهمسـه •").put("callback_data","w:"+query);
-            results.put(article(query,"همسة سرية",HEADER+"⌔╎الهمسـة لـ "+target+"\n⌔╎هو فقط من يستطيع رؤيتها",button));
+            JSONObject button=new JSONObject().put("text",tr(R.string.HmsaOpen)).put("callback_data","w:"+query);
+            results.put(article(query,tr(R.string.HmsaSecretWhisper),header()+tr(R.string.HmsaWhisperTo)+target+tr(R.string.HmsaOnlyRecipient),button));
         } else if(query.startsWith("secret ")) {
             // Inline text goes to Telegram and the bot, not the chat, unless the user sends it as an ordinary message.
             java.util.regex.Matcher m=java.util.regex.Pattern.compile("(?s)^secret ([0-9]{1,20})\\s+(.+)$").matcher(query);
@@ -215,16 +234,16 @@ public final class MeeroWhisper {
                     JSONObject entry=new JSONObject().put("recipient",recipient).put("sender",asker).put("text",text).put("created",System.currentTimeMillis());
                     if(!prefs().edit().putString("w_"+id,encrypt(entry.toString())).commit())throw new IllegalStateException();
                     String target=mention(recipient,person.optString("username"),person.optString("name"));
-                    JSONObject button=new JSONObject().put("text","• فتـح الهمسـه •").put("callback_data","w:"+id);
-                    results.put(article(id,"همسة لـ "+(person.optString("username").isEmpty()?person.optString("name","المستخدم"):"@"+person.optString("username")),
-                            HEADER+"⌔╎الهمسـة لـ "+target+"\n⌔╎هو فقط من يستطيع رؤيتها",button));
+                    JSONObject button=new JSONObject().put("text",tr(R.string.HmsaOpen)).put("callback_data","w:"+id);
+                    results.put(article(id,tr(R.string.HmsaWhisperFor)+(person.optString("username").isEmpty()?person.optString("name",tr(R.string.HmsaUser)):"@"+person.optString("username")),
+                            header()+tr(R.string.HmsaWhisperTo)+target+tr(R.string.HmsaOnlyRecipient),button));
                 }
             }
         }
         api(token,"answerInlineQuery",new JSONObject().put("inline_query_id",queryId).put("results",results).put("cache_time",0).put("is_personal",true),10000);
     }
     private static void handleCallback(String token,long owner,JSONObject cb) throws Exception {
-        String data=cb.optString("data"), answer="الهمسة غير متوفرة على هذا الجهاز.";
+        String data=cb.optString("data"), answer=tr(R.string.HmsaUnavailable);
         JSONObject entry=null;long who=cb.getJSONObject("from").optLong("id");
         if(data.startsWith("w:")) {
             String id=data.substring(2);String encrypted=prefs().getString("w_"+id,null);
@@ -232,7 +251,7 @@ public final class MeeroWhisper {
                 try {
                     entry=new JSONObject(decrypt(encrypted));
                     long sender=entry.optLong("sender",owner);
-                    answer=(who==entry.getLong("recipient") || who==sender)?entry.getString("text"):"هذه الهمسة ليست لك 🔒";
+                    answer=(who==entry.getLong("recipient") || who==sender)?entry.getString("text"):tr(R.string.HmsaNotForYou);
                 } catch(Exception ignored) {entry=null;}
             }
         }
@@ -244,11 +263,11 @@ public final class MeeroWhisper {
             if(!from.optString("last_name","").isEmpty())name+=" "+from.optString("last_name");
             String reader=mention(who,from.optString("username",""),name);
             String time=new java.text.SimpleDateFormat("h:mm a",java.util.Locale.getDefault()).format(new java.util.Date());
-            JSONObject button=new JSONObject().put("text","اضغط للرد")
-                    .put("switch_inline_query_current_chat","secret "+sender+" \nهلو");
+            JSONObject button=new JSONObject().put("text",tr(R.string.HmsaReply))
+                    .put("switch_inline_query_current_chat","secret "+sender+" \n"+tr(R.string.HmsaSample));
             JSONObject markup=new JSONObject().put("inline_keyboard",new JSONArray().put(new JSONArray().put(button)));
             JSONObject edit=new JSONObject().put("inline_message_id",cb.getString("inline_message_id"))
-                    .put("text","📨 تم قراءة الهمسة\n⌔╎قرأها "+reader+" ✅\n⌔╎عند "+escapeHtml(time))
+                    .put("text",tr(R.string.HmsaReadPrefix)+reader+tr(R.string.HmsaReadTime)+escapeHtml(time))
                     .put("parse_mode","HTML").put("reply_markup",markup);
             try {api(token,"editMessageText",edit,10000);}catch(Exception ignored) { }
         }
@@ -261,30 +280,30 @@ public final class MeeroWhisper {
         StringBuilder out=new StringBuilder();
         try {
             JSONObject config=storedConfig();
-            if(config==null) out.append("التوكن: غير محفوظ\nالبوت: لا يوجد");
+            if(config==null) out.append(tr(R.string.HmsaNoTokenStatus));
             else {
-                out.append("التوكن: محفوظ (مخفي)\nالبوت: @").append(config.optString("username","—"));
+                out.append(tr(R.string.HmsaSavedTokenStatus)).append(config.optString("username","—"));
                 if(config.optLong("owner")!=UserConfig.getInstance(account).getClientUserId()) {
-                    out.append("\nالحالة: هذا البوت مربوط بحساب آخر في النسخة.");
+                    out.append(tr(R.string.HmsaWrongAccountStatus));
                 } else if(!config.optBoolean("inline",true)) {
-                    out.append("\nالحالة: التوكن صالح، لكن Inline Mode غير مفعّل. فعّله في BotFather ثم اضغط تحديث الحالة.");
+                    out.append(tr(R.string.HmsaInlineDisabled));
                 } else if(config.optBoolean("webhook",false)) {
-                    out.append("\nالحالة: يوجد Webhook لهذا البوت. عطّله من خدمتك الأخرى قبل التشغيل، ثم اضغط تحديث الحالة.");
+                    out.append(tr(R.string.HmsaWebhookEnabled));
                 } else {
-                    out.append("\nحالة البوت: ").append(connectionStatus);
-                    if(!connectionProblem.isEmpty())out.append("\nالمشكلة: ").append(connectionProblem);
+                    out.append(tr(R.string.HmsaBotStatusPrefix)).append(tr(connectionStatus));
+                    if(!connectionProblem.isEmpty())out.append(tr(R.string.HmsaProblemPrefix)).append(describeIssue(connectionProblem));
                 }
             }
-        } catch(Exception e) {out.append("التوكن: تعذر فتح التخزين الآمن. ").append(explain(e));}
+        } catch(Exception e) {out.append(tr(R.string.HmsaSecureStoreStatus)).append(describeIssue(issueKey(e)));}
         String last=prefs().getString("last_setup_issue","");
-        if(!last.isEmpty())out.append("\nآخر مشكلة بالتحقق: ").append(last);
-        out.append("\n\nيعمل البوت ما دامت النسخة شغّالة. لا تشارك التوكن مع أحد.");
+        if(!last.isEmpty())out.append(tr(R.string.HmsaLastIssuePrefix)).append(describeIssue(last));
+        out.append(tr(R.string.HmsaUsageNote));
         return out.toString();
     }
     /** Validate before saving; a failing replacement must not erase the working bot. */
     private static void verifyToken(String token,long owner,TextView status,int account) {
         final int check=verification.incrementAndGet();
-        status.setText("جاري التحقق من التوكن وحالة البوت…");
+        status.setText(tr(R.string.HmsaChecking));
         new Thread(()->{
             try {
                 JSONObject bot=api(token,"getMe",new JSONObject(),10000).getJSONObject("result");
@@ -298,18 +317,18 @@ public final class MeeroWhisper {
                 if(inline && !webhook) begin(token,name,owner); else stop();
             } catch(Exception e) {
                 if(check!=verification.get())return;
-                prefs().edit().putString("last_setup_issue",explain(e)).apply();
+                prefs().edit().putString("last_setup_issue",issueKey(e)).apply();
             }
             AndroidUtilities.runOnUIThread(()->{if(check==verification.get())status.setText(settingsStatus(account));});
         },"WhisperSetup").start();
     }
     public static void showSettings(org.telegram.ui.ActionBar.BaseFragment fragment,int account) {
         Context context=fragment.getParentActivity();if(context==null)return;
-        if(Build.VERSION.SDK_INT<23){alert(context,"هذه الميزة تتطلب أندرويد 6 أو أحدث.");return;}
+        if(Build.VERSION.SDK_INT<23){alert(context,tr(R.string.HmsaAndroidRequired));return;}
         TextView status=new TextView(context);status.setTextSize(15);status.setTextColor(fragment.getThemedColor(org.telegram.ui.ActionBar.Theme.key_dialogTextBlack));status.setText(settingsStatus(account));
-        EditText input=new EditText(context);input.setSingleLine(true);input.setHint("أدخل توكن جديداً أو اتركه فارغاً");
+        EditText input=new EditText(context);input.setSingleLine(true);input.setHint(tr(R.string.HmsaTokenHint));
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        Button refresh=new Button(context);refresh.setText("تحديث الحالة");
+        Button refresh=new Button(context);refresh.setText(tr(R.string.HmsaRefresh));
         refresh.setOnClickListener(v->{
             try {
                 JSONObject config=storedConfig();
@@ -318,36 +337,36 @@ public final class MeeroWhisper {
                     status.setText(settingsStatus(account));return;
                 }
                 verifyToken(config.getString("token"),config.getLong("owner"),status,account);
-            }catch(Exception e){prefs().edit().putString("last_setup_issue",explain(e)).apply();status.setText(settingsStatus(account));}
+            }catch(Exception e){prefs().edit().putString("last_setup_issue",issueKey(e)).apply();status.setText(settingsStatus(account));}
         });
         CheckBox direct=new CheckBox(context);
-        direct.setText("إرسال الهمسة مباشرة بدون بطاقة");
+        direct.setText(tr(R.string.HmsaDirectOption));
         direct.setTextColor(fragment.getThemedColor(org.telegram.ui.ActionBar.Theme.key_dialogTextBlack));
         direct.setChecked(prefs().getBoolean("direct_send",false));
         direct.setOnCheckedChangeListener((button,checked)->prefs().edit().putBoolean("direct_send",checked).apply());
         TextView directInfo=new TextView(context);directInfo.setTextSize(13);
         directInfo.setTextColor(fragment.getThemedColor(org.telegram.ui.ActionBar.Theme.key_dialogTextBlack));
-        directInfo.setText("عند التفعيل: رد على الشخص واكتب /همسه ثم نص الهمسة. عند الإيقاف تظهر بطاقة اضغط هنا.");
+        directInfo.setText(tr(R.string.HmsaDirectInfo));
         LinearLayout box=new LinearLayout(context);box.setOrientation(LinearLayout.VERTICAL);int pad=AndroidUtilities.dp(18);box.setPadding(pad,pad,pad,pad);
         box.addView(status);box.addView(direct);box.addView(directInfo);box.addView(refresh);box.addView(input);
-        new AlertDialog.Builder(context).setTitle("بوت الهمسة").setView(box)
-            .setPositiveButton("تحقق وحفظ",(d,w)->{
+        new AlertDialog.Builder(context).setTitle(tr(R.string.HmsaBotTitle)).setView(box)
+            .setPositiveButton(tr(R.string.HmsaVerifySave),(d,w)->{
                 String token=input.getText().toString().trim();long owner=UserConfig.getInstance(account).getClientUserId();
                 if(!token.matches("[0-9]{5,20}:[A-Za-z0-9_-]{20,100}")||owner<=0){
-                    prefs().edit().putString("last_setup_issue","صيغة التوكن أو الحساب غير صالحة.").apply();
+                    prefs().edit().putString("last_setup_issue","invalid_format").apply();
                     showSettings(fragment,account);return;
                 }
                 // Reopen the status panel so progress and the result remain visible.
                 showSettingsAndVerify(fragment,account,token,owner);
             })
-            .setNegativeButton("إغلاق",null)
-            .setNeutralButton("حذف التوكن",(d,w)->{verification.incrementAndGet();stop();prefs().edit().remove("config").remove("last_setup_issue").apply();showSettings(fragment,account);})
+            .setNegativeButton(tr(R.string.HmsaClose),null)
+            .setNeutralButton(tr(R.string.HmsaDeleteToken),(d,w)->{verification.incrementAndGet();stop();prefs().edit().remove("config").remove("last_setup_issue").apply();showSettings(fragment,account);})
             .show();
         Runnable[] updater=new Runnable[1];
         updater[0]=()->{
             if(!status.isAttachedToWindow())return;
             // Don't replace the progress message while a manual check is running.
-            if(!status.getText().toString().startsWith("جاري التحقق"))status.setText(settingsStatus(account));
+            if(!status.getText().toString().equals(tr(R.string.HmsaChecking)))status.setText(settingsStatus(account));
             AndroidUtilities.runOnUIThread(updater[0],1500);
         };
         AndroidUtilities.runOnUIThread(updater[0],1500);
@@ -356,18 +375,18 @@ public final class MeeroWhisper {
         Context context=fragment.getParentActivity();if(context==null)return;
         TextView status=new TextView(context);status.setTextSize(15);int pad=AndroidUtilities.dp(20);status.setPadding(pad,pad,pad,pad);
         status.setTextColor(fragment.getThemedColor(org.telegram.ui.ActionBar.Theme.key_dialogTextBlack));
-        new AlertDialog.Builder(context).setTitle("حالة بوت الهمسة").setView(status)
-                .setPositiveButton("العودة للإعدادات",(d,w)->showSettings(fragment,account)).show();
+        new AlertDialog.Builder(context).setTitle(tr(R.string.HmsaBotStatusTitle)).setView(status)
+                .setPositiveButton(tr(R.string.HmsaBackSettings),(d,w)->showSettings(fragment,account)).show();
         verifyToken(token,owner,status,account);
     }
-    private static void alert(Context c,String text){if(c!=null)new AlertDialog.Builder(c).setTitle("الهمسة").setMessage(text).setPositiveButton("حسناً",null).show();}
+    private static void alert(Context c,String text){if(c!=null)new AlertDialog.Builder(c).setTitle(tr(R.string.HmsaWhisper)).setMessage(text).setPositiveButton(tr(R.string.HmsaOk),null).show();}
     public static boolean isCommand(String s){return s.matches("(?s)^/(همسه|همسة|hmsa)(?:\\s.*|$)");}
     public static boolean isUnsafeInlineDraft(String s) {
         String name=botName;
         return name!=null && s.regionMatches(true,0,"@"+name+" secret ",0,name.length()+9);
     }
     public static void warnInlineDraft(Context context) {
-        alert(context,"لا ترسل نص الهمسة كرسالة عادية. اكتب الهمسة ثم اختر نتيجة البوت الظاهرة لإرسالها بأمان.");
+        alert(context,tr(R.string.HmsaUnsafeDraft));
     }
     private static final java.util.HashMap<String, SendGuard> sendingCards = new java.util.HashMap<>();
     /** Tracks this specific local message through Telegram's server acknowledgement. UI thread only. */
@@ -388,7 +407,7 @@ public final class MeeroWhisper {
             this.account=account;this.dialogId=dialogId;this.token=token;this.context=context;this.fragment=fragment;this.view=view;this.original=original;
             key=account+":"+dialogId;
             notifications=org.telegram.messenger.NotificationCenter.getInstance(account);
-            progress=new AlertDialog.Builder(context).setMessage("جاري إرسال الهمسة…").create();
+            progress=new AlertDialog.Builder(context).setMessage(tr(R.string.HmsaSending)).create();
             progress.setCancelable(false);progress.setCanceledOnTouchOutside(false);progress.setCanCancel(false);
         }
         void start() {
@@ -416,9 +435,9 @@ public final class MeeroWhisper {
                     fragment.hideFieldPanel(false);
                 }
             } else if(timedOut) {
-                alert(context,submitted?"تأخر تأكيد الإرسال. قد تكون الرسالة معلّقة؛ تحقق من المحادثة قبل إعادة المحاولة.":"تعذر تجهيز الهمسة في الوقت المحدد. لم تُرسل؛ تحقق من الاتصال وحاول مجدداً.");
+                alert(context,submitted?tr(R.string.HmsaTimeoutSubmitted):tr(R.string.HmsaTimeoutPreparing));
             } else {
-                alert(context,submitted?"تعذر تأكيد إرسال الهمسة. راجع حالة الرسالة في المحادثة قبل إعادة المحاولة.":"تعذر تجهيز الهمسة؛ لم تُرسل. تحقق من اتصال البوت.");
+                alert(context,submitted?tr(R.string.HmsaSendFailed):tr(R.string.HmsaPrepareFailed));
             }
         }
         @Override public void didReceivedNotification(int id,int eventAccount,Object... args) {
@@ -443,12 +462,12 @@ public final class MeeroWhisper {
         String key=account+":"+dialogId;
         if(sendingCards.containsKey(key))return;
         String text=original.replaceFirst("(?s)^/(همسه|همسة|hmsa)\\s*","").trim();
-        if(activeToken==null || botName==null || ownerId!=UserConfig.getInstance(account).getClientUserId()){alert(context,"ضع توكن البوت أولاً في إعدادات أراس كرام ← يوزر بوت ← الهمسة، واستخدم الحساب الذي أضفته منه.");return;}
-        if(reply==null || reply.isTopicMainMessage || reply.getSenderId()<=0){alert(context,"رد على رسالة شخص أولاً.");return;}
+        if(activeToken==null || botName==null || ownerId!=UserConfig.getInstance(account).getClientUserId()){alert(context,tr(R.string.HmsaConfigure));return;}
+        if(reply==null || reply.isTopicMainMessage || reply.getSenderId()<=0){alert(context,tr(R.string.HmsaReplyRequired));return;}
         final boolean direct=prefs().getBoolean("direct_send",false);
-        if(direct && (text.isEmpty() || text.length()>180)){alert(context,"رد على الشخص واكتب /همسه ثم نص الهمسة، بحد أقصى 180 حرفاً.");return;}
-        if(!direct && !text.isEmpty()){alert(context,"اكتب أمر /همسه فقط بالرد، ثم اضغط زر البطاقة لكتابة الهمسة. أو فعّل الإرسال المباشر من إعدادات الهمسة.");return;}
-        if(dialogId==0 || org.telegram.messenger.DialogObject.isEncryptedDialog(dialogId) || stars!=0){alert(context,"الهمسة غير مدعومة في هذه المحادثة أو عند إرسال الرسائل المدفوعة.");return;}
+        if(direct && (text.isEmpty() || text.length()>180)){alert(context,tr(R.string.HmsaDirectRequired));return;}
+        if(!direct && !text.isEmpty()){alert(context,tr(R.string.HmsaCardRequired));return;}
+        if(dialogId==0 || org.telegram.messenger.DialogObject.isEncryptedDialog(dialogId) || stars!=0){alert(context,tr(R.string.HmsaUnsupportedChat));return;}
         String id=randomId();
         SendGuard guard=new SendGuard(account,dialogId,id,context,fragment,view,original);
         try {
@@ -456,7 +475,7 @@ public final class MeeroWhisper {
             long recipient=reply.getSenderId();
             TLRPC.User targetUser=MessagesController.getInstance(account).getUser(recipient);
             String username=targetUser==null || targetUser.username==null?"":targetUser.username;
-            String targetName=targetUser==null?"المستخدم":org.telegram.messenger.UserObject.getUserName(targetUser);
+            String targetName=targetUser==null?tr(R.string.HmsaUser):org.telegram.messenger.UserObject.getUserName(targetUser);
             savePerson(recipient,username,targetName);
             JSONObject entry=new JSONObject().put("kind",direct?"direct":"card").put("recipient",recipient).put("username",username).put("name",targetName);
             if(direct) {
