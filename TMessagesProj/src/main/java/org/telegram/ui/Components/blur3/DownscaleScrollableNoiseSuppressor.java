@@ -216,12 +216,8 @@ public class DownscaleScrollableNoiseSuppressor {
             canvas.drawRenderNode(renderNode);
             renderNodeOriginalWithOffset.endRecording();
 
-            renderNodeDownsampled[0].setPosition(0, 0, downsampledWidth, downsampledHeight);
-            canvas = renderNodeDownsampled[0].beginRecording(downsampledWidth, downsampledHeight);
-            canvas.scale(scaleX, scaleY);
-            canvas.drawRenderNode(renderNodeOriginalWithOffset);
-            renderNodeDownsampled[0].endRecording();
-
+            // The loop records node zero as well. Recording it before the loop
+            // would immediately discard the identical first display list.
             for (int a = 0; a < renderNodeDownsampled.length; a++) {
                 renderNodeDownsampled[a].setPosition(0, 0, downsampledWidth, downsampledHeight);
                 canvas = renderNodeDownsampled[a].beginRecording(downsampledWidth, downsampledHeight);

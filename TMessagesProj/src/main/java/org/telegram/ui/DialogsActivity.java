@@ -5011,9 +5011,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                             }
                         }
                     }
-                    if (fragmentView != null) {
-                        blur3_InvalidateBlur();
-                    }
+                    // The parent refreshes the blur in dispatchDraw before it is
+                    // rendered. Avoid an extra capture for every scroll callback.
                     if (rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment() && viewPage.listView != null) {
                         viewPage.listView.invalidate();
                     }
