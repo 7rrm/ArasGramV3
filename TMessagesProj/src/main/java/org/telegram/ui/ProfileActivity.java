@@ -5636,6 +5636,51 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         avatarContainer2 = new FrameLayout(context) {
 
             CanvasButton canvasButton;
+            final Paint cherryHaloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            boolean cherryOrbitCandidate, cherryOrbitCapturing;
+            float cherryOrbitDownX, cherryOrbitDownY;
+            {
+                cherryHaloPaint.setShader(new android.graphics.RadialGradient(0f, 0f, 1f,
+                        new int[]{1977807103, 1172500735, 383379967, 14281215},
+                        new float[]{0f, .45f, .72f, 1f}, android.graphics.Shader.TileMode.CLAMP));
+            }
+
+            @Override
+            public boolean dispatchTouchEvent(MotionEvent event) {
+                org.telegram.ui.Stars.CherryProfileGiftsView cherry = giftsView instanceof org.telegram.ui.Stars.CherryProfileGiftsView
+                        ? (org.telegram.ui.Stars.CherryProfileGiftsView) giftsView : null;
+                int action = event.getActionMasked();
+                if (action == MotionEvent.ACTION_DOWN) {
+                    cherryOrbitCapturing = false;
+                    cherryOrbitDownX = event.getX(); cherryOrbitDownY = event.getY();
+                    cherryOrbitCandidate = cherry != null && cherry.canStartOrbit(cherryOrbitDownX, cherryOrbitDownY);
+                } else if (cherry != null && cherryOrbitCandidate && !cherryOrbitCapturing && action == MotionEvent.ACTION_MOVE) {
+                    float dx = event.getX() - cherryOrbitDownX, dy = event.getY() - cherryOrbitDownY;
+                    if (Math.hypot(dx, dy) > android.view.ViewConfiguration.get(getContext()).getScaledTouchSlop()) {
+                        if (Math.abs(dx) > Math.abs(dy)) {
+                            cherryOrbitCapturing = true;
+                            MotionEvent cancel = MotionEvent.obtain(event);
+                            cancel.setAction(MotionEvent.ACTION_CANCEL);
+                            super.dispatchTouchEvent(cancel);
+                            cancel.recycle();
+                            cherry.beginOrbit(cherryOrbitDownX, cherryOrbitDownY, event.getEventTime());
+                            getParent().requestDisallowInterceptTouchEvent(true);
+                        } else cherryOrbitCandidate = false;
+                    }
+                }
+                if (cherryOrbitCapturing && cherry != null) {
+                    if (action == MotionEvent.ACTION_MOVE) cherry.moveOrbit(event.getX(), event.getY(), event.getEventTime());
+                    if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                        cherry.endOrbit(event.getEventTime(), action == MotionEvent.ACTION_CANCEL);
+                        cherryOrbitCapturing = cherryOrbitCandidate = false;
+                        getParent().requestDisallowInterceptTouchEvent(false);
+                    }
+                    return true;
+                }
+                boolean handled = super.dispatchTouchEvent(event);
+                if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) cherryOrbitCandidate = false;
+                return handled || (action == MotionEvent.ACTION_DOWN && cherryOrbitCandidate);
+            }
 
             @Override
             protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
@@ -5654,6 +5699,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             @Override
             protected void dispatchDraw(Canvas canvas) {
+                if (giftsView instanceof org.telegram.ui.Stars.CherryProfileGiftsView && avatarContainer != null) {
+                    org.telegram.ui.Stars.CherryProfileGiftsView cherry = (org.telegram.ui.Stars.CherryProfileGiftsView) giftsView;
+                    float level = cherry.getBeatLevel();
+                    if (cherry.isMusicPlaying()) {
+                        float width = avatarContainer.getWidth() * avatarContainer.getScaleX();
+                        float height = avatarContainer.getHeight() * avatarContainer.getScaleY();
+                        float haloRadius = Math.min(width, height) * .5f * (1.35f + level * .95f);
+                        cherryHaloPaint.setAlpha(Math.round(255 * Math.min(1f, level * .88f + .12f)));
+                        canvas.save();
+                        canvas.translate(avatarContainer.getX() + width * .5f, avatarContainer.getY() + height * .5f);
+                        canvas.scale(haloRadius, haloRadius);
+                        canvas.drawCircle(0, 0, 1f, cherryHaloPaint);
+                        canvas.restore();
+                    }
+                }
                 super.dispatchDraw(canvas);
                 if (transitionOnlineText != null) {
                     canvas.save();

@@ -3,6 +3,9 @@ package org.telegram.ui.Stars;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Color;
+import android.graphics.Path;
+import android.graphics.LinearGradient;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.os.SystemClock;
@@ -28,6 +31,14 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
     private Runnable animationFrameListener;
     private final HashMap<Long, CherryGiftMotion> motion = new HashMap<>();
     private final Paint bubblePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint bubbleGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint glassPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint edgePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint sparklePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path bubblePath = new Path();
+    private float orbitAngle, orbitVelocity, orbitRx, orbitRy, lastOrbitAngle;
+    private long lastOrbitTime;
+    private boolean orbitDragging;
     private float expandedY, maxExpandedY, centerX, centerY, time;
     private float beat, smoothedBeat;
     private long lastFrame, lastSample;
@@ -42,6 +53,15 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
         super(context, account, dialogId, avatar, avatarImage, provider);
         this.avatar = avatar;
         this.account = account;
+        glassPaint.setShader(new RadialGradient(-.38f, -.55f, 1.65f,
+                new int[]{1442840575, 285212671, 16777215, 822083583}, new float[]{0f, .25f, .65f, 1f}, Shader.TileMode.CLAMP));
+        edgePaint.setStyle(Paint.Style.STROKE);
+        edgePaint.setStrokeWidth(.035f);
+        edgePaint.setShader(new LinearGradient(-1f, -1f, 1f, 1f,
+                new int[]{-285212673, 905969663, -1143293697, -1593835521},
+                new float[]{0f, .4f, .75f, 1f}, Shader.TileMode.CLAMP));
+        sparklePaint.setColor(Color.WHITE);
+        sparklePaint.setStrokeWidth(.012f);
     }
 
     @Override public void setBounds(float left, float right, float cy, boolean animated, int maxExpandY) {
@@ -124,6 +144,11 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
         float dt = lastFrame == 0 ? 0 : Math.min(.05f, (now - lastFrame) / 1000f);
         lastFrame = now;
         time += dt;
+        if (!orbitDragging) {
+            orbitAngle += orbitVelocity * dt;
+            orbitVelocity *= (float) Math.exp(-dt / .7f);
+            if (Math.abs(orbitVelocity) < .01f) orbitVelocity = 0f;
+        }
         float targetBeat = musicPlaying() && now - lastSample < 350 ? beat : 0f;
         smoothedBeat += (targetBeat - smoothedBeat) * (1f - (float)Math.exp(-dt / (targetBeat > smoothedBeat ? .045f : .2f)));
         if (animationFrameListener != null) animationFrameListener.run();
@@ -141,14 +166,15 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
         float radius = AndroidUtilities.dp(25);
         float rx = Math.max(radius, Math.min(AndroidUtilities.dp(125), Math.min(centerX, getWidth() - centerX) - radius - AndroidUtilities.dp(8)));
         float ry = Math.min(AndroidUtilities.dp(56), ah * .52f + AndroidUtilities.dp(8));
+        orbitRx = rx; orbitRy = ry;
         float visible = Math.max(0f, Math.min(1f, (expandedY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / AndroidUtilities.dp(50f)));
         syncMotion();
         for (Gift gift : gifts) {
             CherryGiftMotion m = motion.get(gift.id);
             m.m2052(dt, false);
-            m.m2057(time, 0f, rx, ry);
+            m.m2057(time, orbitAngle, rx, ry);
             m.m2056();
-            m.m2045(dt, radius, false);
+            m.m2045(dt, radius, orbitDragging || orbitVelocity != 0f);
             m.m2043(AndroidUtilities.dp(1800));
         }
         for (int i = 0; i < gifts.size(); i++) {
@@ -168,11 +194,57 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
             float scale = m.f2000 * m.f2018 * (1f + smoothedBeat * .15f) * enter;
             float r = radius * scale;
             gift.bounds.set(gx - r, gy - r, gx + r, gy + r);
-            bubblePaint.setShader(new RadialGradient(gx - r * .25f, gy - r * .35f, Math.max(1, r * 1.45f),
-                    new int[]{Theme.multAlpha(gift.color, .45f), Theme.multAlpha(gift.color, .70f), Theme.multAlpha(gift.color, .95f)},
-                    new float[]{0f, .55f, 1f}, Shader.TileMode.CLAMP));
-            bubblePaint.setAlpha(Math.round(255 * alpha));
-            canvas.drawCircle(gx, gy, r, bubblePaint);
+            if (r > .01f && alpha > 0f) {
+                canvas.save();
+                canvas.translate(gx, gy);
+                canvas.scale(r, r);
+                bubbleGlowPaint.setShader(new RadialGradient(0f, 0f, 1.45f,
+                        new int[]{Theme.multAlpha(gift.color, .35f), Theme.multAlpha(gift.color, .12f), Theme.multAlpha(gift.color, 0f)},
+                        new float[]{0f, .65f, 1f}, Shader.TileMode.CLAMP));
+                bubbleGlowPaint.setAlpha(Math.round(255 * alpha));
+                canvas.drawCircle(0f, 0f, 1.45f, bubbleGlowPaint);
+                bubblePaint.setShader(new RadialGradient(-.25f, -.35f, 1.45f,
+                        new int[]{Theme.multAlpha(gift.color, .45f), Theme.multAlpha(gift.color, .70f), Theme.multAlpha(gift.color, .95f)},
+                        new float[]{0f, .55f, 1f}, Shader.TileMode.CLAMP));
+                bubblePaint.setAlpha(Math.round(255 * alpha));
+                m.m2048(time);
+                bubblePath.rewind();
+                bubblePath.moveTo(m.f2010[0], m.f2016[0]);
+                for (int k = 0; k < 16; k++) {
+                    int prev = (k + 15) % 16, next = (k + 1) % 16, after = (k + 2) % 16;
+                    float x0 = m.f2010[k], y0 = m.f2016[k], x1 = m.f2010[next], y1 = m.f2016[next];
+                    bubblePath.cubicTo(x0 + (x1 - m.f2010[prev]) / 6f, y0 + (y1 - m.f2016[prev]) / 6f,
+                            x1 - (m.f2010[after] - x0) / 6f, y1 - (m.f2016[after] - y0) / 6f, x1, y1);
+                }
+                bubblePath.close();
+                canvas.drawPath(bubblePath, bubblePaint);
+                glassPaint.setAlpha(Math.round(255 * alpha));
+                canvas.drawPath(bubblePath, glassPaint);
+                canvas.save(); canvas.clipPath(bubblePath);
+                float seed = (gift.id & 1023) * .017f;
+                for (int k = 0; k < 16; k++) {
+                    float phase = k * 2.399963f + seed;
+                    float drift = k % 2 == 0 ? .18f : -.13f;
+                    float dist = ((float)Math.sin(1.7f * phase + time * .45f) * .5f + .5f) * .23f + .62f;
+                    float px = (float)Math.cos(drift * time + phase) * dist;
+                    float py = (float)Math.sin(drift * time + phase) * dist;
+                    float twinkle = ((float)Math.sin(time * 1.9f + 2f * phase) * .5f + .5f) * .55f + .45f;
+                    float starSize = (k % 4 == 0 ? .043f : .026f) * (.2f * twinkle + .8f);
+                    sparklePaint.setAlpha((int)(45f * alpha * twinkle));
+                    canvas.drawCircle(px, py, 2.8f * starSize, sparklePaint);
+                    sparklePaint.setAlpha((int)(245f * alpha * twinkle));
+                    canvas.drawCircle(px, py, starSize, sparklePaint);
+                    if (k % 4 == 0) {
+                        float arm = starSize * 1.9f;
+                        canvas.drawLine(px - arm, py, px + arm, py, sparklePaint);
+                        canvas.drawLine(px, py - arm, px, py + arm, sparklePaint);
+                    }
+                }
+                canvas.restore();
+                edgePaint.setAlpha((int)((smoothedBeat * 45f + 210f) * alpha));
+                canvas.drawPath(bubblePath, edgePaint);
+                canvas.restore();
+            }
             if (gift.emojiDrawable != null) {
                 int e = AndroidUtilities.dp(31) / 2;
                 canvas.save(); canvas.translate(gx, gy); canvas.scale(scale, scale);
@@ -184,6 +256,39 @@ public final class CherryProfileGiftsView extends ProfileGiftsView implements Ch
         }
         canvas.restore();
         if (isShown()) postInvalidateOnAnimation();
+    }
+
+    public boolean canStartOrbit(float x, float y) {
+        if (!active || gifts.isEmpty() || expandProgress > .1f || collapseProgress < .8f || y > expandedY || orbitRx <= 0 || orbitRy <= 0) return false;
+        if (getGiftUnder(x, y) != null) return false;
+        float ax = avatar.getX(), ay = avatar.getY();
+        if (x >= ax && x <= ax + avatar.getWidth() * avatar.getScaleX() && y >= ay && y <= ay + avatar.getHeight() * avatar.getScaleY()) return false;
+        return Math.hypot((x - centerX) / orbitRx, (y - centerY) / orbitRy) < 2.6f;
+    }
+
+    private float orbitAt(float x, float y) {
+        return (float)Math.atan2((y - centerY) / orbitRy, (x - centerX) / orbitRx);
+    }
+
+    public void beginOrbit(float x, float y, long t) {
+        orbitDragging = true; orbitVelocity = 0; lastOrbitAngle = orbitAt(x, y); lastOrbitTime = t;
+    }
+
+    public void moveOrbit(float x, float y, long t) {
+        if (!orbitDragging) return;
+        float angle = orbitAt(x, y);
+        float delta = (float)Math.atan2(Math.sin(angle - lastOrbitAngle), Math.cos(angle - lastOrbitAngle));
+        orbitAngle += delta;
+        float seconds = (t - lastOrbitTime) / 1000f;
+        if (seconds > 0) orbitVelocity = .5f * orbitVelocity + .5f * delta / seconds;
+        lastOrbitAngle = angle; lastOrbitTime = t; invalidate();
+    }
+
+    public void endOrbit(long t, boolean cancelled) {
+        orbitDragging = false;
+        if (cancelled || t - lastOrbitTime > 80) orbitVelocity = 0;
+        orbitVelocity = Math.max(-12f, Math.min(12f, orbitVelocity));
+        invalidate();
     }
 
     private void cancelGesture() {
