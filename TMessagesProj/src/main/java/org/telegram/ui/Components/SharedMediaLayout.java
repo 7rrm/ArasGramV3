@@ -3546,16 +3546,12 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
                 if (mediaPages != null) {
                     for (MediaPage page : mediaPages) {
                         if (page != null) {
-                            final int paddingTopOld = page.listView.getPaddingTop();
                             page.listView.setPadding(
                                 page.listView.getPaddingLeft(),
-                                getPagePaddingTop(page.selectedType),
+                                page.listView.hintPaddingTop = getPagePaddingTop(page.selectedType),
                                 page.listView.getPaddingRight(),
                                 page.listView.hintPaddingBottom = getPagePaddingBottom(isStoriesView())
                             );
-                            final int paddingTopNew = page.listView.getPaddingTop();
-                            final int scroll = paddingTopOld - paddingTopNew;
-                            AndroidUtilities.doOnLayout(page.listView, () -> page.listView.scrollBy(0, scroll));
                         }
                     }
                 }
@@ -12135,6 +12131,14 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
     private int appliedTopPanelShift = -1;
 
     /** The player at the top under the header, the tabs and what is under them below it. */
+    public void updateProfileMusicColors() {
+        if (fragmentContextView != null) fragmentContextView.updateColors();
+        if (topPanelLayout != null) {
+            topPanelLayout.updateColors();
+            topPanelLayout.invalidate();
+        }
+    }
+
     private void applyTopPanelOffset() {
         final int tabsTop = pagesTabsTop, shift = topLayoutPadding;
         // the player's glass where the glass of the tabs is without it

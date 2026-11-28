@@ -510,6 +510,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         cherryDimAnimator.start();
     }
 
+    private void syncCherryPlayingState() {
+        MessageObject playing = MediaController.getInstance().getPlayingMessageObject();
+        updateCherryPlayingState(playing != null && playing.currentAccount == currentAccount && playing.isMusic() && !MediaController.getInstance().isMessagePaused());
+    }
+
     private void applyCherryProfileDim(float dim, boolean finalFrame) {
         if (resourcesProvider != cherryProfileColors) return;
         cherryProfileDim = dim;
@@ -527,6 +532,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             final int sectionColor = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
             for (int i = 0; i < listView.getChildCount(); i++) {
                 View row = listView.getChildAt(i);
+                if (row instanceof ProfileLocationCell || row instanceof ProfileHoursCell) ThemeBind.updateTree(row, false);
                 if (row instanceof TextDetailCell) ((TextDetailCell) row).updateColors();
                 else if (row instanceof TextCell) ((TextCell) row).updateColors();
                 else if (row instanceof ProfileHoursCell) ((ProfileHoursCell) row).updateColors();
@@ -541,6 +547,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             listView.invalidate();
         }
         if (sharedMediaLayout != null) {
+            sharedMediaLayout.updateProfileMusicColors();
             if (sharedMediaLayout.scrollSlidingTextTabStrip != null) sharedMediaLayout.scrollSlidingTextTabStrip.updateColors();
             sharedMediaLayout.invalidate();
         }
@@ -2414,6 +2421,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         getNotificationCenter().addWeakObserver(this, NotificationCenter.channelRecommendationsLoaded);
         getNotificationCenter().addWeakObserver(this, NotificationCenter.starUserGiftsLoaded);
         getNotificationCenter().addWeakObserver(this, NotificationCenter.profileMusicUpdated);
+        getNotificationCenter().addWeakObserver(this, NotificationCenter.messagePlayingDidStart);
+        getNotificationCenter().addWeakObserver(this, NotificationCenter.messagePlayingDidReset);
+        getNotificationCenter().addWeakObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
         getNotificationCenter().addWeakObserver(this, NotificationCenter.updatedChatRanks);
         NotificationCenter.getGlobalInstance().addWeakObserver(this, NotificationCenter.emojiLoaded);
         updateRowsIds();
@@ -2572,6 +2582,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         getNotificationCenter().removeObserver(this, NotificationCenter.channelRecommendationsLoaded);
         getNotificationCenter().removeObserver(this, NotificationCenter.starUserGiftsLoaded);
         getNotificationCenter().removeObserver(this, NotificationCenter.profileMusicUpdated);
+        getNotificationCenter().removeObserver(this, NotificationCenter.messagePlayingDidStart);
+        getNotificationCenter().removeObserver(this, NotificationCenter.messagePlayingDidReset);
+        getNotificationCenter().removeObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
         getNotificationCenter().removeObserver(this, NotificationCenter.updatedChatRanks);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
         if (avatarsViewPager != null) {
@@ -9918,6 +9931,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     @SuppressWarnings("unchecked")
     @Override
     public void didReceivedNotification(int id, int account, final Object... args) {
+        if (id == NotificationCenter.messagePlayingDidStart || id == NotificationCenter.messagePlayingDidReset || id == NotificationCenter.messagePlayingPlayStateChanged) {
+            syncCherryPlayingState();
+            return;
+        }
         if (id == NotificationCenter.uploadStoryEnd || id == NotificationCenter.chatWasBoostedByUser) {
             checkCanSendStoryForPosting();
         } else if (id == NotificationCenter.updateInterfaces) {
@@ -10447,6 +10464,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        syncCherryPlayingState();
         if (sharedMediaLayout != null) {
             sharedMediaLayout.onResume();
         }

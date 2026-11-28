@@ -142,6 +142,11 @@ public class AppIconsPreferencesEntry extends BaseFragment implements Notificati
 
     @Override
     public View createView(Context context) {
+        actionBar.setAddToContainer(false);
+        actionBar.setBackgroundColor(Color.TRANSPARENT);
+        actionBar.setCastShadows(false);
+        actionBar.setTitleColor(Color.WHITE);
+        actionBar.setItemsColor(Color.WHITE, false);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setTitle(getString(R.string.AppIcon));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -168,6 +173,8 @@ public class AppIconsPreferencesEntry extends BaseFragment implements Notificati
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(0, Math.max(mSystemInsets.top, AndroidUtilities.statusBarHeight) + ActionBar.getCurrentActionBarHeight(), 0, mSystemInsets.bottom);
         contentView.addView(layout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        AndroidUtilities.removeFromParent(actionBar);
+        contentView.addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
 
         layout.addView(new View(context), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 0, 1f));
 

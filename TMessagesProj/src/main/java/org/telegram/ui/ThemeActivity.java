@@ -781,7 +781,6 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             chatListRow = rowCount++;
             chatListInfoRow = rowCount++;
 
-            appIconHeaderRow = rowCount++;
             appIconSelectorRow = rowCount++;
             appIconShadowRow = rowCount++;
 
@@ -1227,7 +1226,9 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         ((DefaultItemAnimator) listView.getItemAnimator()).setDelayAnimations(false);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setOnItemClickListener((view, position, x, y) -> {
-            if (position == enableAnimationsRow) {
+            if (position == appIconSelectorRow) {
+                presentFragment(new tw.nekomimi.nekogram.icons.AppIconsPreferencesEntry(null));
+            } else if (position == enableAnimationsRow) {
                 SharedPreferences preferences = MessagesController.getGlobalMainSettings();
                 boolean animations = preferences.getBoolean("view_animations", true);
                 SharedPreferences.Editor editor = preferences.edit();
@@ -1663,6 +1664,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         super.onResume();
         if (listAdapter != null) {
             updateRows(true);
+            if (appIconSelectorRow >= 0) listAdapter.notifyItemChanged(appIconSelectorRow);
         }
     }
 
@@ -2576,7 +2578,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     view = new RadioButtonCell(mContext);
                     break;
                 case TYPE_APP_ICON:
-                    view = new AppIconsSelectorCell(mContext, ThemeActivity.this, currentAccount);
+                    view = new TextCell(mContext);
                     break;
                 case TYPE_CHOOSE_COLOR:
                     view = new PeerColorActivity.ChangeNameColorCell(currentAccount, 0, mContext, getResourceProvider());
@@ -2588,6 +2590,15 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (holder.getItemViewType()) {
+                case TYPE_APP_ICON: {
+                    TextCell cell = (TextCell) holder.itemView;
+                    LauncherIconController.LauncherIcon selected = LauncherIconController.LauncherIcon.MMARKER;
+                    for (LauncherIconController.LauncherIcon icon : LauncherIconController.LauncherIcon.values()) {
+                        if (LauncherIconController.isEnabled(icon)) { selected = icon; break; }
+                    }
+                    cell.setTextAndIcon(getString(R.string.AppIcon), new tw.nekomimi.nekogram.icons.LauncherIconDrawable(mContext, selected, dp(30)), false);
+                    break;
+                }
                 case TYPE_TEXT_SETTING: {
                     TextSettingsCell cell = (TextSettingsCell) holder.itemView;
                     if (position == nightThemeRow) {

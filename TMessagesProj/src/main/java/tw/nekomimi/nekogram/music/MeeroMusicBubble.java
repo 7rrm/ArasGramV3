@@ -232,8 +232,17 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
             canvas.save();
             float scale = 0.7f + 0.3f * appearProgress;
             canvas.scale(scale, scale, cx, cy);
-            callWave.draw(cx, cy, canvas, callWavePaint);
-            callWave2.draw(cx, cy, canvas, callWavePaint);
+            if (org.telegram.messenger.LiteMode.isEnabled(org.telegram.messenger.LiteMode.FLAG_CALLS_ANIMATIONS)) {
+                callWave.draw(cx, cy, canvas, callWavePaint);
+                callWave2.draw(cx, cy, canvas, callWavePaint);
+            } else {
+                // BlobDrawable suppresses drawing entirely when call animations are off.
+                // Keep a visible ripple for the player independently of that call setting.
+                float pulse = paused ? 0f : (float) Math.sin(android.os.SystemClock.uptimeMillis() / 450.0);
+                canvas.drawCircle(cx, cy, dp(27) + dp(2) * pulse, callWavePaint);
+                callWavePaint.setAlpha((int) (48 * appearProgress));
+                canvas.drawCircle(cx, cy, dp(29) - dp(1) * pulse, callWavePaint);
+            }
             canvas.restore();
             if (!paused) postInvalidateOnAnimation();
         }
@@ -322,6 +331,7 @@ public class MeeroMusicBubble extends FrameLayout implements NotificationCenter.
         panel.setLayoutParams(panelParams);
         if (getWidth() > 0 && getHeight() > 0) layoutPanel(getWidth(), getHeight());
         bubble.invalidate();
+        invalidate();
         setState(STATE_VISIBLE, animated);
     }
 
